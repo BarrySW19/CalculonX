@@ -1,0 +1,78 @@
+[Event "ICC"]
+[Site "Internet Chess Club"]
+[Date "2013.11.30"]
+[White "TalEnuf"]
+[Black "CalculonX"]
+[Result "*"]
+[TimeControl "120+1"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. d3 b5 
+6. Bb3 d5 7. exd5 Nxd5 8. O-O h6 9. Nc3 Nxc3 10. bxc3 Bg4 
+11. h3 Bh5 12. c4 Bc5 13. cxb5 axb5 14. Be3 Nd4 15. Bxd4 Bxd4 
+16. Rb1 O-O 17. Qe2 Qd6 18. Qe4 Bc3 19. Qd5 Qf6 20. Qe4 Bxf3 
+21. Qxf3 Qxf3 22. gxf3 Rfd8 23. Kg2 Bd2 24. Rbd1 Bc3 25. Kg3 Rd4 
+26. Rg1 Ra6 27. Kh2 c5 28. Rg4 h5 29. Rxd4 exd4 30. Rg1 Bd2 
+31. Rd1 Bf4+ 32. Kg2 b4 33. Re1 Rg6+ 34. Kh1 Kf8 35. Re4 Bd6 
+36. Re1 Bc7 37. Rg1 Rxg1+ 38. Kxg1 Bb8 39. Kg2 h4 40. Kf1 Be5 
+41. Ke2 Bh2 42. Bc4 Be5 43. Bb3 Bd6 44. Bc4 Ke8 45. Bb3 Kf8 
+46. Bc4 Bb8 47. Bb3 Be5 48. Bc4 Kg8 49. Bb3 Kf8 50. Bc4 Kg8 
+51. Bb3 Bc7 52. Bc4 Bd6 53. Bb3 Bc7 54. Bc4 Bh2 55. Bb3 Bb8 
+56. Bc4 Kf8 57. Bb3 Bh2 58. Bc4 Bd6 59. Bb3 Bb8 60. Bc4 Bf4 
+61. Bb3 Bh6 62. Bc4 Ke7 63. Bb3 Bf4 64. Bc4 Bh2 65. Bb3 Ke8 
+66. Bc4 Kf8 67. Bb3 Bc7 68. Bc4 Ke8 69. Bb3 Ke7 70. Bc4 Kf8 
+71. Bb3 Ke8 72. Bc4 Kf8 73. Bb3 Ke7 74. Bc4 Bd6 75. Bb3 Ke8 
+76. Bc4 Kf8 77. Bb3 Kg8 78. Bc4 Bh2 79. Bb3 Bb8 80. Bc4 Bd6 
+81. Bb3 Bf4 82. Bc4 Bg5 83. Bb3 Bh6 84. Bc4 Bc1 85. Bb3 Kf8 
+86. Bc4 Ke8 87. Bb3 Kf8 88. Bc4 Bh6 89. Bb3 g6 90. Bc4 Bg5 
+91. Bb3 Bc1 92. Bc4 Kg8 93. Bb3 Bh6 94. Bc4 Bg5 95. Bb3 Kf8 
+96. Bc4 Bh6 97. Bb3 Ke8 98. Bc4 Ke7 99. Bb3 Kf8 100. Bc4 Kg7 
+101. Bb3 Bf4 102. Bc4 Kf8 103. Bb3 Bd6 104. Bc4 Kg8 105. Bb3 Bb8 
+106. Bc4 Kf8 107. Bb3 Kg8 108. Bc4 Bf4 109. Bb3 Kf8 110. Bc4 Ke7 
+111. Bb3 Bb8 112. Bc4 Ke8 113. Bb3 Ke7 114. Bc4 Ke8 115. Bb3 Kf8 
+116. Bc4 Kg8 117. Bb3 Bh2 118. Bc4 Kf8 119. Bb3 Kg7 120. Bc4 Kf6 
+121. Bb3 Bf4 122. Bc4 Ke7 123. Bb3 Ke8 124. Bc4 Bc7 125. Bb3 Kf8 
+126. Bc4 Ke7 127. Bb3 Kf6 128. Bc4 Bd6 129. Bb3 Kg7 130. Bc4 Kf8 
+131. Bb3 Kg8 132. Bc4 Kg7 133. Bb3 Kf8 134. Bc4 Kg7 135. Bb3 Kf6 
+136. Bc4 Bh2 137. Bb3 Kg7 138. Bc4 f6 139. Bb3 Kh7 140. Bc4 Bb8 
+141. Bb3 Bf4 142. Bc4 Bg5 143. Bb3 Bh6 144. Bc4 Kg7 145. Bb3 Kh8 
+146. Bc4 Bc1 147. Bb3 Kg7 148. Bc4 Bh6 149. Bb3 Bg5 150. Bc4 Bc1 
+151. Bb3 Kh6 152. Bc4 Bf4 153. Bb3 Bd6 154. Bc4 Kg7 155. Bb3 Bb8 
+156. Bc4 Kh8 157. Bb3 Kg7 158. Bc4 Bf4 159. Bb3 Kh8 160. Bc4 Kg7 
+161. Bb3 Kh8 162. Bc4 Bh2 163. Bb3 Kg7 164. Bc4 Kh6 165. Bb3 Kh7 
+166. Bc4 Kh8 167. Bb3 Kg7 168. Bc4 Kh6 169. Bb3 Bc7 170. Bc4 Kh7 
+171. Bb3 Kh8 172. Bc4 Kg7 173. Bb3 Kf8 174. Bc4 Kg7 175. Bb3 Kh7 
+176. Bc4 Kh6 177. Bb3 Kg7 178. Bc4 Kh7 179. Bb3 Kh6 180. Bc4 Bf4 
+181. Bb3 Kg7 182. Bc4 Kh8 183. Bb3 Bc1 184. Bc4 Kh7 185. Bb3 Kh8 
+186. Bc4 Kh7 187. Bb3 Bg5 188. Bc4 f5 189. Bb3 Kh8 190. Bc4 Bc1 
+191. Bb3 Bh6 192. Bc4 Bc1 193. Bb3 Kg7 194. Bc4 Bf4 195. Bb3 Bb8 
+196. Bc4 Be5 197. Bb3 Kh6 198. Bc4 Kg7 199. Bb3 Bd6 200. Bc4 Kh8 
+201. Bb3 Bb8 202. Bc4 Kg7 203. Bb3 Bf4 204. Bc4 Kh8 205. Bb3 Bb8 
+206. Bc4 Be5 207. Bb3 Bh2 208. Bc4 Bc7 209. Bb3 Bd6 210. Bc4 Kg7 
+211. Bb3 Kh8 212. Bc4 Kh7 213. Bb3 Bb8 214. Bc4 Kh8 215. Bb3 Bf4 
+216. Bc4 Kh7 217. Bb3 Kg7 218. Bc4 Kf6 219. Bb3 Ke5 220. Bc4 Kf6 
+221. Bb3 Ke5 222. Bc4 Bc1 223. Bb3 Kf6 224. Bc4 Kg7 225. Bb3 Kh7 
+226. Bc4 Bf4 227. Bb3 Kh6 228. Bc4 Kg5 229. Bb3 Kh6 230. Bc4 Be5 
+231. Bb3 Kh7 232. Bc4 Kh6 233. Bb3 Bb8 234. Bc4 Kg5 235. Bb3 Kh6 
+236. Bc4 g5 237. Bb3 Be5 238. Bc4 Kg6 239. Bb3 Kh6 240. Bc4 Bd6 
+241. Bb3 Kh7 242. Bc4 Bf4 243. Bb3 Be5 244. Bc4 Kg6 245. Bb3 Bh2 
+246. Bc4 Kf6 247. Bb3 Bf4 248. Bc4 Ke7 249. Bb3 Kd6 250. Bc4 Kd7 
+251. Bb3 Kd6 252. Bc4 Kd7 253. Bb3 Ke7 254. Bc4 Kd6 255. Bb3 Kd7 
+256. Bc4 Kd6 257. Bb3 Kd7 258. Bc4 Bc7 259. Bb3 Kd6 260. Bc4 Ke7 
+261. Bb3 Kd6 262. Bc4 Ke5 263. Bb3 Kf4 264. Be6 Ke5 265. Bb3 Kf6 
+266. Bc4 Ke7 267. Bb3 Be5 268. Bc4 Bh2 269. Bb3 Be5 270. Bc4 Bb8 
+271. Bb3 Kf6 272. Bc4 Ke5 273. Bb3 Kf6 274. Bc4 Ke7 275. Bb3 Bf4 
+276. Bc4 Kf6 277. Bb3 Bc7 278. Bc4 Kg7 279. Bb3 Ba5 280. Bc4 Bd8 
+281. Bb3 Kh7 282. Bc4 Kg6 283. Bb3 Kg7 284. Bc4 Kh6 285. Bb3 Bc7 
+286. Bc4 f4 287. Bb3 Be5 288. Bc4 Bb8 289. Bb3 Kh5 290. Bc4 Bd6 
+291. Bb3 Bf8 292. Bc4 Be7 293. Bb3 Bd6 294. Bc4 Kg6 295. Bb3 Kf6 
+296. Bc4 Bb8 297. Bb3 Bd6 298. Bc4 Ke5 299. Bb3 Bc7 300. Bc4 Kd6 
+301. Bb3 Ke5 302. Bc4 Kd6 303. Bb3 Ke7 304. Bc4 Kf8 305. Bb3 Ke8 
+306. Bc4 Kd7 307. Bb3 Kd6 308. Bc4 Ke7 309. Bb3 Kd6 310. Bc4 Ke7 
+311. Bb3 Ba5 312. Bc4 Kf6 313. Bb3 Ke5 314. Bc4 Bb6 315. Bb3 Ba5 
+316. Bc4 Bc7 317. Bb3 Bd6 318. Bc4 Be7 319. Bb3 Bd6 320. Bc4 Kf6 
+321. Bb3 Bc7 322. Bc4 Ke5 323. Bb3 Kf5 324. Bc4 Be5 325. Bb3 Bh8 
+326. Bc4 Bf6 327. Bb3 Bd8 328. Bc4 Kf6 329. Bb3 Kg7 330. Bc4 Kh6 
+331. Bb3 Kg6 332. Bc4 Kg7 333. Bb3 Kh7 334. Bc4 Kh8 335. Bb3 Kg7 
+336. Bc4 Kf6 {BarryNL goes forward 673.} 337. Bb3 {Game drawn by the 50 move rule} {You're at the end of the game.}
+*
+
