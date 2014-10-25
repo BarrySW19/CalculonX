@@ -1,7 +1,7 @@
 /**
  * Calculon - A Java chess-engine.
  *
- * Copyright (C) 2008-2009 Barry Smith
+ * Copyright (C) 2008-2014 Barry Smith
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ package nl.zoidberg.calculon.analyzer;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
 public class RookScorerTest extends AbstractAnalyserTest {
 
     public RookScorerTest() {
@@ -29,43 +27,34 @@ public class RookScorerTest extends AbstractAnalyserTest {
 
     @Test
 	public void testEqualScorer() {
-        assertEquals(0, scorePosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"));
+        assertScore(0, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     }
 
     @Test
     public void testHalfOpenScorer() {
-        assertEquals(-RookScorer.HALF_OPEN_FILE_SCORE,
-                scorePosition("rnbqkbnr/1ppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"));
-        assertEquals(2 * RookScorer.HALF_OPEN_FILE_SCORE,
-                scorePosition("rnbqkbnr/pppppppp/8/8/8/8/1PPPPPP1/RNBQKBNR w KQkq - 0 1"));
+        assertScore(-RookScorer.HALF_OPEN_FILE_SCORE, "rnbqkbnr/1ppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        assertScore(2 * RookScorer.HALF_OPEN_FILE_SCORE, "rnbqkbnr/pppppppp/8/8/8/8/1PPPPPP1/RNBQKBNR w KQkq - 0 1");
 	}
 
     @Test
     public void testOpenScorer() {
-        assertEquals(-RookScorer.OPEN_FILE_SCORE,
-                scorePosition("rnbqkbn1/1ppppppp/8/8/8/8/1PPPPPPP/1NBQKBNR w KQkq - 0 1"));
+        assertScore(-RookScorer.OPEN_FILE_SCORE, "rnbqkbn1/1ppppppp/8/8/8/8/1PPPPPPP/1NBQKBNR w KQkq - 0 1");
+    }
+
+    @Test
+    public void testIsolatedPawnAttack() {
+        assertScore(RookScorer.ISOLATED_ATTACK_SCORE, "6kr/2p3pp/8/8/8/8/5PPP/2R3K1 w - - 0 0");
     }
 
     @Test
     public void testPigsOnThe7thScore() {
-        assertEquals(RookScorer.PIGS_ON_THE_SEVENTH,
-                scorePosition("1k2r2r/1pp2RR1/p2p4/8/8/P2P4/1PP5/1K6 w - - 0 1"));
+        assertScore(RookScorer.PIGS_ON_THE_SEVENTH, "1k2r2r/1pp2RR1/p2p4/8/8/P2P4/1PP5/1K6 w - - 0 1");
     }
 
     @Test
 	public void testConnectedScore() {
-		setPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 w KQkq - 0 1");
-		assertEquals(150, scorer.scorePosition(board, context));
-
-        setPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/4RRK1 w KQkq - 0 1");
-		assertEquals(150, scorer.scorePosition(board, context));
-
-        setPosition("rnbqkbnr/pppppppp/8/8/7P/7R/PPPPPPP1/1NBQKBNR w KQkq - 0 1");
-		assertEquals(150, scorer.scorePosition(board, context));
+		assertScore(RookScorer.CONNECTED_BONUS, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 w KQkq - 0 1");
+        assertScore(RookScorer.CONNECTED_BONUS, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/4RRK1 w KQkq - 0 1");
+        assertScore(RookScorer.CONNECTED_BONUS, "rnbqkbnr/pppppppp/8/8/7P/7R/PPPPPPP1/1NBQKBNR w KQkq - 0 1");
 	}
-
-    private  int scorePosition(String fen) {
-        setPosition(fen);
-        return scorer.scorePosition(board, context);
-    }
 }

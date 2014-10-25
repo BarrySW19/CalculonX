@@ -21,18 +21,18 @@ import nl.zoidberg.calculon.engine.BitBoard;
 import nl.zoidberg.calculon.model.Piece;
 
 public class RookScorer implements PositionScorer {
-
-    public static final int OPEN_FILE_SCORE = 150;
-    public static final int HALF_OPEN_FILE_SCORE = 100;
-    public static final int CONNECTED_BONUS = 150;
-    public static final int PIGS_ON_THE_SEVENTH = 150;
+    public static final int OPEN_FILE_SCORE         = 150;
+    public static final int HALF_OPEN_FILE_SCORE    = 60;
+    public static final int CONNECTED_BONUS         = 100;
+    public static final int PIGS_ON_THE_SEVENTH     = 120;
+    public static final int ISOLATED_ATTACK_SCORE   = 160;
 
     @Override
     public int scorePosition(BitBoard bitBoard, Context context) {
-        return getScore(bitBoard, Piece.WHITE) - getScore(bitBoard, Piece.BLACK);
+        return getScore(bitBoard, Piece.WHITE, context) - getScore(bitBoard, Piece.BLACK, context);
 	}
 	
-	private int getScore(BitBoard bitBoard, byte color) {
+	private int getScore(BitBoard bitBoard, byte color, Context context) {
 		int score = 0;
 
         // First, give rooks a good score if they stand on (half) open files.
@@ -47,9 +47,10 @@ public class RookScorer implements PositionScorer {
             } else {
                 // Not on an open file - check if it's half open.
                 if((bitBoard.getBitmapColor(color) & allPawnsOnFile) == 0) {
+                    boolean isolated = (allPawnsOnFile & context.getIsolatedPawns()) != 0;
                     // TODO This could be improved by considering what type of pawn is on the half open file.
                     // TODO Is it backward or isolated? If so, score should be higher.
-                    score += HALF_OPEN_FILE_SCORE;
+                    score += isolated ? ISOLATED_ATTACK_SCORE : HALF_OPEN_FILE_SCORE;
                 }
             }
 		}
