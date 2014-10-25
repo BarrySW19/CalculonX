@@ -17,82 +17,77 @@
  */
 package nl.zoidberg.calculon.analyzer;
 
-import nl.zoidberg.calculon.engine.BitBoard;
-import nl.zoidberg.calculon.notation.FENUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class KnightScorerTest {
+public class KnightScorerTest extends AbstractAnalyserTest {
 	
-	private KnightScorer scorer = new KnightScorer();
-	private BitBoard board = new BitBoard();
+    public KnightScorerTest() {
+        super(new KnightScorer());
+    }
 
     @Test
 	public void testKnightInCorner() {
-		FENUtils.loadPosition("7k/8/8/8/8/8/8/N6K w - - 0 1", board);
-		int expect = KnightScorer.targetScores[2]; 
-		assertEquals(expect, scorer.scorePosition(board, new PositionScorer.Context()));
+		setPosition("7k/8/8/8/8/8/8/N6K w - - 0 1");
+		assertEquals(KnightScorer.targetScores[2], scorer.scorePosition(board, context));
 	}
 
     @Test
 	public void testKnightInCornerOwnPieceBlocking() {
-		FENUtils.loadPosition("7k/8/8/8/8/8/2R5/N6K w - - 0 1", board);
-		int expect = KnightScorer.targetScores[2]; 
-		assertEquals(expect, scorer.scorePosition(board, new PositionScorer.Context()));
+		setPosition("7k/8/8/8/8/8/2R5/N6K w - - 0 1");
+		assertEquals(KnightScorer.targetScores[2], scorer.scorePosition(board, context));
 	}
 
     @Test
 	public void testKnightInCornerPawnBlocking() {
-		FENUtils.loadPosition("7k/8/8/8/8/3p4/8/N6K w - - 0 1", board);
-		int expect = KnightScorer.targetScores[1]; 
-		assertEquals(expect, scorer.scorePosition(board, new PositionScorer.Context()));
+		setPosition("7k/8/8/8/8/3p4/8/N6K w - - 0 1");
+		assertEquals(KnightScorer.targetScores[1], scorer.scorePosition(board, context));
 	}
 
     @Test
 	public void testKnightInCornerAttacking() {
-		FENUtils.loadPosition("7k/8/8/8/8/8/2r5/N6K w - - 0 1", board);
-		int expect = KnightScorer.targetScores[2]; 
-		assertEquals(expect, scorer.scorePosition(board, new PositionScorer.Context()));
+		setPosition("7k/8/8/8/8/8/2r5/N6K w - - 0 1");
+		assertEquals(KnightScorer.targetScores[2], scorer.scorePosition(board, context));
 	}
 
     @Test
 	public void testKnightInMiddle() {
-		FENUtils.loadPosition("7k/8/8/8/3N4/8/8/7K w - - 0 1", board);
+		setPosition("7k/8/8/8/3N4/8/8/7K w - - 0 1");
 		int expect = (KnightScorer.targetScores[8] + KnightScorer.rankScores[3]); 
-		assertEquals(expect, scorer.scorePosition(board, new PositionScorer.Context()));
+		assertEquals(expect, scorer.scorePosition(board, context));
 	}
 
     @Test
 	public void testBlackKnightInMiddle() {
-		FENUtils.loadPosition("7k/8/8/8/3n4/8/8/7K w - - 0 1", board);
+		setPosition("7k/8/8/8/3n4/8/8/7K w - - 0 1");
 		int expect = (KnightScorer.targetScores[8] + KnightScorer.rankScores[4]); 
-		assertEquals(-expect, scorer.scorePosition(board, new PositionScorer.Context()));
+		assertEquals(-expect, scorer.scorePosition(board, context));
 	}
 
     @Test
 	public void testKnightInMiddleNonSecure() {
 		int expect = (KnightScorer.targetScores[8] + KnightScorer.rankScores[3]); 
 
-		FENUtils.loadPosition("7k/4p3/8/8/3N4/2P5/8/7K w - - 0 1", board);
-		assertEquals(expect, scorer.scorePosition(board, new PositionScorer.Context()));
+		setPosition("7k/4p3/8/8/3N4/2P5/8/7K w - - 0 1");
+		assertEquals(expect, scorer.scorePosition(board, context));
 
-		FENUtils.loadPosition("7k/2p5/8/8/3N4/2P5/8/7K w - - 0 1", board);
-		assertEquals(expect, scorer.scorePosition(board, new PositionScorer.Context()));
+		setPosition("7k/2p5/8/8/3N4/2P5/8/7K w - - 0 1");
+		assertEquals(expect, scorer.scorePosition(board, context));
 
-		FENUtils.loadPosition("7k/8/8/2p5/3N4/2P5/8/7K w - - 0 1", board);
-		assertEquals(expect, scorer.scorePosition(board, new PositionScorer.Context()));
+		setPosition("7k/8/8/2p5/3N4/2P5/8/7K w - - 0 1");
+		assertEquals(expect, scorer.scorePosition(board, context));
 	}
 
     @Test
 	public void testKnightInMiddleSecure() {
-		FENUtils.loadPosition("7k/8/8/8/3N4/2P5/8/7K w - - 0 1", board);
+		setPosition("7k/8/8/8/3N4/2P5/8/7K w - - 0 1");
 
 		int expect = (KnightScorer.targetScores[8] + KnightScorer.rankScores[3] + KnightScorer.SECURE_BONUS); 
-		assertEquals(expect, scorer.scorePosition(board, new PositionScorer.Context()));
+		assertEquals(expect, scorer.scorePosition(board, context));
 		
-		FENUtils.loadPosition("7k/8/8/8/3Np3/2P5/8/7K w - - 0 1", board);
+		setPosition("7k/8/8/8/3Np3/2P5/8/7K w - - 0 1");
 		expect = (KnightScorer.targetScores[7] + KnightScorer.rankScores[3] + KnightScorer.SECURE_BONUS); 
-		assertEquals(expect, scorer.scorePosition(board, new PositionScorer.Context()));
+		assertEquals(expect, scorer.scorePosition(board, context));
 	}
 }

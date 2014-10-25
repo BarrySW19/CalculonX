@@ -25,34 +25,20 @@ public class PawnStructureScorer implements PositionScorer {
 	public static int S_ISOLATED 	= 100;
 	public static int S_DOUBLED 	= 100;
 	
-	private static int[] S_ADVANCE = { 20, 100, 200, 400, };
-
     @Override
     public int scorePosition(BitBoard bitBoard, Context context) {
-		long whitePawns = bitBoard.getBitmapWhite()&bitBoard.getBitmapPawns();
-		long blackPawns = bitBoard.getBitmapBlack()&bitBoard.getBitmapPawns();
+		long whitePawns = bitBoard.getBitmapWhite() & bitBoard.getBitmapPawns();
+		long blackPawns = bitBoard.getBitmapBlack() & bitBoard.getBitmapPawns();
 
 		int score = 0;
 		score += countIslands(blackPawns) * S_ISLAND;
 		score -= countIslands(whitePawns) * S_ISLAND;
 		
-		score += getIsolatedCount(blackPawns) * S_ISOLATED;
-		score -= getIsolatedCount(whitePawns) * S_ISOLATED;
-		
+        score += Long.bitCount(context.getIsolatedPawns() & bitBoard.getBitmapBlack()) * S_ISOLATED;
+        score -= Long.bitCount(context.getIsolatedPawns() & bitBoard.getBitmapWhite()) * S_ISOLATED;
+
 		score += getDoubledScore(whitePawns, blackPawns);
-		score += getAdvanceScore(whitePawns, blackPawns);
-		
-		return score;
-	}
-	
-	private int getAdvanceScore(long whitePawns, long blackPawns) {
-		
-		int score = 0;
-//		for(int rank = 3; rank < 7; rank++) {
-//			score += Long.bitCount(whitePawns&BitBoard.getRankMap(rank)) * S_ADVANCE[rank-3];
-//			score -= Long.bitCount(blackPawns&BitBoard.getRankMap(7-rank)) * S_ADVANCE[rank-3];
-//		}
-		
+
 		return score;
 	}
 	
@@ -81,24 +67,5 @@ public class PawnStructureScorer implements PositionScorer {
 			score += (bCount > 1 ? (bCount-1) * S_DOUBLED : 0);
 		}
 		return score;
-	}
-	
-	private int getIsolatedCount(long pawns) {
-		int count = 0;
-		long prevFile = 0;
-		long thisFile = 0;
-		for(int file = 0; file < 8; file++) {
-			if(file == 0) {
-				thisFile = pawns & BitBoard.getFileMap(file);
-			}
-			long nextFile = (file == 7 ? 0 : pawns & BitBoard.getFileMap(file+1));
-			
-			if(thisFile != 0 && prevFile == 0 && nextFile == 0) {
-				count += Long.bitCount(thisFile);
-			}
-			prevFile = thisFile;
-			thisFile = nextFile;
-		}
-		return count;
 	}
 }

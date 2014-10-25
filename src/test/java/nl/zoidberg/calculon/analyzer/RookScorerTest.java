@@ -17,14 +17,15 @@
  */
 package nl.zoidberg.calculon.analyzer;
 
-import nl.zoidberg.calculon.engine.BitBoard;
-import nl.zoidberg.calculon.notation.FENUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class RookScorerTest {
-	private static final RookScorer rs = new RookScorer();
+public class RookScorerTest extends AbstractAnalyserTest {
+
+    public RookScorerTest() {
+        super(new RookScorer());
+    }
 
     @Test
 	public void testEqualScorer() {
@@ -53,20 +54,18 @@ public class RookScorerTest {
 
     @Test
 	public void testConnectedScore() {
-		BitBoard board = new BitBoard();
-		FENUtils.loadPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 w KQkq - 0 1", board);
-		assertEquals(150, rs.scorePosition(board, new PositionScorer.Context()));
+		setPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 w KQkq - 0 1");
+		assertEquals(150, scorer.scorePosition(board, context));
 
-		FENUtils.loadPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/4RRK1 w KQkq - 0 1", board);
-		assertEquals(150, rs.scorePosition(board, new PositionScorer.Context()));
+        setPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/4RRK1 w KQkq - 0 1");
+		assertEquals(150, scorer.scorePosition(board, context));
 
-		FENUtils.loadPosition("rnbqkbnr/pppppppp/8/8/7P/7R/PPPPPPP1/1NBQKBNR w KQkq - 0 1", board);
-		assertEquals(150, rs.scorePosition(board, new PositionScorer.Context()));
+        setPosition("rnbqkbnr/pppppppp/8/8/7P/7R/PPPPPPP1/1NBQKBNR w KQkq - 0 1");
+		assertEquals(150, scorer.scorePosition(board, context));
 	}
 
-    private static int scorePosition(String fen) {
-        BitBoard board = new BitBoard();
-        FENUtils.loadPosition(fen, board);
-        return rs.scorePosition(board, new PositionScorer.Context());
+    private  int scorePosition(String fen) {
+        setPosition(fen);
+        return scorer.scorePosition(board, context);
     }
 }

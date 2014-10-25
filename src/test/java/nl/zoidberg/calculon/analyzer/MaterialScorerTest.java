@@ -17,13 +17,11 @@
  */
 package nl.zoidberg.calculon.analyzer;
 
-import nl.zoidberg.calculon.engine.BitBoard;
-import nl.zoidberg.calculon.notation.FENUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class MaterialScorerTest {
+public class MaterialScorerTest extends AbstractAnalyserTest {
     private static final int ALL_PIECES =
             MaterialScorer.VALUE_PAWN * 8
             + MaterialScorer.VALUE_ROOK * 2
@@ -31,54 +29,47 @@ public class MaterialScorerTest {
             + MaterialScorer.VALUE_BISHOP * 2
             + MaterialScorer.VALUE_QUEEN;
 
-	private MaterialScorer scorer = new MaterialScorer();
-	private BitBoard board = new BitBoard();
+    public MaterialScorerTest() {
+        super(new MaterialScorer());
+    }
 
     @Test
 	public void testAllPieces() {
-		board.initialise();
-		assertEquals(0, scorer.scorePosition(board, new PositionScorer.Context()));
+        assertScore(0, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 	}
 
     @Test
 	public void testAllWhite() {
-		FENUtils.loadPosition("4k3/8/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1", board);
-		assertEquals(ALL_PIECES, scorer.scorePosition(board, new PositionScorer.Context()));
+        assertScore(ALL_PIECES, "4k3/8/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1");
 	}
 
     @Test
 	public void testAllBlack() {
-		FENUtils.loadPosition("rnbqkbnr/pppppppp/8/8/8/8/8/4K3 w - - 0 1", board);
-		assertEquals(-ALL_PIECES, scorer.scorePosition(board, new PositionScorer.Context()));
+        assertScore(-ALL_PIECES, "rnbqkbnr/pppppppp/8/8/8/8/8/4K3 w - - 0 1");
 	}
 
     @Test
 	public void testRookValue() {
-		FENUtils.loadPosition("1nbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1", board);
-		assertEquals(5000, scorer.scorePosition(board, new PositionScorer.Context()));
+        assertScore(MaterialScorer.VALUE_ROOK, "1nbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1");
 	}
 
     @Test
 	public void testKnightValue() {
-		FENUtils.loadPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R1BQKBNR w - - 0 1", board);
-		assertEquals(-MaterialScorer.VALUE_KNIGHT, scorer.scorePosition(board, new PositionScorer.Context()));
+        assertScore(-MaterialScorer.VALUE_KNIGHT, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R1BQKBNR w - - 0 1");
 	}
 
     @Test
 	public void testBishopValue() {
-		FENUtils.loadPosition("rn1qk1nr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1", board);
-		assertEquals(2*MaterialScorer.VALUE_BISHOP, scorer.scorePosition(board, new PositionScorer.Context()));
+        assertScore(2 * MaterialScorer.VALUE_BISHOP, "rn1qk1nr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1");
 	}
 
     @Test
 	public void testQueenValue() {
-		FENUtils.loadPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNB1KBNR w - - 0 1", board);
-		assertEquals(-9000, scorer.scorePosition(board, new PositionScorer.Context()));
+        assertScore(-MaterialScorer.VALUE_QUEEN, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNB1KBNR w - - 0 1");
 	}
 
     @Test
 	public void testPawnValue() {
-		FENUtils.loadPosition("rnbqkbnr/p1p2pp1/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1", board);
-		assertEquals(4000, scorer.scorePosition(board, new PositionScorer.Context()));
+        assertScore(4 * MaterialScorer.VALUE_PAWN, "rnbqkbnr/p1p2pp1/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1");
 	}
 }

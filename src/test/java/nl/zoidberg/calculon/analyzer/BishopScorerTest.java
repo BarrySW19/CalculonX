@@ -17,37 +17,37 @@
  */
 package nl.zoidberg.calculon.analyzer;
 
-import nl.zoidberg.calculon.engine.BitBoard;
-import nl.zoidberg.calculon.notation.FENUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class BishopScorerTest {
+public class BishopScorerTest extends AbstractAnalyserTest {
 
-	private BishopPairScorer scorer = new BishopPairScorer();
-	private BitBoard board = new BitBoard();
+    public BishopScorerTest() {
+        super(new BishopPairScorer());
+    }
 
     @Test
 	public void testBishopScore1() {
-		assertEquals(0, scorer.scorePosition(board.initialise(), new PositionScorer.Context()));
+        setPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+		assertEquals(0, scorer.scorePosition(board, context));
 	}
 	
     @Test
 	public void testBishopScore2() {
-		FENUtils.loadPosition("2b1kb2/8/8/8/8/8/8/7K w - - 0 1", board);
-		assertEquals(-150, scorer.scorePosition(board, new PositionScorer.Context()));
+		setPosition("2b1kb2/8/8/8/8/8/8/7K w - - 0 1");
+		assertEquals(-150, scorer.scorePosition(board, context));
 	}
 	
     @Test
 	public void testBishopScore3() {
-		FENUtils.loadPosition("2b1kb2/q7/8/8/8/8/8/7K w - - 0 1", board);
-		assertEquals(-300, scorer.scorePosition(board, new PositionScorer.Context()));
+		setPosition("2b1kb2/q7/8/8/8/8/8/7K w - - 0 1");
+		assertEquals(-300, scorer.scorePosition(board, context));
 	}
 
     @Test
 	public void testBishopScore4() {
-		FENUtils.loadPosition("2b1kb2/q7/8/8/8/8/8/2B2B1K w - - 0 1", board);
-		assertEquals(-150, scorer.scorePosition(board, new PositionScorer.Context()));
+		setPosition("2b1kb2/q7/8/8/8/8/8/2B2B1K w - - 0 1");
+		assertEquals(-150, scorer.scorePosition(board, context));
 	}
 }

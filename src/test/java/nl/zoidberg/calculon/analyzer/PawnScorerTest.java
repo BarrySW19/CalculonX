@@ -17,52 +17,54 @@
  */
 package nl.zoidberg.calculon.analyzer;
 
-import nl.zoidberg.calculon.engine.BitBoard;
-import nl.zoidberg.calculon.notation.FENUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class PawnScorerTest {
+public class PawnScorerTest extends AbstractAnalyserTest {
+
+    public PawnScorerTest() {
+        super(new PawnStructureScorer());
+    }
 
     @Test
 	public void testBasicScore() {
-		BitBoard board = new BitBoard().initialise();
-		assertEquals(0, new PawnStructureScorer().scorePosition(board, new PositionScorer.Context()));
+        setPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+		assertEquals(0, scorer.scorePosition(board, context));
 	}
 
     @Test
 	public void testIslands() {
-		BitBoard board = FENUtils.getBoard("rnbqkbnr/ppp1pppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-		assertEquals(PawnStructureScorer.S_ISLAND, new PawnStructureScorer().scorePosition(board, new PositionScorer.Context()));
+		setPosition("rnbqkbnr/ppp1pppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+		assertEquals(PawnStructureScorer.S_ISLAND, scorer.scorePosition(board, context));
 		
-		board = FENUtils.getBoard("rnbqkbnr/pppppppp/8/8/8/8/PP1PP1PP/RNBQKBNR w KQkq - 0 1"); 
-		assertEquals(-2 * PawnStructureScorer.S_ISLAND, new PawnStructureScorer().scorePosition(board, new PositionScorer.Context()));
+		setPosition("rnbqkbnr/pppppppp/8/8/8/8/PP1PP1PP/RNBQKBNR w KQkq - 0 1"); 
+		assertEquals(-2 * PawnStructureScorer.S_ISLAND, scorer.scorePosition(board, context));
 	}
 	
     @Test
 	public void testIsolated() {
-		BitBoard board = FENUtils.getBoard("rnbqkbnr/pp1pp1pp/8/8/8/8/P1P1PPPP/RNBQKBNR w KQkq - 0 1"); 
-		assertEquals(-2 * PawnStructureScorer.S_ISOLATED, new PawnStructureScorer().scorePosition(board, new PositionScorer.Context()));
+		setPosition("rnbqkbnr/pp1pp1pp/8/8/8/8/P1P1PPPP/RNBQKBNR w KQkq - 0 1"); 
+		assertEquals(-2 * PawnStructureScorer.S_ISOLATED, scorer.scorePosition(board, context));
 	}
 
     @Test
 	public void testDoubled() {
 		// Both have islands, only one has doubled
-		BitBoard board = FENUtils.getBoard("rnbqkbnr/pp1ppppp/8/8/8/3P4/PP1PPPPP/RNBQKBNR w KQkq - 0 1"); 
-		assertEquals(-PawnStructureScorer.S_DOUBLED, new PawnStructureScorer().scorePosition(board, new PositionScorer.Context()));
+		setPosition("rnbqkbnr/pp1ppppp/8/8/8/3P4/PP1PPPPP/RNBQKBNR w KQkq - 0 1"); 
+		assertEquals(-PawnStructureScorer.S_DOUBLED, scorer.scorePosition(board, context));
 
 		// Here - test pawn gets an advance bonus
-		board = FENUtils.getBoard("rnbqkbnr/pp1ppppp/8/8/3P4/3P4/PP1PPPP1/RNBQKBNR w KQkq - 0 1"); 
-		assertEquals(-2 * PawnStructureScorer.S_DOUBLED, new PawnStructureScorer().scorePosition(board, new PositionScorer.Context()));
+		setPosition("rnbqkbnr/pp1ppppp/8/8/3P4/3P4/PP1PPPP1/RNBQKBNR w KQkq - 0 1"); 
+		assertEquals(-2 * PawnStructureScorer.S_DOUBLED, scorer.scorePosition(board, context));
 	}
 	
     @Test @Deprecated
 	public void testAdvanced() {
-		BitBoard board = FENUtils.getBoard("rnbqkbnr/pppppppp/3P4/8/8/8/PPP1PPPP/RNBQKBNR w KQkq - 0 1"); 
-		assertEquals(0, new PawnStructureScorer().scorePosition(board, new PositionScorer.Context()));
+		setPosition("rnbqkbnr/pppppppp/3P4/8/8/8/PPP1PPPP/RNBQKBNR w KQkq - 0 1"); 
+		assertEquals(0, scorer.scorePosition(board, context));
 
-		board = FENUtils.getBoard("rnbqkbnr/ppp1pppp/8/8/8/3p4/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); 
-		assertEquals(0, new PawnStructureScorer().scorePosition(board, new PositionScorer.Context()));
+		setPosition("rnbqkbnr/ppp1pppp/8/8/8/3p4/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); 
+		assertEquals(0, scorer.scorePosition(board, context));
 	}
 }

@@ -33,7 +33,7 @@ public class GameScorer {
 		GameScorer rv = new GameScorer();
 
         // TODO - something to encourage exchanging when ahead on material
-        // TODO - something to enourage rooks opposite queens
+        // TODO - something to encourage rooks opposite queens
 
 		rv.addScorer(new MaterialScorer());
 		rv.addScorer(new BishopPairScorer());
@@ -77,13 +77,7 @@ public class GameScorer {
             return MATE_SCORE;
         }
 
-        PositionScorer.Context context = new PositionScorer.Context();
-        if(bitBoard.getBitmapQueens() == 0) {
-            // Initial endgame test - maybe improve this later?
-            if(Long.bitCount(bitBoard.getBitmapBishops() | bitBoard.getBitmapKnights() | bitBoard.getBitmapRooks()) <= 4) {
-                context.setEndgame(true);
-            }
-        }
+        PositionScorer.Context context = new PositionScorer.Context(bitBoard);
 
         int score = 0;
         for(PositionScorer scorer: scorers) {

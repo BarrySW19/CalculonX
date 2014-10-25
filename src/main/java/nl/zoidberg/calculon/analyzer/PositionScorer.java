@@ -25,17 +25,53 @@ public interface PositionScorer {
 
     /**
      * Context which will be populated by the game scorer and passed to the position
-     * scorers for information.
+     * scorers for information. Should be used for information which might be useful to
+     * multiple scorers so it only gets calculated once.
      */
     public static class Context {
         private boolean endgame = false;
+        private long isolatedPawns;
 
-        public void setEndgame(boolean endgame) {
-            this.endgame = endgame;
+        public Context(BitBoard bitBoard) {
+            populateContext(bitBoard);
+        }
+
+        private void populateContext(BitBoard bitBoard) {
+            if(bitBoard.getBitmapQueens() == 0) {
+                // Initial endgame test - maybe improve this later?
+                if(Long.bitCount(bitBoard.getBitmapBishops() | bitBoard.getBitmapKnights() | bitBoard.getBitmapRooks()) <= 4) {
+                    endgame = true;
+                }
+            }
+
+            long allPawns = bitBoard.getBitmapPawns();
+            isolatedPawns = calcIsolatedPawns(bitBoard.getBitmapWhite() & allPawns)
+                    | calcIsolatedPawns(bitBoard.getBitmapBlack() & allPawns);
         }
 
         public boolean isEndgame() {
             return endgame;
+        }
+
+        public long getIsolatedPawns() {
+            return isolatedPawns;
+        }
+
+        private static long calcIsolatedPawns(long pawns) {
+            long isolatedPawns = 0;
+            long prevFile = 0;
+            long thisFile = pawns & BitBoard.getFileMap(0);
+
+            for(int file = 0; file < 8; file++) {
+                long nextFile = (file == 7 ? 0 : pawns & BitBoard.getFileMap(file+1));
+
+                if(thisFile != 0 && prevFile == 0 && nextFile == 0) {
+                    isolatedPawns |= thisFile;
+                }
+                prevFile = thisFile;
+                thisFile = nextFile;
+            }
+            return isolatedPawns;
         }
     }
 }

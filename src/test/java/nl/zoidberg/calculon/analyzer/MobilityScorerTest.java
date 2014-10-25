@@ -17,35 +17,37 @@
  */
 package nl.zoidberg.calculon.analyzer;
 
-import nl.zoidberg.calculon.notation.FENUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class MobilityScorerTest {
-    private static MobilityScorer mobilityScorer = new MobilityScorer();
+public class MobilityScorerTest extends AbstractAnalyserTest {
+
+    public MobilityScorerTest() {
+        super(new MobilityScorer());
+    }
 
     @Test
     public void testMobilityScore1() {
-        assertEquals(MobilityScorer.PER_SQUARE * 5,
-                mobilityScorer.scorePosition(FENUtils.getBoard("4k3/8/8/3p4/8/8/6B1/4K3 w - - 0 1"), new PositionScorer.Context()));
+        setPosition("4k3/8/8/3p4/8/8/6B1/4K3 w - - 0 1");
+        assertEquals(MobilityScorer.PER_SQUARE * 5, scorer.scorePosition(board, context));
     }
 
     @Test
     public void testMobilityScore2() {
-        assertEquals(MobilityScorer.PER_SQUARE * (5 - 8),
-                mobilityScorer.scorePosition(FENUtils.getBoard("2k5/1q3N2/1p6/3p4/8/8/6B1/4K3 w - - 0 1"), new PositionScorer.Context()));
+        setPosition("2k5/1q3N2/1p6/3p4/8/8/6B1/4K3 w - - 0 1");
+        assertEquals(MobilityScorer.PER_SQUARE * (5 - 8), scorer.scorePosition(board, context));
     }
 
     @Test
     public void testMobilityScore3() {
-        assertEquals(MobilityScorer.PER_SQUARE * (5 + 9 - 8),
-                mobilityScorer.scorePosition(FENUtils.getBoard("2k5/1q3N2/1p6/3p4/8/8/1R4B1/4K3 w - - 0 1"), new PositionScorer.Context()));
+        setPosition("2k5/1q3N2/1p6/3p4/8/8/1R4B1/4K3 w - - 0 1");
+        assertEquals(MobilityScorer.PER_SQUARE * (5 + 9 - 8), scorer.scorePosition(board, context));
     }
 
     @Test
     public void testMobilityScore4() {
-        assertEquals(MobilityScorer.PER_SQUARE * (24 - 19),
-                mobilityScorer.scorePosition(FENUtils.getBoard("2r2rk1/1bq2pbp/1np1p1p1/1pN5/pP1PB3/P1P2QP1/1B2RP1P/1R4K1 b - - 0 23"), new PositionScorer.Context()));
+        setPosition("2r2rk1/1bq2pbp/1np1p1p1/1pN5/pP1PB3/P1P2QP1/1B2RP1P/1R4K1 b - - 0 23");
+        assertEquals(MobilityScorer.PER_SQUARE * (24 - 19), scorer.scorePosition(board, context));
     }
 }

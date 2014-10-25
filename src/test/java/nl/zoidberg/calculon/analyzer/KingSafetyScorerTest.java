@@ -17,38 +17,37 @@
  */
 package nl.zoidberg.calculon.analyzer;
 
-import nl.zoidberg.calculon.engine.BitBoard;
-import nl.zoidberg.calculon.notation.FENUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class KingSafetyScorerTest {
+public class KingSafetyScorerTest extends AbstractAnalyserTest {
 
-	private KingSafetyScorer scorer = new KingSafetyScorer();
-	private BitBoard board = new BitBoard();
+    public KingSafetyScorerTest() {
+        super(new KingSafetyScorer());
+    }
 
     @Test
 	public void testStart() {
-		FENUtils.loadPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1", board);
-		assertEquals(0, scorer.scorePosition(board, new PositionScorer.Context()));
+		setPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1");
+		assertEquals(0, scorer.scorePosition(board, context));
 	}
 
     @Test
 	public void testCastled() {
-		FENUtils.loadPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1RK1 w - - 0 1", board);
-		assertEquals(250, scorer.scorePosition(board, new PositionScorer.Context()));
+		setPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1RK1 w - - 0 1");
+		assertEquals(250, scorer.scorePosition(board, context));
 	}
 
     @Test
 	public void testPawnGone() {
-		FENUtils.loadPosition("rnbq1rk1/1ppppppp/8/8/8/8/PPPPPP1P/RNBQ1RK1 w - - 0 1", board);
-		assertEquals(-70, scorer.scorePosition(board, new PositionScorer.Context()));
+		setPosition("rnbq1rk1/1ppppppp/8/8/8/8/PPPPPP1P/RNBQ1RK1 w - - 0 1");
+		assertEquals(-70, scorer.scorePosition(board, context));
 	}
 
     @Test
 	public void testFiancettoed() {
-		FENUtils.loadPosition("rnbq1rk1/pppppppp/8/8/8/8/PPPPPPBP/RNBQ1RK1 w - - 0 1", board);
-		assertEquals(-30, scorer.scorePosition(board, new PositionScorer.Context()));
+		setPosition("rnbq1rk1/pppppppp/8/8/8/8/PPPPPPBP/RNBQ1RK1 w - - 0 1");
+		assertEquals(-30, scorer.scorePosition(board, context));
 	}
 }
