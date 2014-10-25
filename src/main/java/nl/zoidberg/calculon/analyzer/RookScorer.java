@@ -1,7 +1,7 @@
 /**
  * Calculon - A Java chess-engine.
  *
- * Copyright (C) 2008-2009 Barry Smith
+ * Copyright (C) 2008-2014 Barry Smith
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,10 @@ import nl.zoidberg.calculon.model.Piece;
 
 public class RookScorer implements PositionScorer {
 
-	public static final int OPEN_FILE_SCORE = 150;
-	public static final int CONNECTED_BONUS = 150;
+    public static final int OPEN_FILE_SCORE = 150;
+    public static final int HALF_OPEN_FILE_SCORE = 100;
+    public static final int CONNECTED_BONUS = 150;
+    public static final int PIGS_ON_THE_SEVENTH = 150;
 
     @Override
     public int scorePosition(BitBoard bitBoard, Context context) {
@@ -32,17 +34,27 @@ public class RookScorer implements PositionScorer {
 	
 	private int getScore(BitBoard bitBoard, byte color) {
 		int score = 0;
-		
+
+        // First, give rooks a good score if they stand on (half) open files.
 		long rookMap = (bitBoard.getBitmapColor(color) & bitBoard.getBitmapRooks());
 		while(rookMap != 0) {
 			long nextRook = Long.lowestOneBit(rookMap);
 			rookMap ^= nextRook;
-			int file = (int) (Long.numberOfTrailingZeros(nextRook) % 8);
-			if((bitBoard.getBitmapColor(color) & bitBoard.getBitmapPawns() & BitBoard.getFileMap(file)) == 0) {
-				score += OPEN_FILE_SCORE;
-			}
+			int file = Long.numberOfTrailingZeros(nextRook) % 8;
+            long allPawnsOnFile = bitBoard.getBitmapPawns() & BitBoard.getFileMap(file);
+            if(allPawnsOnFile == 0) {
+                score += OPEN_FILE_SCORE;
+            } else {
+                // Not on an open file - check if it's half open.
+                if((bitBoard.getBitmapColor(color) & allPawnsOnFile) == 0) {
+                    // TODO This could be improved by considering what type of pawn is on the half open file.
+                    // TODO Is it backward or isolated? If so, score should be higher.
+                    score += HALF_OPEN_FILE_SCORE;
+                }
+            }
 		}
-		
+
+        // Next, give rooks a bonus if they are connected or if they are "pigs on the 7th".
 		rookMap = (bitBoard.getBitmapColor(color) & bitBoard.getBitmapRooks());
 		if(Long.bitCount(rookMap) == 2) {
 			int[] rook1 = BitBoard.toCoords(Long.highestOneBit(rookMap));
@@ -63,6 +75,11 @@ public class RookScorer implements PositionScorer {
 				if((connMask & bitBoard.getAllPieces()) == 0) {
 					score += CONNECTED_BONUS;
 				}
+
+                // Are they pigs on the 7th?
+                if(color == Piece.WHITE && rook1[1] == 6 || color == Piece.BLACK && rook1[1] == 1) {
+                    score += PIGS_ON_THE_SEVENTH;
+                }
 			}
 		}
 				

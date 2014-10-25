@@ -179,6 +179,7 @@ public class BitBoard {
 		return (bitmaps[IDX_FLAGS] & IS_EN_PASSANT) != 0;
 	}
 
+    @SuppressWarnings("unused")
     public short getMoveCount() {
 		return moveCount;
 	}
@@ -209,11 +210,12 @@ public class BitBoard {
 	public byte getPlayer() {
         return (bitmaps[IDX_FLAGS] & PLAYER_MASK) == 0 ? Piece.WHITE : Piece.BLACK;
 	}
-	
+
+    @SuppressWarnings("unused")
 	public static long toMap(int file, int rank) {
 		return 1L<<(rank<<3)<<file;
 	}
-	
+
 	public String toString() {
 		StringBuilder buf = new StringBuilder();
 
@@ -336,7 +338,7 @@ public class BitBoard {
 	/**
 	 * Returns the file/rank of the lowest 1 in the bitmap
 	 * @param bitmap The bitmap
-	 * @return file/rank pair as ints
+	 * @return file/rank pair as ints, file first then rank.
 	 */
 	public static int[] toCoords(long bitmap) {
 		int zeros = Long.numberOfTrailingZeros(bitmap);
