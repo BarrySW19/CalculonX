@@ -304,13 +304,13 @@ public class QuiescenceTest {
 //        assertTrue(moves.containsAll(Arrays.asList("E4H7", "E4B7", "E4F5")));
 //    }
 
-    private static Set<String> getAlgebraicSet(Collection<BitBoard.BitBoardMove> moves) {
-        Set<String> values = new TreeSet<>();
-        for(BitBoard.BitBoardMove move: moves) {
-            values.add(move.getAlgebraic());
-        }
-        return values;
-    }
+//    private static Set<String> getAlgebraicSet(Collection<BitBoard.BitBoardMove> moves) {
+//        Set<String> values = new TreeSet<>();
+//        for(BitBoard.BitBoardMove move: moves) {
+//            values.add(move.getAlgebraic());
+//        }
+//        return values;
+//    }
 
     public static class TestGeneratorFactory implements ChessEngine.MoveGeneratorFactory {
         private List<String[]> moveList = new ArrayList<>();

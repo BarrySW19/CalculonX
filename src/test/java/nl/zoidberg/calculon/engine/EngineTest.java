@@ -1,10 +1,11 @@
 package nl.zoidberg.calculon.engine;
 
-import nl.zoidberg.calculon.notation.FENUtils;
 import nl.zoidberg.calculon.notation.PGNUtils;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
@@ -32,7 +33,6 @@ public class EngineTest {
                 "81. Bc7+ Kb4 82. Bf4 Kb3 83. Be5";
         BitBoard bitBoard = new BitBoard().initialise();
 
-        int n = 0;
         for(String move: moveList.split(" ")) {
             if( ! move.contains(".")) {
                 PGNUtils.applyMove(bitBoard, move);

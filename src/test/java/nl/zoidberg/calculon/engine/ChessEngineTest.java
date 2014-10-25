@@ -25,6 +25,18 @@ public class ChessEngineTest {
         assertTrue(ctx1.getScore() < ctx2.getScore());
     }
 
+    @Test @Ignore("Need to make engine simplify when advantageous")
+    public void testSimplify() {
+        BitBoard board = FENUtils.getBoard("8/R1R2pk1/5q1p/1p6/8/5PP1/PP3PK1/8 w - - 0 32");
+        ChessEngine chessEngine = new ChessEngine(600);
+
+        SearchContext ctx1 = chessEngine.getScoredMove(board, "C7F7", 5, 50); // Rxf7+
+        SearchContext ctx2 = chessEngine.getScoredMove(board, "B2B3", 5, 50); // b3
+        System.out.println(ctx1);
+        System.out.println(ctx2);
+        assertTrue(ctx1.getScore() < ctx2.getScore());
+    }
+
     @Test
     public void testTimeout() {
         BitBoard board = FENUtils.getBoard("r3k2r/pppq1ppp/2nbbn2/3pp3/3PP3/2NBBN2/PPPQ1PPP/R3K2R w KQkq - 0 8");

@@ -10,7 +10,7 @@ public class Tournament {
     public static void main(String[] args) {
         BitBoard board = new BitBoard().initialise();
 
-        GameScorer gs1 = GameScorer.getDefaultScorer();
+        //GameScorer gs1 = GameScorer.getDefaultScorer();
         GameScorer gs2 = new GameScorer();
         gs2.addScorer(new MaterialScorer());
         gs2.addScorer(new BishopPairScorer());
