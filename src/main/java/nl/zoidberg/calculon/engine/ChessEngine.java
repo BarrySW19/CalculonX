@@ -17,7 +17,6 @@
  */
 package nl.zoidberg.calculon.engine;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -33,7 +32,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 public class ChessEngine {
     private final static Logger LOG = LoggerFactory.getLogger(ChessEngine.class);
@@ -43,26 +45,10 @@ public class ChessEngine {
 
     private static final ExecutorService executorService = Executors.newFixedThreadPool(2);
 
-    private MoveGeneratorFactory moveGeneratorFactory = new MoveGeneratorFactory() {
-        @Override
-        public MoveGenerator createMoveGenerator(BitBoard bitBoard) {
-            return new MoveGeneratorImpl(bitBoard);
-        }
-    };
+    private MoveGeneratorFactory moveGeneratorFactory = MoveGeneratorImpl::new;
 
-    private final static Function<SearchContext, String> INDEX_MOVES = new Function<SearchContext, String>() {
-        @Override
-        public String apply(SearchContext searchContext) {
-            return searchContext.getAlgebraicMove();
-        }
-    };
-
-    private final static Predicate<SearchContext> NORMAL_MOVES_ONLY = new Predicate<SearchContext>() {
-        @Override
-        public boolean apply(SearchContext searchContext) {
-            return searchContext.getStatus() == SearchContext.Status.NORMAL;
-        }
-    };
+    private final static Predicate<SearchContext> NORMAL_MOVES_ONLY =
+            searchContext -> searchContext.getStatus() == SearchContext.Status.NORMAL;
 
 	private GameScorer gameScorer;
     private int depthForSearch;
@@ -110,12 +96,7 @@ public class ChessEngine {
         scoreCache.invalidateAll();
 		List<SearchContext> allMoves = new ArrayList<>(getScoredMoves(bitBoard));
         if(LOG.isDebugEnabled()) {
-            Collections.sort(allMoves, new Comparator<SearchContext>() {
-                @Override
-                public int compare(SearchContext o1, SearchContext o2) {
-                    return o1.getAlgebraicMove().compareTo(o2.getAlgebraicMove());
-                }
-            });
+            Collections.sort(allMoves, (o1, o2) -> o1.getAlgebraicMove().compareTo(o2.getAlgebraicMove()));
             for (SearchContext ctx: allMoves) {
                 LOG.debug("Final moves: {}", ctx);
             }
@@ -195,7 +176,7 @@ public class ChessEngine {
     }
 
 	private List<SearchContext> getScoredMoves(final BitBoard bitBoard, final List<SearchContext> movesFilter) {
-        ImmutableMap<String, SearchContext> movesToAnalyse = Maps.uniqueIndex(movesFilter, INDEX_MOVES);
+        ImmutableMap<String, SearchContext> movesToAnalyse = Maps.uniqueIndex(movesFilter, SearchContext::getAlgebraicMove);
         List<FutureTask<SearchContext>> tasks = new ArrayList<>();
 
 		for(Iterator<BitBoardMove> moveItr = moveGeneratorFactory.createMoveGenerator(bitBoard); moveItr.hasNext(); ) {
@@ -207,17 +188,14 @@ public class ChessEngine {
                 continue;
             }
 
-            FutureTask<SearchContext> scoredMoveFutureTask = new FutureTask<>(new Callable<SearchContext>() {
-                @Override
-                public SearchContext call() throws ExecutionException {
-                    cloneBitBoard.makeMove(move);
-                    final SearchContext searchContext = new SearchContext(algebraic);
-                    int score = alphaBeta(-BIG_VALUE, BIG_VALUE, depthForSearch, cloneBitBoard, searchContext.descend());
-                    searchContext.setScore(score);
-                    LOG.debug("Ran: {}", searchContext);
-                    cloneBitBoard.unmakeMove();
-                    return searchContext;
-                }
+            FutureTask<SearchContext> scoredMoveFutureTask = new FutureTask<>(() -> {
+                cloneBitBoard.makeMove(move);
+                final SearchContext searchContext = new SearchContext(algebraic);
+                int score = alphaBeta(-BIG_VALUE, BIG_VALUE, depthForSearch, cloneBitBoard, searchContext.descend());
+                searchContext.setScore(score);
+                LOG.debug("Ran: {}", searchContext);
+                cloneBitBoard.unmakeMove();
+                return searchContext;
             });
             tasks.add(scoredMoveFutureTask);
             executorService.submit(scoredMoveFutureTask);
@@ -285,17 +263,12 @@ public class ChessEngine {
 
         final BitSet cacheObj = bitBoard.getCacheId();
 
-        final int standPat = scoreCache.get(cacheObj, new Callable<Integer>() {
-            @Override
-            public Integer call() throws Exception {
-                return gameScorer.score(bitBoard);
-            }
-        });
+        final int standPat = scoreCache.get(cacheObj, () -> gameScorer.score(bitBoard));
 
         final List<BitBoardMove> threatMoves = new MoveGeneratorImpl(bitBoard).getThreateningMoves();
         final boolean moveIsForced = threatMoves.size() == 1 && CheckDetector.isPlayerToMoveInCheck(bitBoard);
 
-        // They player could not make a 'null' move if the move is forced.
+        // The player could not make a 'null' move if the move is forced.
         if ( ! moveIsForced) {
             if (standPat >= beta) {
                 searchContext.qAscend();
@@ -308,6 +281,18 @@ public class ChessEngine {
         }
 
         if(depth <= 0) {
+            if(moveIsForced && depth == 0) { // Add depth=0 just in case of infinite loops
+                bitBoard.makeMove(threatMoves.get(0)); // Forced means exactly one move
+                int score = -quiesce(bitBoard, -beta, -alpha, depth - 1, searchContext.qDescend());
+                bitBoard.unmakeMove();
+                if( score >= beta) {
+                    searchContext.qAscend();
+                    return beta;
+                }
+                if( score > alpha) {
+                    alpha = score;
+                }
+            }
             searchContext.qAscend();
             return alpha;
         }
