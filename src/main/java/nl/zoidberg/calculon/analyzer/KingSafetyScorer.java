@@ -34,13 +34,13 @@ public class KingSafetyScorer implements PositionScorer {
         }
 
 		int score = 0;
-		long king = bitBoard.getBitmapColor(color) & bitBoard.getBitmapKings();
+		long king = bitBoard.getBitmapKings(color);
 		int mapIdx = Long.numberOfTrailingZeros(king);
 		long inFront = KingMoveGenerator.KING_MOVES[mapIdx]
 		           & BitBoard.getRankMap((mapIdx>>>3) + (color == Piece.WHITE ? 1 : -1)) & bitBoard.getBitmapColor(color);
 		score += 70 * (Long.bitCount(inFront & bitBoard.getBitmapPawns()));
 		score += 40 * (Long.bitCount(inFront & ~bitBoard.getBitmapPawns()));
-		
+
 		int[] kingPos = BitBoard.toCoords(king);
 		
 		if(kingPos[0] == 3 || kingPos[0] == 4) {

@@ -17,17 +17,18 @@
  */
 package nl.zoidberg.calculon.notation;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import nl.zoidberg.calculon.engine.BitBoard;
 import nl.zoidberg.calculon.engine.EngineUtils;
 import nl.zoidberg.calculon.model.Piece;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@SuppressWarnings("unused")
 public class TextUtils {
 	
 	public static List<String> getMiniTextBoard(BitBoard board) {
-		List<String> rv = new ArrayList<String>();
+		List<String> rv = new ArrayList<>();
 		rv.add("+--------+");
 		for(int rank = 7; rank >= 0; rank--) {
 			StringBuilder cRank = new StringBuilder("|");

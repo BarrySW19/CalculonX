@@ -19,7 +19,8 @@ package nl.zoidberg.calculon.analyzer;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import javax.imageio.ImageIO;
+import java.util.Arrays;
 
 public class KingSafetyScorerTest extends AbstractAnalyserTest {
 
@@ -29,25 +30,30 @@ public class KingSafetyScorerTest extends AbstractAnalyserTest {
 
     @Test
 	public void testStart() {
-		setPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1");
-		assertEquals(0, scorer.scorePosition(board, context));
+		assertScore(0, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1");
 	}
 
     @Test
 	public void testCastled() {
-		setPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1RK1 w - - 0 1");
-		assertEquals(250, scorer.scorePosition(board, context));
+		assertScore(250, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1RK1 w - - 0 1");
 	}
 
     @Test
 	public void testPawnGone() {
-		setPosition("rnbq1rk1/1ppppppp/8/8/8/8/PPPPPP1P/RNBQ1RK1 w - - 0 1");
-		assertEquals(-70, scorer.scorePosition(board, context));
+        System.out.println(Arrays.toString(ImageIO.getReaderMIMETypes()));
+		assertScore(-70, "rnbq1rk1/1ppppppp/8/8/8/8/PPPPPP1P/RNBQ1RK1 w - - 0 1");
 	}
 
     @Test
 	public void testFiancettoed() {
-		setPosition("rnbq1rk1/pppppppp/8/8/8/8/PPPPPPBP/RNBQ1RK1 w - - 0 1");
-		assertEquals(-30, scorer.scorePosition(board, context));
+		assertScore(-30, "rnbq1rk1/pppppppp/8/8/8/8/PPPPPPBP/RNBQ1RK1 w - - 0 1");
 	}
+
+    @Test
+    public void testFiancettoedNoBishop() {
+        assertScore(210, "6k1/1q6/8/8/8/Q7/5PPP/6K1 w - - 0 1");
+        assertScore(180, "6k1/1q6/8/8/8/Q5P1/5PBP/6K1 w - - 0 1");
+        assertScore(140, "6k1/1q6/8/8/8/Q5P1/5P1P/6K1 w - - 0 1");
+
+    }
 }

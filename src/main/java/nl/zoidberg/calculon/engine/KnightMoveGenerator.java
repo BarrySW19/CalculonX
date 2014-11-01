@@ -17,10 +17,11 @@
  */
 package nl.zoidberg.calculon.engine;
 
-import java.util.List;
-
 import nl.zoidberg.calculon.engine.BitBoard.BitBoardMove;
 import nl.zoidberg.calculon.model.Piece;
+import nl.zoidberg.calculon.util.BitIterable;
+
+import java.util.List;
 
 public class KnightMoveGenerator extends PieceMoveGenerator {
 	
@@ -95,13 +96,9 @@ public class KnightMoveGenerator extends PieceMoveGenerator {
 	
 	private void generateMoves(BitBoard bitBoard, long pieceMap, boolean alreadyInCheck, boolean safeFromCheck, List<BitBoardMove> rv) {
         byte player = bitBoard.getPlayer();
-        long knightMoves = KNIGHT_MOVES[Long.numberOfTrailingZeros(pieceMap)];
-        knightMoves &= ~bitBoard.getBitmapColor();
+        long knightMoves = KNIGHT_MOVES[Long.numberOfTrailingZeros(pieceMap)] & ~bitBoard.getBitmapColor();
 
-        while(knightMoves != 0) {
-        	long nextMove = Long.lowestOneBit(knightMoves);
-        	knightMoves ^= nextMove;
-        	
+        for(long nextMove: BitIterable.of(knightMoves)) {
         	BitBoardMove bbMove;
         	if((nextMove & bitBoard.getBitmapOppColor(player)) != 0) {
 				bbMove = BitBoard.generateCapture(pieceMap, nextMove, player, Piece.KNIGHT, bitBoard.getPiece(nextMove));
@@ -124,9 +121,7 @@ public class KnightMoveGenerator extends PieceMoveGenerator {
 	@Override
 	public void generateMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoardMove> rv) {
 		long pieces = bitBoard.getBitmapColor() & bitBoard.getBitmapKnights();
-		while(pieces != 0) {
-			long nextPiece = Long.lowestOneBit(pieces);
-			pieces ^= nextPiece;
+        for(long nextPiece: BitIterable.of(pieces)) {
 			boolean safeFromCheck = ((nextPiece & potentialPins) == 0) & !alreadyInCheck;
 			this.generateMoves(bitBoard, nextPiece, alreadyInCheck, safeFromCheck, rv);
 		}

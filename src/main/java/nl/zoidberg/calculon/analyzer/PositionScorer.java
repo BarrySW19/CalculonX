@@ -18,8 +18,14 @@
 package nl.zoidberg.calculon.analyzer;
 
 import nl.zoidberg.calculon.engine.BitBoard;
+import nl.zoidberg.calculon.model.Piece;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public interface PositionScorer {
+    public static final List<Byte> COLORS = Collections.unmodifiableList(Arrays.asList(Piece.WHITE, Piece.BLACK));
 	
 	public int scorePosition(BitBoard bitBoard, Context context);
 
@@ -29,17 +35,20 @@ public interface PositionScorer {
      * multiple scorers so it only gets calculated once.
      */
     public static class Context {
+        private BitBoard bitBoard;
         private boolean endgame = false;
         private long isolatedPawns;
+        private long backwardPawns;
 
         public Context(BitBoard bitBoard) {
-            populateContext(bitBoard);
+            this.bitBoard = bitBoard;
+            populateContext();
         }
 
-        private void populateContext(BitBoard bitBoard) {
+        private void populateContext() {
             if(bitBoard.getBitmapQueens() == 0) {
                 // Initial endgame test - maybe improve this later?
-                if(Long.bitCount(bitBoard.getBitmapBishops() | bitBoard.getBitmapKnights() | bitBoard.getBitmapRooks()) <= 4) {
+                if(Long.bitCount(bitBoard.getBitmapBishops() | bitBoard.getBitmapKnights() | bitBoard.getBitmapRooks()) <= 6) {
                     endgame = true;
                 }
             }
@@ -55,6 +64,10 @@ public interface PositionScorer {
 
         public long getIsolatedPawns() {
             return isolatedPawns;
+        }
+
+        public long getBackwardPawns() {
+            return backwardPawns;
         }
 
         private static long calcIsolatedPawns(long pawns) {

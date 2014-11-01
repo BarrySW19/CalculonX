@@ -3,6 +3,11 @@ package nl.zoidberg.calculon.util;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+/**
+ * Treats a 64 bit long as an iterable of the bits set to 1. This is slightly slower than doing the
+ * iteration directly, but simplifies the code. The iterable itself is immutable and thus thread safe
+ * but iterators created from it are not.
+ */
 public class BitIterable implements Iterable<Long> {
     private final long val;
 

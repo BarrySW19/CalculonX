@@ -319,11 +319,15 @@ public class BitBoard {
 		return bitmaps[MAP_QUEENS];
 	}
 
-	public final long getBitmapKings() {
-		return bitmaps[MAP_KINGS];
-	}
+    public final long getBitmapKings() {
+        return bitmaps[MAP_KINGS];
+    }
 
-	public static String toPrettyString(long val) {
+    public final long getBitmapKings(byte color) {
+        return getBitmapColor(color) & bitmaps[MAP_KINGS];
+    }
+
+    public static String toPrettyString(long val) {
 		StringBuilder buf = new StringBuilder();
 		for(int i = 0; i < 64; i++) {
 			buf.insert(0, (val & 1L<<i) == 0 ? "0" : "1");

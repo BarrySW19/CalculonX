@@ -44,4 +44,29 @@ public class BitIteratorTest {
         assertFalse(iterator.hasNext());
         iterator.next();
     }
+
+    public void speedTest1() {
+        long t = System.nanoTime();
+        for(int i = 0; i < 10_000_000; i++) {
+            long l = 0b10101010_10101010_10101010_10101010_10101010_10101010_10101010_10101010L;
+            while(l != 0) {
+                long v = Long.lowestOneBit(l);
+                l ^= v;
+                t += 0;
+            }
+        }
+        t = System.nanoTime() - t;
+        System.out.println(t / 1_000_000);
+    }
+
+    public void speedTest2() {
+        long t = System.nanoTime();
+        for(int i = 0; i < 10_000_000; i++) {
+            for(Long x: BitIterable.of(0b10101010_10101010_10101010_10101010_10101010_10101010_10101010_10101010L)) {
+                t += 0;
+            }
+        }
+        t = System.nanoTime() - t;
+        System.out.println(t / 1_000_000);
+    }
 }

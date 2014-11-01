@@ -17,10 +17,11 @@
  */
 package nl.zoidberg.calculon.engine;
 
-import java.util.List;
-
 import nl.zoidberg.calculon.engine.BitBoard.BitBoardMove;
 import nl.zoidberg.calculon.model.Piece;
+import nl.zoidberg.calculon.util.BitIterable;
+
+import java.util.List;
 
 public class KingMoveGenerator extends PieceMoveGenerator {
 
@@ -100,11 +101,9 @@ public class KingMoveGenerator extends PieceMoveGenerator {
 
     private void generateCaptureMoves(BitBoard bitBoard, long kingPos, List<BitBoardMove> rv) {
         byte player = bitBoard.getPlayer();
-        long kingMoves = KING_MOVES[Long.numberOfTrailingZeros(kingPos)];
-        kingMoves &= bitBoard.getBitmapOppColor(player);
-        while(kingMoves != 0) {
-        	long nextMove = Long.lowestOneBit(kingMoves);
-        	kingMoves ^= nextMove;
+        long kingMoves = KING_MOVES[Long.numberOfTrailingZeros(kingPos)] & bitBoard.getBitmapOppColor(player);
+
+        for(long nextMove: BitIterable.of(kingMoves)) {
         	BitBoardMove bbMove = BitBoard.generateCapture(
         			kingPos, nextMove, player, Piece.KING, bitBoard.getPiece(nextMove));
         	bitBoard.makeMove(bbMove);
@@ -120,12 +119,11 @@ public class KingMoveGenerator extends PieceMoveGenerator {
 		byte player = bitBoard.getPlayer();
 
 		// There can be only one...
-		long king = bitBoard.getBitmapColor(player) & bitBoard.getBitmapKings();
-		long emptyMoves = KING_MOVES[Long.numberOfTrailingZeros(king)]&(~bitBoard.getAllPieces());
+		final long king = bitBoard.getBitmapColor(player) & bitBoard.getBitmapKings();
+        assert Long.bitCount(king) == 1;
 
-		while(emptyMoves != 0) {
-			long nextMove = Long.lowestOneBit(emptyMoves);
-			emptyMoves ^= nextMove;
+		long emptyMoves = KING_MOVES[Long.numberOfTrailingZeros(king)]&(~bitBoard.getAllPieces());
+        for(long nextMove: BitIterable.of(emptyMoves)) {
 			BitBoardMove bbMove = BitBoard.generateMove(king, nextMove, player, Piece.KING);
 			bitBoard.makeMove(bbMove);
             if( ! CheckDetector.isPlayerJustMovedInCheck(bitBoard)) {
@@ -138,14 +136,14 @@ public class KingMoveGenerator extends PieceMoveGenerator {
 		if(player == Piece.WHITE && ! alreadyInCheck) {
 			if((castleFlags & BitBoard.CASTLE_WKS) != 0 && (bitBoard.getAllPieces() & EMPTY_WKS) == 0) {
                 if( ! isIntermediateCheck(bitBoard, king, king<<1, player)) {
-                	if(isCastlingPossible(bitBoard, player, BitBoard.CASTLE_WKS)) {
+                	if(isCastlingPossible(bitBoard, BitBoard.CASTLE_WKS)) {
                         rv.add(BitBoard.generateCastling(BitBoard.CASTLE_WKS));
                 	}
                 }
 			}
 			if((castleFlags & BitBoard.CASTLE_WQS) != 0 && (bitBoard.getAllPieces() & EMPTY_WQS) == 0) {
                 if( ! isIntermediateCheck(bitBoard, king, king>>>1, player)) {
-                	if(isCastlingPossible(bitBoard, player, BitBoard.CASTLE_WQS)) {
+                	if(isCastlingPossible(bitBoard, BitBoard.CASTLE_WQS)) {
                         rv.add(BitBoard.generateCastling(BitBoard.CASTLE_WQS));
                 	}
                 }
@@ -153,29 +151,25 @@ public class KingMoveGenerator extends PieceMoveGenerator {
 		} else if(player == Piece.BLACK && ! alreadyInCheck) {
 			if((castleFlags & BitBoard.CASTLE_BKS) != 0 && (bitBoard.getAllPieces() & EMPTY_BKS) == 0) {
                 if( ! isIntermediateCheck(bitBoard, king, king<<1, player)) {
-                	if(isCastlingPossible(bitBoard, player, BitBoard.CASTLE_BKS)) {
+                	if(isCastlingPossible(bitBoard, BitBoard.CASTLE_BKS)) {
                         rv.add(BitBoard.generateCastling(BitBoard.CASTLE_BKS));
                 	}
                 }
 			}
 			if((castleFlags & BitBoard.CASTLE_BQS) != 0 && (bitBoard.getAllPieces() & EMPTY_BQS) == 0) {
                 if( ! isIntermediateCheck(bitBoard, king, king>>>1, player)) {
-                	if(isCastlingPossible(bitBoard, player, BitBoard.CASTLE_BQS)) {
+                	if(isCastlingPossible(bitBoard, BitBoard.CASTLE_BQS)) {
                         rv.add(BitBoard.generateCastling(BitBoard.CASTLE_BQS));
                 	}
                 }
 			}
 		}
 
-		while(king != 0) {
-			long nextPiece = Long.lowestOneBit(king);
-			king ^= nextPiece;
-			this.generateCaptureMoves(bitBoard, nextPiece, rv);
-		}
+        this.generateCaptureMoves(bitBoard, king, rv);
 	}
 
 	// Bit twiddling routines...
-	private boolean isCastlingPossible(BitBoard bitBoard, byte player, short castleDir) {
+	private boolean isCastlingPossible(BitBoard bitBoard, short castleDir) {
 		BitBoardMove bbMove = BitBoard.generateCastling(castleDir);
 		bitBoard.makeMove(bbMove);
         boolean rv = ! CheckDetector.isPlayerJustMovedInCheck(bitBoard);

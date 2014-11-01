@@ -23,6 +23,7 @@ public class ProblemsTest {
 
     @Test
     public void testProblem003() {
+        // Queen on e2, rook on d3
         runTest("6k1/pb3pp1/8/7p/P1Q5/3r1P1B/4q2P/1R3N1K b - - 0 1", "Rxf3");
     }
 

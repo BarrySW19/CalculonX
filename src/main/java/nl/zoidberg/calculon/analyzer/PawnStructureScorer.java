@@ -20,11 +20,12 @@ package nl.zoidberg.calculon.analyzer;
 import nl.zoidberg.calculon.engine.BitBoard;
 
 public class PawnStructureScorer implements PositionScorer {
-	
+	public static long CENTRE = 0b00000000_00000000_00000000_00011000_00011000_00000000_00000000_00000000L;
 	public static int S_ISLAND 		= 100;
 	public static int S_ISOLATED 	= 100;
-	public static int S_DOUBLED 	= 100;
-	
+    public static int S_DOUBLED 	= 100;
+    public static int S_CENTRE 	    = 150;
+
     @Override
     public int scorePosition(BitBoard bitBoard, Context context) {
 		long whitePawns = bitBoard.getBitmapWhite() & bitBoard.getBitmapPawns();
@@ -38,6 +39,10 @@ public class PawnStructureScorer implements PositionScorer {
         score -= Long.bitCount(context.getIsolatedPawns() & bitBoard.getBitmapWhite()) * S_ISOLATED;
 
 		score += getDoubledScore(whitePawns, blackPawns);
+
+        // Bonus for pawns in the centre
+        score += Long.bitCount(whitePawns & CENTRE) * S_CENTRE;
+        score -= Long.bitCount(blackPawns & CENTRE) * S_CENTRE;
 
 		return score;
 	}
