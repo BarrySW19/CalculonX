@@ -45,6 +45,7 @@ public class GameScorer {
         rv.addScorer(new BackRankMinorPieceScorer());
         rv.addScorer(new KingCentralisationScorer());
         rv.addScorer(new PassedPawnScorer());
+        rv.addScorer(new AdvancedPawnScorer());
 
 		return rv;
 	}
@@ -66,7 +67,7 @@ public class GameScorer {
      * @param bitBoard The board to score.
      * @return The score.
      */
-    public int score(BitBoard bitBoard) {
+    public int score(final BitBoard bitBoard) {
         Result result = bitBoard.getResult();
 
         if(result == Result.RES_DRAW) {
@@ -77,12 +78,8 @@ public class GameScorer {
             return MATE_SCORE;
         }
 
-        PositionScorer.Context context = new PositionScorer.Context(bitBoard);
-
-        int score = 0;
-        for(PositionScorer scorer: scorers) {
-            score += scorer.scorePosition(bitBoard, context);
-        }
+        final PositionScorer.Context context = new PositionScorer.Context(bitBoard);
+        int score = scorers.stream().mapToInt(scorer -> scorer.scorePosition(bitBoard, context)).sum();
 
         return score * (bitBoard.getPlayer() == Piece.WHITE ? 1 : -1);
     }

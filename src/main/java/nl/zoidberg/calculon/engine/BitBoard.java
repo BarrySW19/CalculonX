@@ -299,11 +299,11 @@ public class BitBoard {
 		return bitmaps[MAP_BLACK];
 	}
 
-	public final long getBitmapPawns() {
-		return bitmaps[MAP_PAWNS];
-	}
+    public final long getBitmapPawns() {
+        return bitmaps[MAP_PAWNS];
+    }
 
-	public final long getBitmapRooks() {
+    public final long getBitmapRooks() {
 		return bitmaps[MAP_ROOKS];
 	}
 
@@ -327,6 +327,10 @@ public class BitBoard {
         return getBitmapColor(color) & bitmaps[MAP_KINGS];
     }
 
+    public final long getBitmapPawns(byte color) {
+        return getBitmapColor(color) & bitmaps[MAP_PAWNS];
+    }
+
     public static String toPrettyString(long val) {
 		StringBuilder buf = new StringBuilder();
 		for(int i = 0; i < 64; i++) {
@@ -340,7 +344,9 @@ public class BitBoard {
 	}
 	
 	/**
-	 * Returns the file/rank of the lowest 1 in the bitmap
+	 * Returns the file/rank of the lowest 1 in the bitmap; the value is returned as file first, then rank
+     * to match the normal practice of quoting a square in this way, e.g. E4.
+     *
 	 * @param bitmap The bitmap
 	 * @return file/rank pair as ints, file first then rank.
 	 */

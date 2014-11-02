@@ -36,8 +36,13 @@ public class KingSafetyScorer implements PositionScorer {
 		int score = 0;
 		long king = bitBoard.getBitmapKings(color);
 		int mapIdx = Long.numberOfTrailingZeros(king);
+        int kingRank = mapIdx>>>3;
+        if((color == Piece.WHITE && kingRank !=0) || (color == Piece.BLACK && kingRank != 7)) {
+            return 0; // Only score safety if the king is on the back rank.
+        }
+
 		long inFront = KingMoveGenerator.KING_MOVES[mapIdx]
-		           & BitBoard.getRankMap((mapIdx>>>3) + (color == Piece.WHITE ? 1 : -1)) & bitBoard.getBitmapColor(color);
+		           & BitBoard.getRankMap(kingRank + (color == Piece.WHITE ? 1 : -1)) & bitBoard.getBitmapColor(color);
 		score += 70 * (Long.bitCount(inFront & bitBoard.getBitmapPawns()));
 		score += 40 * (Long.bitCount(inFront & ~bitBoard.getBitmapPawns()));
 

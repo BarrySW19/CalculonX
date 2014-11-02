@@ -2,6 +2,7 @@ package nl.zoidberg.calculon.analyzer;
 
 import nl.zoidberg.calculon.engine.BitBoard;
 import nl.zoidberg.calculon.model.Piece;
+import nl.zoidberg.calculon.util.BitIterable;
 
 public class PassedPawnScorer implements PositionScorer {
 
@@ -28,9 +29,8 @@ public class PassedPawnScorer implements PositionScorer {
                 && (bitBoard.getBitmapColor(color) & bitBoard.getBitmapRooks()) != 0;
         long passedPawns = getPassedPawns(bitBoard, color);
         int score = 0;
-        while (passedPawns != 0) {
-            long next = Long.lowestOneBit(passedPawns);
-            passedPawns ^= next;
+
+        for(long next: BitIterable.of(passedPawns)) {
             int[] pos = BitBoard.toCoords(next);
             pos[1] = color == Piece.WHITE ? pos[1] : 7 - pos[1];
             int pScore = S_ADVANCE[pos[1]];
@@ -47,10 +47,9 @@ public class PassedPawnScorer implements PositionScorer {
 
     public static long getPassedPawns(BitBoard bitBoard, byte color) {
         long passedPawns = 0;
-        long pawns = bitBoard.getBitmapPawns() & bitBoard.getBitmapColor(color);
-        while(pawns != 0) {
-            long next = Long.lowestOneBit(pawns);
-            pawns ^= next;
+        long pawns = bitBoard.getBitmapPawns(color);
+
+        for(long next: BitIterable.of(pawns)) {
             long oppMask = FILE_MASKS[Long.numberOfTrailingZeros(next) % 8];
             int pawnRank = Long.numberOfTrailingZeros(next) >> 3;
             if(color == Piece.WHITE) {

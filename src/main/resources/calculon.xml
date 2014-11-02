@@ -28,7 +28,7 @@
 		<default-seeks>
 			<seek time="2" inc="1"/>
 			<seek time="5" inc="5"/>
-			<seek time="15" inc="15"/>
+			<seek time="15" inc="10"/>
 		</default-seeks>
 		<accept-min>500</accept-min>
 		<accept-max>1600</accept-max>

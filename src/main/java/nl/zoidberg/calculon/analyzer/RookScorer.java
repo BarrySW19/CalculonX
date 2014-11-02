@@ -19,6 +19,7 @@ package nl.zoidberg.calculon.analyzer;
 
 import nl.zoidberg.calculon.engine.BitBoard;
 import nl.zoidberg.calculon.model.Piece;
+import nl.zoidberg.calculon.util.BitIterable;
 
 public class RookScorer implements PositionScorer {
     public static final int OPEN_FILE_SCORE         = 150;
@@ -37,9 +38,7 @@ public class RookScorer implements PositionScorer {
 
         // First, give rooks a good score if they stand on (half) open files.
 		long rookMap = (bitBoard.getBitmapColor(color) & bitBoard.getBitmapRooks());
-		while(rookMap != 0) {
-			long nextRook = Long.lowestOneBit(rookMap);
-			rookMap ^= nextRook;
+        for(long nextRook: BitIterable.of(rookMap)) {
 			int file = Long.numberOfTrailingZeros(nextRook) % 8;
             long allPawnsOnFile = bitBoard.getBitmapPawns() & BitBoard.getFileMap(file);
             if(allPawnsOnFile == 0) {
@@ -48,8 +47,6 @@ public class RookScorer implements PositionScorer {
                 // Not on an open file - check if it's half open.
                 if((bitBoard.getBitmapColor(color) & allPawnsOnFile) == 0) {
                     boolean isolated = (allPawnsOnFile & context.getIsolatedPawns()) != 0;
-                    // TODO This could be improved by considering what type of pawn is on the half open file.
-                    // TODO Is it backward or isolated? If so, score should be higher.
                     score += isolated ? ISOLATED_ATTACK_SCORE : HALF_OPEN_FILE_SCORE;
                 }
             }

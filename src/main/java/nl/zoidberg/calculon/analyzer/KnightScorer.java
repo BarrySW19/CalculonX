@@ -20,6 +20,7 @@ package nl.zoidberg.calculon.analyzer;
 import nl.zoidberg.calculon.engine.BitBoard;
 import nl.zoidberg.calculon.engine.KnightMoveGenerator;
 import nl.zoidberg.calculon.model.Piece;
+import nl.zoidberg.calculon.util.BitIterable;
 
 public class KnightScorer implements PositionScorer {
 
@@ -49,26 +50,20 @@ public class KnightScorer implements PositionScorer {
 
 		int pawnAttackDir = (color == Piece.WHITE ? 1 : -1);
 		long knightMap = (bitBoard.getBitmapColor(color) & bitBoard.getBitmapKnights());
-		while(knightMap != 0) {
-			long nextKnight = Long.lowestOneBit(knightMap);
-			knightMap ^= nextKnight;
-			
+
+        for(long nextKnight: BitIterable.of(knightMap)) {
 			int[] position = BitBoard.toCoords(nextKnight);
 			long knightMoves = KnightMoveGenerator.KNIGHT_MOVES[Long.numberOfTrailingZeros(nextKnight)];
 
 			int targetCount = 0;
 			int onRank = color == Piece.WHITE ? position[1] : 7-position[1];
 			score += rankScores[onRank];
-			while(knightMoves != 0) {
-				long nextSq = Long.lowestOneBit(knightMoves);
-				knightMoves ^= nextSq;
-
-				if((nextSq & enemyPawnsLeft) != 0 || (nextSq & enemyPawnsRight) != 0) {
-					continue;
+            for(long nextSq: BitIterable.of(knightMoves)) {
+				if((nextSq & enemyPawnsLeft) == 0 && (nextSq & enemyPawnsRight) == 0) {
+                    targetCount++;
 				}
-				
-				targetCount++;
 			}
+
 			// A knight on the rim is dim - penalise it.
 			score += targetScores[targetCount];
 			

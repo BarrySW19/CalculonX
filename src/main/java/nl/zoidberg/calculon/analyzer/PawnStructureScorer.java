@@ -1,7 +1,7 @@
 /**
  * Calculon - A Java chess-engine.
  *
- * Copyright (C) 2008-2009 Barry Smith
+ * Copyright (C) 2008-2014 Barry Smith
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,19 @@
 package nl.zoidberg.calculon.analyzer;
 
 import nl.zoidberg.calculon.engine.BitBoard;
+import nl.zoidberg.calculon.model.Piece;
 
 public class PawnStructureScorer implements PositionScorer {
-	public static long CENTRE = 0b00000000_00000000_00000000_00011000_00011000_00000000_00000000_00000000L;
-	public static int S_ISLAND 		= 100;
-	public static int S_ISOLATED 	= 100;
-    public static int S_DOUBLED 	= 100;
-    public static int S_CENTRE 	    = 150;
+	public final static long CENTRE = 0b00000000_00000000_00000000_00011000_00011000_00000000_00000000_00000000L;
+	public final static int S_ISLAND 		= 100;
+	public final static int S_ISOLATED 	= 100;
+    public final static int S_DOUBLED 	= 100;
+    public final static int S_CENTRE 	    = 150;
 
     @Override
     public int scorePosition(BitBoard bitBoard, Context context) {
-		long whitePawns = bitBoard.getBitmapWhite() & bitBoard.getBitmapPawns();
-		long blackPawns = bitBoard.getBitmapBlack() & bitBoard.getBitmapPawns();
+		final long whitePawns = bitBoard.getBitmapPawns(Piece.WHITE);
+		final long blackPawns = bitBoard.getBitmapPawns(Piece.BLACK);
 
 		int score = 0;
 		score += countIslands(blackPawns) * S_ISLAND;
