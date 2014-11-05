@@ -564,6 +564,18 @@ public class BitBoard {
 		return Result.RES_NO_RESULT;
 	}
 
+    public boolean isRepeated() {
+        final BitBoard clone = this.clone();
+        while(clone.reverseMoves.size() >= 2) {
+            clone.unmakeMove();
+            clone.unmakeMove();
+            if(this.equalPosition(clone)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 	public int getRepeatedCount() {
         ReverseMove reverseMove = reverseMoves.isEmpty() ? null : reverseMoves.peek();
 		if(reverseMove == null || reverseMove.reverseHalfMove < 8) {
