@@ -19,6 +19,7 @@ package nl.zoidberg.calculon.engine;
 
 import nl.zoidberg.calculon.engine.BitBoard.BitBoardMove;
 import nl.zoidberg.calculon.model.Piece;
+import nl.zoidberg.calculon.util.BitIterable;
 
 import java.util.List;
 
@@ -39,9 +40,7 @@ public class PawnMoveGenerator extends PieceMoveGenerator {
         doubleMovePawns = shiftStrategy.shiftBackward(
                 shiftStrategy.shiftForward(doubleMovePawns, 2) & ~bitBoard.getAllPieces(), 2);
 
-        while (movablePawns != 0) {
-            long nextPawn = Long.lowestOneBit(movablePawns);
-            movablePawns ^= nextPawn;
+        for(long nextPawn: BitIterable.of(movablePawns)) {
             boolean doubleMove = (doubleMovePawns & nextPawn) != 0;
             boolean safeFromCheck = ((nextPawn & potentialPins) == 0) & !alreadyInCheck;
 
