@@ -37,7 +37,7 @@ public class PGNUtils {
 		bitBoard.makeMove(bitBoard.getMove(algMove));
 	}
 	
-	public static void applyMoves(BitBoard bitBoard, String[] moves) {
+	public static void applyMoves(BitBoard bitBoard, String... moves) {
 		for(String s: moves) {
 			applyMove(bitBoard, s);
 		}
