@@ -1,0 +1,85 @@
+    public Iterable<BitBoardMove> generateMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins) {
+        return new KnightMoveIterable(bitBoard, alreadyInCheck, potentialPins);
+    }
+
+    private static class KnightMoveIterable implements Iterable<BitBoardMove> {
+        private BitBoard bitBoard;
+        private boolean alreadyInCheck;
+        private long potentialPins;
+
+        private KnightMoveIterable(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins) {
+            this.bitBoard = bitBoard;
+            this.alreadyInCheck = alreadyInCheck;
+            this.potentialPins = potentialPins;
+        }
+
+        @Override
+        public Iterator<BitBoardMove> iterator() {
+            return new KnightMoveIterator(bitBoard, alreadyInCheck, potentialPins);
+        }
+    }
+
+    private static class KnightMoveIterator extends AbstractMoveIterator {
+        private BitBoard bitBoard;
+        private boolean alreadyInCheck;
+        private long potentialPins;
+
+        private Iterator<Long> pieces;
+        private byte player;
+        private Iterator<Long> knightMoves;
+        private long pieceMoving;
+        private boolean safeFromCheck;
+
+        private KnightMoveIterator(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins) {
+            this.bitBoard = bitBoard;
+            this.alreadyInCheck = alreadyInCheck;
+            this.potentialPins = potentialPins;
+
+            // Position at start
+            pieces = BitIterable.of(bitBoard.getBitmapColor() & bitBoard.getBitmapKnights()).iterator();
+            player = bitBoard.getPlayer();
+        }
+
+        protected BitBoardMove fetchNextMove() {
+            if(knightMoves == null) {
+                if( !pieces.hasNext()) {
+                    return null;
+                }
+
+                pieceMoving = pieces.next();
+                safeFromCheck = ((pieceMoving & potentialPins) == 0) & !alreadyInCheck;
+                knightMoves = BitIterable.of(KNIGHT_MOVES[Long.numberOfTrailingZeros(pieceMoving)] & ~bitBoard.getBitmapColor()).iterator();
+            }
+
+            if( !knightMoves.hasNext()) {
+                knightMoves = null;
+                return fetchNextMove();
+            }
+
+            long nextMove = knightMoves.next();
+            BitBoardMove bbMove;
+            if((nextMove & bitBoard.getBitmapOppColor(player)) != 0) {
+                bbMove = BitBoard.generateCapture(pieceMoving, nextMove, player, Piece.KNIGHT, bitBoard.getPiece(nextMove));
+            } else {
+                bbMove = BitBoard.generateMove(pieceMoving, nextMove, player, Piece.KNIGHT);
+            }
+
+            if(safeFromCheck) {
+                return bbMove;
+            } else {
+                bitBoard.makeMove(bbMove);
+                if( ! CheckDetector.isPlayerJustMovedInCheck(bitBoard, ! alreadyInCheck)) {
+                    bitBoard.unmakeMove();
+                    return bbMove;
+                }
+                bitBoard.unmakeMove();
+                return fetchNextMove();
+            }
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
