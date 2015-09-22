@@ -33,10 +33,9 @@ public class KingCentralisationScorer implements PositionScorer {
             return 0;
         }
 
-		int score = 0;
-		long king = bitBoard.getBitmapColor(color) & bitBoard.getBitmapKings();
+        long king = bitBoard.getBitmapColor(color) & bitBoard.getBitmapKings();
 		int[] kingPos = BitBoard.toCoords(king);
 		
-		return score += (SCORES[kingPos[0]] + SCORES[kingPos[1]]);
+		return (SCORES[kingPos[0]] + SCORES[kingPos[1]]);
 	}
 }
