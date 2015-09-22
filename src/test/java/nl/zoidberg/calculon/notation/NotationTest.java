@@ -29,7 +29,7 @@ public class NotationTest {
 	public void testPgnMoves() {
 		BitBoard board = new BitBoard().initialise();
 		
-		PGNUtils.applyMoves(board, new String[] { "e4", "c5", "Nf3", });
+		PGNUtils.applyMoves(board, "e4", "c5", "Nf3");
 		assertEquals("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2", FENUtils.generate(board));
 	}
 	
