@@ -20,6 +20,7 @@ package nl.zoidberg.calculon.analyzer;
 import nl.zoidberg.calculon.engine.BitBoard;
 import nl.zoidberg.calculon.engine.PreGeneratedMoves;
 import nl.zoidberg.calculon.model.Piece;
+import nl.zoidberg.calculon.util.BitIterable;
 
 public class MobilityScorer implements PositionScorer {
     public static final int PER_SQUARE = 50;
@@ -33,9 +34,7 @@ public class MobilityScorer implements PositionScorer {
         int score = 0;
 
         long straightPieces = bitBoard.getBitmapColor(color) & (bitBoard.getBitmapQueens() | bitBoard.getBitmapRooks());
-        while(straightPieces != 0) {
-            long nextPiece = Long.lowestOneBit(straightPieces);
-            straightPieces ^= nextPiece;
+        for(long nextPiece: BitIterable.of(straightPieces)) {
             int index = Long.numberOfTrailingZeros(nextPiece);
             for(long[] nextDirection: PreGeneratedMoves.STRAIGHT_MOVES[index]) {
                 for(long nextSquare: nextDirection) {
@@ -48,9 +47,7 @@ public class MobilityScorer implements PositionScorer {
         }
 
         long diagonalPieces = bitBoard.getBitmapColor(color) & (bitBoard.getBitmapQueens() | bitBoard.getBitmapBishops());
-        while(diagonalPieces != 0) {
-            long nextPiece = Long.lowestOneBit(diagonalPieces);
-            diagonalPieces ^= nextPiece;
+        for(long nextPiece: BitIterable.of(diagonalPieces)) {
             int index = Long.numberOfTrailingZeros(nextPiece);
             for(long[] nextDirection: PreGeneratedMoves.DIAGONAL_MOVES[index]) {
                 for(long nextSquare: nextDirection) {
