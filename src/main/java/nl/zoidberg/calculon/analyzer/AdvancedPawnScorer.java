@@ -4,6 +4,8 @@ import nl.zoidberg.calculon.engine.BitBoard;
 import nl.zoidberg.calculon.model.Piece;
 import nl.zoidberg.calculon.util.BitIterable;
 
+import java.util.stream.StreamSupport;
+
 /**
  * Calculon - A Java chess-engine.
  *
@@ -38,13 +40,14 @@ public class AdvancedPawnScorer implements PositionScorer {
         return scorePosition(bitBoard, Piece.WHITE) - scorePosition(bitBoard, Piece.BLACK);
     }
 
-    private int scorePosition(BitBoard bitBoard, byte color) {
-        int score = 0;
-        for(long pawn: BitIterable.of(bitBoard.getBitmapPawns(color))) {
-            int rank = BitBoard.toCoords(pawn)[1];
-            rank = (color == Piece.WHITE ? rank : 7 - rank);
-            score += RANK_SCORE[rank];
-        }
-        return score;
+    private int scorePosition(BitBoard bitBoard, final byte color) {
+        Iterable<Long> pawnIterable = BitIterable.of(bitBoard.getBitmapPawns(color));
+        return StreamSupport.stream(pawnIterable.spliterator(), false).mapToInt((pawn) -> scorePawn(pawn, color)).sum();
+    }
+
+    private static int scorePawn(long pawn, byte color) {
+        int rank = BitBoard.toCoords(pawn)[1];
+        rank = (color == Piece.WHITE ? rank : 7 - rank);
+        return RANK_SCORE[rank];
     }
 }
