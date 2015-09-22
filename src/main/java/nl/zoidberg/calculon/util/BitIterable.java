@@ -21,11 +21,13 @@ public class BitIterable implements Iterable<Long> {
     }
 
     public LongStream longStream() {
-        LongStream.Builder builder = LongStream.builder();
-        for(PrimitiveIterator.OfLong iter = this.iterator(); iter.hasNext(); ) {
-            builder.accept(iter.nextLong());
+        long[] bitValues = new long[Long.bitCount(val)];
+        long copyValue = val;
+        for(int i = 0; i < bitValues.length; i++) {
+            bitValues[i] = Long.lowestOneBit(copyValue);
+            copyValue ^= bitValues[i];
         }
-        return builder.build();
+        return LongStream.of(bitValues);
     }
 
     @Override
