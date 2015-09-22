@@ -63,6 +63,13 @@ public class BitIteratorTest {
         assertEquals(64, BitIterable.of(0b11111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111L).longStream().count());
     }
 
+    @Test
+    public void testAltConstructor() {
+        BitIterable bitIterable = BitIterable.of(new long[] { 0b001, 0b100});
+        assertEquals(2, bitIterable.longStream().count());
+        assertEquals(0b101, bitIterable.getValue());
+    }
+
     @SuppressWarnings("unused")
     public void speedTest1() {
         long t = System.nanoTime();
