@@ -17,10 +17,9 @@ public class BitIterable implements Iterable<Long> {
     private BitIterable(long val) {
         this.bitValues = new long[Long.bitCount(val)];
 
-        long copyValue = val;
         for(int i = 0; i < bitValues.length; i++) {
-            bitValues[i] = Long.lowestOneBit(copyValue);
-            copyValue ^= bitValues[i];
+            bitValues[i] = Long.lowestOneBit(val);
+            val ^= bitValues[i];
         }
     }
 
