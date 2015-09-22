@@ -1,6 +1,5 @@
 package nl.zoidberg.calculon.icc;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,9 +9,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MovesRecorder implements Lv1BlockHandler.Lv1Listener {
-    private static enum RelTypes implements RelationshipType {
-        CHOSEN
-    }
 
     private static final Logger LOG = LoggerFactory.getLogger(Lv1BlockHandler.class);
 
