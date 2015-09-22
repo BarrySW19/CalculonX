@@ -3,8 +3,6 @@ package nl.zoidberg.calculon.util;
 import java.util.NoSuchElementException;
 import java.util.PrimitiveIterator;
 import java.util.stream.LongStream;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * Treats a 64 bit long as an iterable of the bits set to 1. This is slightly slower than doing the
@@ -22,14 +20,12 @@ public class BitIterable implements Iterable<Long> {
         return new BitIterable(val);
     }
 
-    @SuppressWarnings("unused")
-    public static Stream<Long> stream(long val) {
-        return StreamSupport.stream(new BitIterable(val).spliterator(), false);
-    }
-
-    @SuppressWarnings("unused")
-    public static Stream<Long> parallelStream(long val) {
-        return StreamSupport.stream(new BitIterable(val).spliterator(), true);
+    public LongStream longStream() {
+        LongStream.Builder builder = LongStream.builder();
+        for(PrimitiveIterator.OfLong iter = this.iterator(); iter.hasNext(); ) {
+            builder.accept(iter.nextLong());
+        }
+        return builder.build();
     }
 
     @Override
