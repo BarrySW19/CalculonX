@@ -8,12 +8,20 @@ import java.util.stream.LongStream;
  * Treats a 64 bit long as an iterable of the bits set to 1. This is slightly slower than doing the
  * iteration directly, but simplifies the code. The iterable itself is immutable and thus thread safe
  * but iterators created from it are not.
+ *
+ * The individual bits set in the supplied value can be read out via an iterator of a LongStream.
  */
 public class BitIterable implements Iterable<Long> {
-    private final long val;
+    private final long[] bitValues;
 
     private BitIterable(long val) {
-        this.val = val;
+        this.bitValues = new long[Long.bitCount(val)];
+
+        long copyValue = val;
+        for(int i = 0; i < bitValues.length; i++) {
+            bitValues[i] = Long.lowestOneBit(copyValue);
+            copyValue ^= bitValues[i];
+        }
     }
 
     public static BitIterable of(long val) {
@@ -21,41 +29,31 @@ public class BitIterable implements Iterable<Long> {
     }
 
     public LongStream longStream() {
-        long[] bitValues = new long[Long.bitCount(val)];
-        long copyValue = val;
-        for(int i = 0; i < bitValues.length; i++) {
-            bitValues[i] = Long.lowestOneBit(copyValue);
-            copyValue ^= bitValues[i];
-        }
         return LongStream.of(bitValues);
     }
 
     @Override
     public PrimitiveIterator.OfLong iterator() {
-        return new BitIterator(val);
+        return new BitIterator();
     }
 
-    private static class BitIterator implements PrimitiveIterator.OfLong {
-        private long iterVal;
+    private class BitIterator implements PrimitiveIterator.OfLong {
+        private int idx = 0;
 
-        private BitIterator(long iterVal) {
-            this.iterVal = iterVal;
-        }
+        private BitIterator() { }
 
         @Override
         public long nextLong() {
-            if(iterVal == 0) {
+            if( ! hasNext()) {
                 throw new NoSuchElementException();
             }
 
-            long rv = Long.lowestOneBit(iterVal);
-            iterVal ^= rv;
-            return rv;
+            return bitValues[idx++];
         }
 
         @Override
         public boolean hasNext() {
-            return iterVal != 0;
+            return idx < bitValues.length;
         }
     }
 }
