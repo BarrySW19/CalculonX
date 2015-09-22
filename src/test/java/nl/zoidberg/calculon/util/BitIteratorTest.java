@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.PrimitiveIterator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -12,6 +13,7 @@ import static org.junit.Assert.assertTrue;
 public class BitIteratorTest {
 
     @Test
+    @SuppressWarnings("unused")
     public void testIterator() {
         int count = 0;
         for(long l: BitIterable.of(0xFF)) {
@@ -45,6 +47,15 @@ public class BitIteratorTest {
         iterator.next();
     }
 
+    @Test
+    public void testLongStream() {
+        BitIterable bitIterable = BitIterable.of(0b00100101);
+        assertEquals(3, bitIterable.longStream().count());
+        assertEquals(0b00100000, bitIterable.longStream().max().getAsLong());
+        assertEquals(0b00000001, bitIterable.longStream().min().getAsLong());
+    }
+
+    @SuppressWarnings("unused")
     public void speedTest1() {
         long t = System.nanoTime();
         for(int i = 0; i < 10_000_000; i++) {
@@ -59,12 +70,36 @@ public class BitIteratorTest {
         System.out.println(t / 1_000_000);
     }
 
+    @SuppressWarnings("unused")
     public void speedTest2() {
         long t = System.nanoTime();
         for(int i = 0; i < 10_000_000; i++) {
             for(Long x: BitIterable.of(0b10101010_10101010_10101010_10101010_10101010_10101010_10101010_10101010L)) {
                 t += 0;
             }
+        }
+        t = System.nanoTime() - t;
+        System.out.println(t / 1_000_000);
+    }
+
+    @SuppressWarnings("unused")
+    public void speedTest3() {
+        long t = System.nanoTime();
+        for(int i = 0; i < 10_000_000; i++) {
+            for(PrimitiveIterator.OfLong iter = BitIterable.of(0b10101010_10101010_10101010_10101010_10101010_10101010_10101010_10101010L).iterator(); iter.hasNext(); ) {
+                iter.nextLong();
+                t += 0;
+            }
+        }
+        t = System.nanoTime() - t;
+        System.out.println(t / 1_000_000);
+    }
+
+    @SuppressWarnings("unused")
+    public void speedTest4() {
+        long t = System.nanoTime();
+        for(int i = 0; i < 10_000_000; i++) {
+            BitIterable.of(0b10101010_10101010_10101010_10101010_10101010_10101010_10101010_10101010L).longStream().forEach((z) -> { });
         }
         t = System.nanoTime() - t;
         System.out.println(t / 1_000_000);
