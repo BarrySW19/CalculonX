@@ -1,7 +1,10 @@
 package nl.zoidberg.calculon.util;
 
-import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.PrimitiveIterator;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Treats a 64 bit long as an iterable of the bits set to 1. This is slightly slower than doing the
@@ -19,13 +22,22 @@ public class BitIterable implements Iterable<Long> {
         return new BitIterable(val);
     }
 
+    @SuppressWarnings("unused")
+    public static Stream<Long> stream(long val) {
+        return StreamSupport.stream(new BitIterable(val).spliterator(), false);
+    }
+
+    @SuppressWarnings("unused")
+    public static Stream<Long> parallelStream(long val) {
+        return StreamSupport.stream(new BitIterable(val).spliterator(), true);
+    }
+
     @Override
-    public Iterator<Long> iterator() {
+    public PrimitiveIterator.OfLong iterator() {
         return new BitIterator(val);
     }
 
-    // Not thread safe
-    private static class BitIterator implements Iterator<Long> {
+    private static class BitIterator implements PrimitiveIterator.OfLong {
         private long iterVal;
 
         private BitIterator(long iterVal) {
@@ -33,23 +45,19 @@ public class BitIterable implements Iterable<Long> {
         }
 
         @Override
-        public boolean hasNext() {
-            return iterVal != 0;
-        }
-
-        @Override
-        public Long next() {
+        public long nextLong() {
             if(iterVal == 0) {
                 throw new NoSuchElementException();
             }
+
             long rv = Long.lowestOneBit(iterVal);
             iterVal ^= rv;
             return rv;
         }
 
         @Override
-        public void remove() {
-            throw new UnsupportedOperationException();
+        public boolean hasNext() {
+            return iterVal != 0;
         }
     }
 }
