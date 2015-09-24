@@ -18,6 +18,10 @@ public class OrderSummary {
         orderQuantity = initialQuantity;
     }
 
+    public OrderSummary(Order order) {
+        this(order.getOrderType(), order.getPricePerKg(), order.getOrderQuantity());
+    }
+
     public Key getKey() {
         return key;
     }
