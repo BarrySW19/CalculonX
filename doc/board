@@ -1,0 +1,59 @@
+package nl.zoidberg.calculon.silverbars;
+
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collector;
+
+import static java.util.stream.Collectors.*;
+
+/**
+ * Simple order board - not thread safe. Maintains a list of all current orders and provides methods for generating
+ * summaries for these.
+ */
+public class OrderBoard {
+
+    // An alternate structure might be Map<Long, Order> to index orders efficiently by ID, but
+    // there doesn't seem to be a use-case for that here.
+    private final List<Order> orders = new ArrayList<>();
+
+    public OrderBoard() {
+        orders.add(new Order("user1", new BigDecimal("3.5"), new BigDecimal("306"), Order.Type.BUY));
+        orders.add(new Order("user2", new BigDecimal("1.2"), new BigDecimal("310"), Order.Type.BUY));
+        orders.add(new Order("user3", new BigDecimal("1.5"), new BigDecimal("307"), Order.Type.BUY));
+        orders.add(new Order("user4", new BigDecimal("2.0"), new BigDecimal("306"), Order.Type.BUY));
+        orders.add(new Order("user5", new BigDecimal("1.5"), new BigDecimal("320"), Order.Type.SELL));
+        orders.add(new Order("user6", new BigDecimal("2.0"), new BigDecimal("321"), Order.Type.SELL));
+    }
+
+    public void addOrder(Order order) {
+        // No validation rules specified.
+        orders.add(order);
+    }
+
+    public Optional<Order> removeOrder(final long orderId) {
+        // This might be a reason to keep the Orders indexed instead of in a List, but then the summarizing would be
+        // more complex.
+        Optional<Order> order = orders.stream().filter((o) -> o.getOrderId() == orderId).findFirst();
+        order.ifPresent(orders::remove);
+        return order;
+    }
+
+    public Collection<Order> getOrders() {
+        // In a concurrent system, this would probably return a copy.
+        return Collections.unmodifiableCollection(orders);
+    }
+
+    public List<OrderSummary> getOrderSummaries() {
+         // Some functional magic - create a function which can Map/Reduce a list of Orders already filtered by type
+         // and price into a single OrderSummary.
+        final Collector<Order, ?, Optional<OrderSummary>> mapReduceOrdersToSummaries =
+                mapping(order -> new OrderSummary(order.getOrderType(), order.getPricePerKg(), order.getOrderQuantity()), reducing(OrderSummary::combine));
+
+        // Step 1: Perform a 'group by type, price_per_kg' type operation on the orders, mapping to summary lines.
+        Map<Order.Type, Map<BigDecimal, Optional<OrderSummary>>> summaryLines = orders.stream().collect(
+                groupingBy(Order::getOrderType, groupingBy(Order::getPricePerKg, mapReduceOrdersToSummaries)));
+
+        // Step 2: Flatten the structure to produce an (unordered) list of summary lines.
+        return summaryLines.values().stream().flatMap((map) -> map.values().stream()).map(Optional::get).collect(toList());
+    }
+}
