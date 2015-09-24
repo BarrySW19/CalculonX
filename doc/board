@@ -44,14 +44,13 @@ public class OrderBoard {
     }
 
     public List<OrderSummary> getOrderSummaries() {
-         // Some functional magic - create a function which can Map/Reduce a list of Orders already filtered by type
-         // and price into a single OrderSummary.
-        final Collector<Order, ?, Optional<OrderSummary>> mapReduceOrdersToSummaries =
-                mapping(order -> new OrderSummary(order.getOrderType(), order.getPricePerKg(), order.getOrderQuantity()), reducing(OrderSummary::combine));
 
-        // Step 1: Perform a 'group by type, price_per_kg' type operation on the orders, mapping to summary lines.
+        // Step 1: Perform a 'group by type, price_per_kg' style operation on the orders to produce lists of
+        // orders to be combined. Then perform a Map/Reduce operation on these lists to generate the
+        // summary lines.
         Map<Order.Type, Map<BigDecimal, Optional<OrderSummary>>> summaryLines = orders.stream().collect(
-                groupingBy(Order::getOrderType, groupingBy(Order::getPricePerKg, mapReduceOrdersToSummaries)));
+                groupingBy(Order::getOrderType, groupingBy(Order::getPricePerKg,
+                                mapping(OrderSummary::new, reducing(OrderSummary::combine)))));
 
         // Step 2: Flatten the structure to produce an (unordered) list of summary lines.
         return summaryLines.values().stream().flatMap((map) -> map.values().stream()).map(Optional::get).collect(toList());
