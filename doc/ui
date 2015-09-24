@@ -1,0 +1,164 @@
+package nl.zoidberg.calculon.silverbars;
+
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * Provides a simple user interface to allow demonstration of the system. Just uses stdin/stdout
+ * for communication.
+ */
+public class UserInterface {
+    // RegEx for the required input for an order entry.
+    // Assuming: User ID is any mix of letters and numbers and the underscore character
+    //           The allowed quantity contains only one decimal place
+    //           The allowed price is an integer (as used in the exercise although unlikely in practice)
+    private static final Pattern ORDER_PATTERN = Pattern.compile("([a-zA-Z0-9_]+) ([0-9]+(\\.[0-9])?) ([0-9]+) ([bB][uU][yY]|[sS][eE][lL][lL])");
+
+    // Defines the desired order of OrderSummaries in the live order view. This is defined here rather than
+    // as a compareTo() on the OrderSummary object because it is display logic - the OrderSummary
+    // shouldn't have to worry about how it gets displayed.
+    public static final Comparator<OrderSummary> DISPLAY_ORDER_COMPARATOR = (summary1, summary2) -> {
+        if(summary1.getKey().getOrderType() != summary2.getKey().getOrderType()) {
+            // No order for BUY/SELL specified, so just make sure they are separated.
+            return summary1.getKey().getOrderType().compareTo(summary2.getKey().getOrderType());
+        }
+
+        if(summary1.getKey().getOrderType() == Order.Type.BUY) {
+            return summary2.getKey().getPricePerKg().compareTo(summary1.getKey().getPricePerKg());
+        } else {
+            return summary1.getKey().getPricePerKg().compareTo(summary2.getKey().getPricePerKg());
+        }
+    };
+
+    private final Scanner inputScanner;
+    private final OrderBoard orderBoard = new OrderBoard();
+
+    public static void main(String[] args) {
+        new UserInterface().start();
+    }
+
+    private UserInterface() {
+        inputScanner = new Scanner(System.in);
+    }
+
+    private void start() {
+        while(true) {
+            displayMenu();
+            try {
+                int menuOption = Integer.parseInt(inputScanner.nextLine());
+                switch(menuOption) {
+                    case 1:
+                        acceptNewOrder();
+                        break;
+                    case 2:
+                        cancelOrder();
+                        break;
+                    case 3:
+                        displayOrderSummary();
+                        break;
+                    case 4:
+                        return;
+                    default:
+                        System.out.println("Unknown option.");
+                        break;
+                }
+            } catch (NumberFormatException nfx) {
+                System.out.println("Invalid input.");
+            }
+        }
+    }
+
+    private void acceptNewOrder() {
+        while(true) {
+            System.out.println("Please enter the order fields (userid, order quantity (in kg), price per kg, buy/sell) separated by spaces");
+            System.out.println("e.g.: 'barry 3.5 303 buy");
+            System.out.print("> ");
+
+            String command = inputScanner.nextLine();
+            if(command.trim().length() == 0) {
+                return;
+            }
+
+            Matcher matcher = ORDER_PATTERN.matcher(command);
+            if(!matcher.matches()) {
+                System.out.println("Invalid order, please retry or enter a blank line to return to main menu.");
+                continue;
+            }
+
+            // RegEx has already done the work of validating the syntax - just read the values.
+            // note, group 3 is a subsection of group 2 so not needed
+            String userId = matcher.group(1);
+            BigDecimal quantity = new BigDecimal(matcher.group(2));
+            BigDecimal price = new BigDecimal(matcher.group(4));
+            Order.Type orderType = Order.Type.fromString(matcher.group(5));
+
+            Order order = new Order(userId, quantity, price, orderType);
+            orderBoard.addOrder(order);
+            System.out.println(String.format("Order ID %d added.", order.getOrderId()));
+            return;
+        }
+    }
+
+    private void cancelOrder() {
+        while(true) {
+            System.out.println("   ID   Type        Qty    Price   User");
+            System.out.println("-----   ----   --------   ------   --------------------");
+
+            // No requirement specified for sorting orders in this list, so just display them by order id
+            orderBoard.getOrders().stream().forEach((o) -> System.out.println(formatOrder(o)));
+
+            System.out.print("Order ID to cancel (or blank for menu)> ");
+
+            try {
+                String input = inputScanner.nextLine();
+                if(input.trim().length() == 0) {
+                    return;
+                }
+                long orderId = Long.valueOf(input);
+                if(orderBoard.removeOrder(orderId).isPresent()) {
+                    System.out.println("Order cancelled.");
+                    return;
+                }
+                System.out.println("No such order number.");
+            } catch (NumberFormatException nfx) {
+                System.out.println("Invalid order number.");
+            }
+        }
+    }
+
+    private static String formatOrder(Order o) {
+        // Assuming max order is 10000 kg
+        return String.format("%5d   %4s   %5.1f kg   £%5.0f   %s", o.getOrderId(), o.getOrderType().name(), o.getOrderQuantity(), o.getPricePerKg(), o.getUserId());
+    }
+
+    private void displayOrderSummary() {
+        System.out.println();
+        System.out.println("Type     Price   Total Quantity");
+        System.out.println("----   -------   --------------");
+
+        List<OrderSummary> orderSummaries = orderBoard.getOrderSummaries();
+        Collections.sort(orderSummaries, DISPLAY_ORDER_COMPARATOR);
+        orderSummaries.stream().forEach((os) -> System.out.println(formatOrderSummary(os)));
+
+        System.out.println();
+    }
+
+    private static String formatOrderSummary(OrderSummary os) {
+        return String.format("%4s   £%6.0f   %11.1f kg", os.getKey().getOrderType().name(), os.getKey().getPricePerKg(), os.getOrderQuantity());
+    }
+
+    private void displayMenu() {
+        System.out.println();
+        System.out.println("Please select an option:");
+        System.out.println("   1. Enter an order");
+        System.out.println("   2. View or cancel an order");
+        System.out.println("   3. View live order summary");
+        System.out.println("   4. Exit");
+        System.out.print("> ");
+    }
+}
