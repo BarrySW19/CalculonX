@@ -64,14 +64,14 @@ public class BitBoard {
         }
     }
 
-    @Override
-    public BitBoard clone() {
-        BitBoard bb = new BitBoard();
-        System.arraycopy(bitmaps, 0, bb.bitmaps, 0, bitmaps.length);
-        bb.moveCount = moveCount;
-        bb.reverseMoves = (Stack<ReverseMove>) reverseMoves.clone();
-        return bb;
-    }
+	public static BitBoard createCopy(BitBoard original) {
+		BitBoard boardCopy = new BitBoard();
+		System.arraycopy(original.bitmaps, 0, boardCopy.bitmaps, 0, original.bitmaps.length);
+		boardCopy.moveCount = original.moveCount;
+		boardCopy.reverseMoves = new Stack<>();
+		boardCopy.reverseMoves.addAll(original.reverseMoves);
+		return boardCopy;
+	}
 
     public byte getCastlingOptions() {
         return (byte) (bitmaps[IDX_FLAGS] & CASTLE_MASK);
@@ -565,7 +565,7 @@ public class BitBoard {
 	}
 
     public boolean isRepeated() {
-        final BitBoard clone = this.clone();
+        final BitBoard clone = createCopy(this);
         while(clone.reverseMoves.size() >= 2) {
             clone.unmakeMove();
             clone.unmakeMove();
@@ -583,7 +583,7 @@ public class BitBoard {
 			return 1;
 		}
 
-        final BitBoard clone = this.clone();
+        final BitBoard clone = createCopy(this);
 		int repeatCount = 1;
 		while(! clone.reverseMoves.isEmpty() && clone.reverseMoves.peek().reverseHalfMove >= 2) {
 			clone.unmakeMove();
