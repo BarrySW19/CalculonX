@@ -181,7 +181,7 @@ public class ChessEngine {
 
 		for(Iterator<BitBoardMove> moveItr = moveGeneratorFactory.createMoveGenerator(bitBoard); moveItr.hasNext(); ) {
 			final BitBoardMove move = moveItr.next();
-            final BitBoard cloneBitBoard = bitBoard.clone();
+            final BitBoard cloneBitBoard = BitBoard.createCopy(bitBoard);
             final String algebraic = move.getAlgebraic();
             if( !movesToAnalyse.isEmpty() && !movesToAnalyse.containsKey(algebraic)) {
                 // LOG.debug("Skipping move {}", algebraic);
