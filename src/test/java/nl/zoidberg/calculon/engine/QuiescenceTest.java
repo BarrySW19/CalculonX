@@ -138,8 +138,8 @@ public class QuiescenceTest {
     @Test
     public void testStupidMove1() {
         BitBoard bitBoard = new BitBoard().initialise();
-        PGNUtils.applyMoves(bitBoard, new String[] {
-                "e4", "e5", "Nf3", "d5", "exd5", "Qxd5", "a3", "Bf5", "Qe2", "Be7", "Nxe5", "Bxc2" }); // g4??
+        PGNUtils.applyMoves(bitBoard,
+                "e4", "e5", "Nf3", "d5", "exd5", "Qxd5", "a3", "Bf5", "Qe2", "Be7", "Nxe5", "Bxc2"); // g4??
         String preBoard = FENUtils.generate(bitBoard);
         ChessEngine chessEngine = new ChessEngine(gameScorer);
         chessEngine.setTargetTime(1);
