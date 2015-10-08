@@ -16,10 +16,10 @@ fi
 
 case $1 in
 -fics)
-	class="nl.zoidberg.calculon.fics.FICSInterface"
+	class="barrysw19.calculon.fics.FICSInterface"
 	;;
 -icc)
-	class="nl.zoidberg.calculon.icc.ICCInterface"
+	class="barrysw19.calculon.icc.ICCInterface"
 	;;
 *)
 	echo "Unknown target. Try -fics or -icc"

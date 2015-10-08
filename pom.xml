@@ -102,7 +102,7 @@
 					<!--<archive>-->
 						<!--<manifest>-->
 							<!--<addClasspath>true</addClasspath>-->
-							<!--<mainClass>nl.zoidberg.calculon.fics.FICSInterface</mainClass>-->
+							<!--<mainClass>barrysw19.calculon.fics.FICSInterface</mainClass>-->
 						<!--</manifest>-->
 					<!--</archive>-->
 				<!--</configuration>-->
