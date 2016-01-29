@@ -10,6 +10,11 @@ public class BackRankMinorPieceScorer implements PositionScorer {
 
     @Override
     public int scorePosition(BitBoard bitBoard, Context context) {
+        if(context.isEndgame()) {
+            // Only really relevant for opening/middlegame.
+            return 0;
+        }
+
         return getScore(bitBoard, Piece.WHITE) - getScore(bitBoard, Piece.BLACK);
    	}
 
