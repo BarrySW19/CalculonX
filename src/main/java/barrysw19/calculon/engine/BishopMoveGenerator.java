@@ -1,7 +1,7 @@
 /**
  * Calculon - A Java chess-engine.
  *
- * Copyright (C) 2008-2009 Barry Smith
+ * Copyright (C) 2008-2016 Barry Smith
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@
  */
 package barrysw19.calculon.engine;
 
-import java.util.List;
-
 import barrysw19.calculon.engine.BitBoard.BitBoardMove;
 import barrysw19.calculon.model.Piece;
+
+import java.util.List;
 
 
 public class BishopMoveGenerator extends StraightMoveGenerator {
@@ -34,14 +34,10 @@ public class BishopMoveGenerator extends StraightMoveGenerator {
 			boolean safeFromCheck = ((nextPiece & potentialPins) == 0) & !alreadyInCheck;
 			
 			int mapIdx = Long.numberOfTrailingZeros(nextPiece);
-			makeUpBoardMoves(bitBoard, nextPiece,
-					Bitmaps.maps2[Bitmaps.BM_UR][mapIdx], 9, alreadyInCheck, safeFromCheck, rv);
-			makeUpBoardMoves(bitBoard, nextPiece,
-					Bitmaps.maps2[Bitmaps.BM_UL][mapIdx], 7, alreadyInCheck, safeFromCheck, rv);
-			makeDownBoardMoves(bitBoard, nextPiece,
-					Bitmaps.maps2[Bitmaps.BM_DR][mapIdx], 7, alreadyInCheck, safeFromCheck, rv);
-			makeDownBoardMoves(bitBoard, nextPiece,
-					Bitmaps.maps2[Bitmaps.BM_DL][mapIdx], 9, alreadyInCheck, safeFromCheck, rv);
+			long[][] allMoves = PreGeneratedMoves.DIAGONAL_MOVES[mapIdx];
+			for(long[] dirMoves: allMoves) {
+				makeBoardMoves(bitBoard, nextPiece, dirMoves, alreadyInCheck, safeFromCheck, rv);
+			}
 		}
 	}
 
