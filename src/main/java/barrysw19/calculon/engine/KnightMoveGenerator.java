@@ -22,6 +22,7 @@ import barrysw19.calculon.engine.BitBoard.BitBoardMove;
 import barrysw19.calculon.util.BitIterable;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class KnightMoveGenerator extends PieceMoveGenerator {
 	
@@ -95,28 +96,30 @@ public class KnightMoveGenerator extends PieceMoveGenerator {
     }
 	
 	private void generateMoves(BitBoard bitBoard, long pieceMap, boolean alreadyInCheck, boolean safeFromCheck, List<BitBoardMove> rv) {
-        byte player = bitBoard.getPlayer();
-        long knightMoves = KNIGHT_MOVES[Long.numberOfTrailingZeros(pieceMap)] & ~bitBoard.getBitmapColor();
+        final byte player = bitBoard.getPlayer();
+        final long knightMoves = KNIGHT_MOVES[Long.numberOfTrailingZeros(pieceMap)] & ~bitBoard.getBitmapColor();
+        final long enemyPieces = bitBoard.getBitmapOppColor();
 
-        for(long nextMove: BitIterable.of(knightMoves)) {
-        	BitBoardMove bbMove;
-        	if((nextMove & bitBoard.getBitmapOppColor(player)) != 0) {
-				bbMove = BitBoard.generateCapture(pieceMap, nextMove, player, Piece.KNIGHT, bitBoard.getPiece(nextMove));
-        	} else {
-				bbMove = BitBoard.generateMove(pieceMap, nextMove, player, Piece.KNIGHT);
-        	}
-        	
-			if(safeFromCheck) {
-                rv.add(bbMove);
-			} else {
-				bitBoard.makeMove(bbMove);
-				if( ! CheckDetector.isPlayerJustMovedInCheck(bitBoard, ! alreadyInCheck)) {
-	                rv.add(bbMove);
-				}
-				bitBoard.unmakeMove();
-			}
+        final Consumer<BitBoardMove> moveConsumer = safeFromCheck
+                ? (rv::add)
+                : (m -> {
+            bitBoard.makeMove(m);
+            if (!CheckDetector.isPlayerJustMovedInCheck(bitBoard, !alreadyInCheck)) {
+                rv.add(m);
+            }
+            bitBoard.unmakeMove();
+
+        });
+
+        for(final long nextMove: BitIterable.of(knightMoves & ~enemyPieces)) {
+            moveConsumer.accept(BitBoard.generateMove(pieceMap, nextMove, player, Piece.KNIGHT));
         }
-	}
+
+        for(final long nextMove: BitIterable.of(knightMoves & enemyPieces)) {
+            moveConsumer.accept(
+                    BitBoard.generateCapture(pieceMap, nextMove, player, Piece.KNIGHT, bitBoard.getPiece(nextMove)));
+        }
+    }
 
 	@Override
 	public void generateMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoardMove> rv) {
