@@ -100,7 +100,7 @@ public class KingMoveGenerator extends PieceMoveGenerator {
 	}
 
     private void generateCaptureMoves(BitBoard bitBoard, long kingPos, List<BitBoardMove> rv) {
-        byte player = bitBoard.getPlayer();
+        final byte player = bitBoard.getPlayer();
         long kingMoves = KING_MOVES[Long.numberOfTrailingZeros(kingPos)] & bitBoard.getBitmapOppColor(player);
 
         for(long nextMove: BitIterable.of(kingMoves)) {
@@ -122,7 +122,7 @@ public class KingMoveGenerator extends PieceMoveGenerator {
 		final long king = bitBoard.getBitmapColor(player) & bitBoard.getBitmapKings();
         assert Long.bitCount(king) == 1;
 
-		long emptyMoves = KING_MOVES[Long.numberOfTrailingZeros(king)]&(~bitBoard.getAllPieces());
+		final long emptyMoves = KING_MOVES[Long.numberOfTrailingZeros(king)]&(~bitBoard.getAllPieces());
         for(long nextMove: BitIterable.of(emptyMoves)) {
 			BitBoardMove bbMove = BitBoard.generateMove(king, nextMove, player, Piece.KING);
 			bitBoard.makeMove(bbMove);
@@ -132,7 +132,7 @@ public class KingMoveGenerator extends PieceMoveGenerator {
 			bitBoard.unmakeMove();
 		}
 
-		byte castleFlags = bitBoard.getCastlingOptions();
+		final byte castleFlags = bitBoard.getCastlingOptions();
 		if(player == Piece.WHITE && ! alreadyInCheck) {
 			if((castleFlags & BitBoard.CASTLE_WKS) != 0 && (bitBoard.getAllPieces() & EMPTY_WKS) == 0) {
                 if( ! isIntermediateCheck(bitBoard, king, king<<1, player)) {

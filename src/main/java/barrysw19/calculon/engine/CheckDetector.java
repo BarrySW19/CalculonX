@@ -18,6 +18,7 @@
 package barrysw19.calculon.engine;
 
 import barrysw19.calculon.model.Piece;
+import barrysw19.calculon.util.BitIterable;
 
 public class CheckDetector {
 
@@ -53,13 +54,13 @@ public class CheckDetector {
      * @return True if in check
      */
     private static boolean inCheck(BitBoard bitBoard, final byte color, boolean pinCheckOnly) {
-    	long kingMap = bitBoard.getBitmapColor(color) & bitBoard.getBitmapKings();
+    	final long kingMap = bitBoard.getBitmapColor(color) & bitBoard.getBitmapKings();
     	final int kingIdx = Long.numberOfTrailingZeros(kingMap);
-        final long allEnemies = bitBoard.getBitmapOppColor(color);
-        final long bitmapMyColor = bitBoard.getBitmapColor(color);
+        final long allEnemyPieces = bitBoard.getBitmapOppColor(color);
+        final long allMyPieces = bitBoard.getBitmapColor(color);
 
         if( ! pinCheckOnly) {
-	        long enemyPawns = allEnemies & bitBoard.getBitmapPawns();
+	        long enemyPawns = allEnemyPieces & bitBoard.getBitmapPawns();
 	        
 	        // Theoretically, we would incorrectly find pawns on the 1st/8th rank with this, but there shouldn't
 	        // be any there :)
@@ -72,54 +73,55 @@ public class CheckDetector {
 	        }
 	        
 	        long kingMoves = KingMoveGenerator.KING_MOVES[kingIdx];
-	        if((kingMoves & bitBoard.getBitmapKings() & allEnemies) != 0) {
+	        if((kingMoves & bitBoard.getBitmapKings() & allEnemyPieces) != 0) {
 	        	return true;
 	        }
 	        
 	        long knightMoves = KnightMoveGenerator.KNIGHT_MOVES[kingIdx];
-	        if((knightMoves & bitBoard.getBitmapKnights() & allEnemies) != 0) {
+	        if((knightMoves & bitBoard.getBitmapKnights() & allEnemyPieces) != 0) {
 	        	return true;
 	        }
         }
 
-        long lineAttackers = allEnemies & (bitBoard.getBitmapRooks()|bitBoard.getBitmapQueens());
-        if((lineAttackers & Bitmaps.cross2Map[kingIdx]) != 0) {
-            for(long[] slideMove: PreGeneratedMoves.STRAIGHT_MOVES[kingIdx]) {
-                for(long nextPosition: slideMove) {
-                    if((bitmapMyColor & nextPosition) != 0) {
-                        // One of my own pieces is in the way
+        final int[] kingPos = BitBoard.toCoords(kingMap);
+
+        final long lineAttackers = (allEnemyPieces & Bitmaps.cross2Map[kingIdx]
+                & (bitBoard.getBitmapRooks()|bitBoard.getBitmapQueens()));
+        if(examineSlidingAttackers(kingPos, kingIdx, allMyPieces, allEnemyPieces, lineAttackers)) {
+            return true;
+        }
+
+        final long diagAttackers = (allEnemyPieces & Bitmaps.diag2Map[kingIdx]
+                & (bitBoard.getBitmapBishops()|bitBoard.getBitmapQueens()));
+        //noinspection RedundantIfStatement
+        if(examineSlidingAttackers(kingPos, kingIdx, allMyPieces, allEnemyPieces, diagAttackers)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static boolean examineSlidingAttackers(
+            final int[] kingPos, final int kingIdx, final long allMyPieces, final long allEnemyPieces, final long attackers)
+    {
+        for(long attacker: BitIterable.of(attackers)) {
+            int[] attackerPos = BitBoard.toCoords(attacker);
+            int dirHorz = 1 + Integer.signum(kingPos[0] - attackerPos[0]);
+            int dirVert = 1 + Integer.signum(kingPos[1] - attackerPos[1]);
+            long[] movesToAttacker = PreGeneratedMoves.SLIDE_MOVES[kingIdx][Bitmaps.DIR_MAP[dirHorz][dirVert]];
+            for(long nextSquare: movesToAttacker) {
+                if((allMyPieces & nextSquare) != 0) {
+                    break; // One of my own pieces is in the way
+                }
+                if((nextSquare & allEnemyPieces) != 0) {
+                    if((nextSquare & attackers) != 0) {
+                        return true;
+                    } else {
                         break;
-                    }
-                    if((nextPosition & allEnemies) != 0) {
-                        if((nextPosition & lineAttackers) != 0) {
-                            return true;
-                        } else {
-                            break;
-                        }
                     }
                 }
             }
         }
-        
-        long diagAttackers = allEnemies & (bitBoard.getBitmapBishops()|bitBoard.getBitmapQueens());
-        if((diagAttackers & Bitmaps.diag2Map[kingIdx]) != 0) {
-            for(long[] slideMove: PreGeneratedMoves.DIAGONAL_MOVES[kingIdx]) {
-                for(long nextPosition: slideMove) {
-                    if((bitmapMyColor & nextPosition) != 0) {
-                        // One of my own pieces is in the way
-                        break;
-                    }
-                    if((nextPosition & allEnemies) != 0) {
-                        if((nextPosition & diagAttackers) != 0) {
-                            return true;
-                        } else {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        
         return false;
     }
 }

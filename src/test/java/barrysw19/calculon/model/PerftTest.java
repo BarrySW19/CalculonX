@@ -25,10 +25,12 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.LongStream;
 
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -45,49 +47,49 @@ public class PerftTest {
     @Test
     public void testStartPosition() {
         testConfig(new PerftTestConfig("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-                new long[]{20, 400, 8902, 197281, 4865609,}));
+                new long[]{20, 400, 8_902, 197_281, 4_865_609, 119_060_324, 3_195_901_860L }));
     }
 
     @Test
     public void testMidGame1() {
         testConfig(new PerftTestConfig("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
-                new long[]{48, 2039, 97862, 4085603, 193690690,}));
+                new long[]{48, 2_039, 97_862, 4_085_603, 193_690_690,}));
     }
 
     @Test
     public void testEndGame1() {
         testConfig(new PerftTestConfig("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
-                new long[]{14, 191, 2812, 43238, 674624, 11030083, 178633661,}));
+                new long[]{14, 191, 2_812, 43_238, 674_624, 11_030_083, 178_633_661,}));
     }
 
     @Test
     public void testManyCaptures1() {
         testConfig(new PerftTestConfig("r3k2r/pppq1ppp/2nbbn2/3pp3/3PP3/2NBBN2/PPPQ1PPP/R3K2R w KQkq - 0 8",
-                new long[]{41, 1680, 69126, 2833127,}));
+                new long[]{41, 1_680, 69_126, 2_833_127,}));
     }
 
     @Test
     public void testManyCaptures2() {
         testConfig(new PerftTestConfig("r3k2r/ppp2p1p/3bbnpB/n2Np3/q2PP3/2PB1N2/PP1Q1PPP/R3K2R w KQkq - 0 11",
-                new long[]{47, 2055, 93774,}));
+                new long[]{47, 2_055, 93_774,}));
     }
 
     @Test
     public void testEndGame2() {
         testConfig(new PerftTestConfig("8/PPP4k/8/8/8/8/4Kppp/8 w - - 0 1",
-                new long[]{18, 290, 5044, 89363, 1745545,}));
+                new long[]{18, 290, 5_044, 89_363, 1_745_545,}));
     }
 
     @Test
     public void testEndGame3() {
         testConfig(new PerftTestConfig("8/3K4/2p5/p2b2r1/5k2/8/8/1q6 b - - 0 1",
-                new long[]{50, 279, 13310, 54703, 2538084,}));
+                new long[]{50, 279, 13_310, 54_703, 2_538_084,}));
     }
 
     @Test
     public void testEndGame4() {
         testConfig(new PerftTestConfig("8/p3kp2/6p1/3r1p1p/7P/8/3p2P1/3R1K2 w - - 0 1",
-                new long[]{10, 218, 2886, 63771, 927197,}));
+                new long[]{10, 218, 2_886, 63_771, 927_197,}));
     }
 
     @Test
@@ -97,11 +99,11 @@ public class PerftTest {
     }
 
     private void testConfig(PerftTestConfig config) {
-        List<Long> useCounts = new ArrayList<>();
-        for (int i = 0; i < config.expectedCounts.length && config.expectedCounts[i] < MAX_COUNT; i++) {
-            useCounts.add(config.expectedCounts[i]);
-        }
+        List<Long> useCounts = LongStream.of(config.expectedCounts).filter(l -> l <= MAX_COUNT).boxed().collect(toList());
+        BigDecimal execTime = new BigDecimal(System.currentTimeMillis());
         executeBoard(FENUtils.getBoard(config.position), useCounts);
+        execTime = new BigDecimal(System.currentTimeMillis()).subtract(execTime).scaleByPowerOfTen(-3);
+        LOG.info(String.format("Test took %s seconds.", execTime.toString()));
     }
 
     private void executeBoard(BitBoard board, List<Long> expect) {

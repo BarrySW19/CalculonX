@@ -27,7 +27,7 @@ public class MoveGeneratorImpl implements MoveGenerator {
 	private static final List<PieceMoveGenerator> MASTER;
 	
 	static {
-        List<PieceMoveGenerator> list = new ArrayList<>();
+        List<PieceMoveGenerator> list = new LinkedList<>();
 		list.add(new PawnCaptureGenerator());
         list.add(new KnightMoveGenerator());
         list.add(new StraightMoveGenerator(
@@ -46,7 +46,7 @@ public class MoveGeneratorImpl implements MoveGenerator {
 	
     private List<PieceMoveGenerator> generators;
 	private BitBoard bitBoard;
-	private List<BitBoardMove> queuedMoves = new ArrayList<>();
+	private List<BitBoardMove> queuedMoves = new LinkedList<>();
 	private int genIndex = 0;
 	private boolean inCheck;
 	private long potentialPins = 0;
@@ -121,7 +121,7 @@ public class MoveGeneratorImpl implements MoveGenerator {
 	 * calculation as it's too slow.
 	 */
 	public List<BitBoardMove> getAllRemainingMoves() {
-		List<BitBoardMove> moves = new ArrayList<>();
+		List<BitBoardMove> moves = new LinkedList<>();
 		while(this.hasNext()) {
 			moves.add(this.next());
 		}
@@ -130,7 +130,7 @@ public class MoveGeneratorImpl implements MoveGenerator {
 
     @Override
 	public List<BitBoardMove> getThreateningMoves() {
-		List<BitBoardMove> moves = new ArrayList<>();
+		List<BitBoardMove> moves = new LinkedList<>();
 
 		for(PieceMoveGenerator generator: generators) {
             // Rule: If the player is in check then all moves are needed, otherwise just

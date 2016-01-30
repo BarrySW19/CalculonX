@@ -31,7 +31,14 @@ public class Bitmaps {
 	public static final short BM_DL	= 5;
 	public static final short BM_L 	= 6;
 	public static final short BM_UL	= 7;
-	
+
+    // Mappings of co-ord differences to direction
+	public static final int[][] DIR_MAP = new int[][] {
+			{  BM_UR, BM_R, BM_DR },
+			{  BM_U,  -99,  BM_D },
+			{  BM_UL, BM_L, BM_DL }
+	};
+
 	public static final long BORDER = -35604928818740737L;
 	
 	public static final long[][] maps2 = new long[8][64];
