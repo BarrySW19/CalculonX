@@ -18,29 +18,64 @@
 package barrysw19.calculon.engine;
 
 import barrysw19.calculon.engine.BitBoard.BitBoardMove;
+import barrysw19.calculon.util.BitIterable;
 
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.ToLongFunction;
 
-public abstract class StraightMoveGenerator extends PieceMoveGenerator {
+public class StraightMoveGenerator extends PieceMoveGenerator {
+    private final ToLongFunction<BitBoard> piecesToProcess;
+    private final long[][][] slidingMoves;
+    private final byte pieceType;
 
-	protected abstract byte getPieceType();
-	
-	protected void makeBoardMoves(BitBoard bitBoard, long source, long[] destinations,
+    public byte getPieceType() {
+        return pieceType;
+    }
+
+    public StraightMoveGenerator(ToLongFunction<BitBoard> piecesToProcess, long[][][] slidingMoves, byte pieceType) {
+        this.piecesToProcess = piecesToProcess;
+        this.slidingMoves = slidingMoves;
+        this.pieceType = pieceType;
+    }
+
+    @Override
+    public void generateMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoardMove> rv) {
+        final long pieces = piecesToProcess.applyAsLong(bitBoard);
+        for(long nextPiece: BitIterable.of(pieces)) {
+            boolean safeFromCheck = ((nextPiece & potentialPins) == 0) & !alreadyInCheck;
+
+            long[][] allMoves = slidingMoves[Long.numberOfTrailingZeros(nextPiece)];
+            for(long[] dirMoves: allMoves) {
+                makeBoardMoves(bitBoard, nextPiece, dirMoves, alreadyInCheck, safeFromCheck, rv);
+            }
+        }
+    }
+
+    private void makeBoardMoves(BitBoard bitBoard, long source, long[] destinations,
 								boolean alreadyInCheck, boolean safeFromCheck, List<BitBoardMove> rv)
     {
         final byte player = bitBoard.getPlayer();
-        boolean isCapture = false;
+        final long myPieces = bitBoard.getBitmapColor(player);
+        final long opponentsPieces = bitBoard.getBitmapOppColor(player);
 
-        int idx = 0;
-        while( !isCapture && idx < destinations.length) {
-            long moveTo = destinations[idx];
-            if((moveTo & bitBoard.getBitmapColor(player)) != 0) {
+        final Consumer<BitBoardMove> moveConsumer = safeFromCheck
+                ? (rv::add)
+                : (m -> {
+            bitBoard.makeMove(m);
+            if (!CheckDetector.isPlayerJustMovedInCheck(bitBoard, !alreadyInCheck)) {
+                rv.add(m);
+            }
+            bitBoard.unmakeMove();
+        });
+
+        for(long moveTo: destinations) {
+            if((moveTo & myPieces) != 0) {
                 return;
             }
 
-            isCapture = (moveTo & bitBoard.getBitmapOppColor(player)) != 0;
             BitBoardMove bbMove;
-            if(isCapture) {
+            if((moveTo & opponentsPieces) != 0) {
                 // This is a capturing move.
                 bbMove = BitBoard.generateCapture(
                         source, moveTo, player, getPieceType(), bitBoard.getPiece(moveTo));
@@ -48,17 +83,11 @@ public abstract class StraightMoveGenerator extends PieceMoveGenerator {
                 bbMove = BitBoard.generateMove(source, moveTo, player, getPieceType());
             }
 
-            if(safeFromCheck) {
-                rv.add(bbMove);
-            } else {
-                bitBoard.makeMove(bbMove);
-                if( ! CheckDetector.isPlayerJustMovedInCheck(bitBoard, ! alreadyInCheck)) {
-                    rv.add(bbMove);
-                }
-                bitBoard.unmakeMove();
-            }
+            moveConsumer.accept(bbMove);
 
-            idx++;
+            if(bbMove.isCapture()) {
+                return;
+            }
         }
 	}
 }

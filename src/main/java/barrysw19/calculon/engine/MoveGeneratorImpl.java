@@ -27,12 +27,15 @@ public class MoveGeneratorImpl implements MoveGenerator {
 	private static final List<PieceMoveGenerator> MASTER;
 	
 	static {
-        List<PieceMoveGenerator> list = new ArrayList<PieceMoveGenerator>();
+        List<PieceMoveGenerator> list = new ArrayList<>();
 		list.add(new PawnCaptureGenerator());
         list.add(new KnightMoveGenerator());
-        list.add(new BishopMoveGenerator());
-        list.add(new RookMoveGenerator());
-        list.add(new QueenMoveGenerator());
+        list.add(new StraightMoveGenerator(
+				(BitBoard bb) -> (bb.getBitmapColor() & bb.getBitmapBishops()), PreGeneratedMoves.DIAGONAL_MOVES, Piece.BISHOP));
+        list.add(new StraightMoveGenerator(
+                (BitBoard bb) -> (bb.getBitmapColor() & bb.getBitmapRooks()), PreGeneratedMoves.STRAIGHT_MOVES, Piece.ROOK));
+        list.add(new StraightMoveGenerator(
+                (BitBoard bb) -> (bb.getBitmapColor() & bb.getBitmapQueens()), PreGeneratedMoves.SLIDE_MOVES, Piece.QUEEN));
         list.add(new PawnMoveGenerator());
         list.add(new KingMoveGenerator());
         MASTER = Collections.unmodifiableList(list);
@@ -43,7 +46,7 @@ public class MoveGeneratorImpl implements MoveGenerator {
 	
     private List<PieceMoveGenerator> generators;
 	private BitBoard bitBoard;
-	private List<BitBoardMove> queuedMoves = new ArrayList<BitBoardMove>();
+	private List<BitBoardMove> queuedMoves = new ArrayList<>();
 	private int genIndex = 0;
 	private boolean inCheck;
 	private long potentialPins = 0;
@@ -116,11 +119,9 @@ public class MoveGeneratorImpl implements MoveGenerator {
 	/**
 	 * An easy way to generate all moves - this will be useful for testing and legal move generation, but not for
 	 * calculation as it's too slow.
-	 * 
-	 * @return
 	 */
 	public List<BitBoardMove> getAllRemainingMoves() {
-		List<BitBoardMove> moves = new ArrayList<BitBoardMove>();
+		List<BitBoardMove> moves = new ArrayList<>();
 		while(this.hasNext()) {
 			moves.add(this.next());
 		}
@@ -129,7 +130,7 @@ public class MoveGeneratorImpl implements MoveGenerator {
 
     @Override
 	public List<BitBoardMove> getThreateningMoves() {
-		List<BitBoardMove> moves = new ArrayList<BitBoardMove>();
+		List<BitBoardMove> moves = new ArrayList<>();
 
 		for(PieceMoveGenerator generator: generators) {
             // Rule: If the player is in check then all moves are needed, otherwise just
@@ -145,7 +146,7 @@ public class MoveGeneratorImpl implements MoveGenerator {
 	}
 	
 	public static Map<String, List<String>> getPossibleMoves(BitBoard bitBoard) {
-		Map<String, List<String>> moves = new HashMap<String, List<String>>();
+		Map<String, List<String>> moves = new HashMap<>();
 		for(BitBoardMove moveObj: new MoveGeneratorImpl(bitBoard).getAllRemainingMoves()) {
 			String move = moveObj.getAlgebraic();
 			if("O-O".equals(move)) {
@@ -156,7 +157,7 @@ public class MoveGeneratorImpl implements MoveGenerator {
 			}
 			String from = move.substring(0, 2);
 			if(moves.get(from) == null) {
-				moves.put(from, new ArrayList<String>());
+				moves.put(from, new ArrayList<>());
 			}
 			List<String> toList = moves.get(from);
 			toList.add(move.substring(2));
