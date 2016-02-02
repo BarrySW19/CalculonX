@@ -33,28 +33,34 @@ public class MobilityScorer implements PositionScorer {
     private int getScore(BitBoard bitBoard, byte color) {
         int score = 0;
 
+        final long allPieces = bitBoard.getBitmapAll();
+        int perSquare = PER_SQUARE;
+
         long straightPieces = bitBoard.getBitmapColor(color) & (bitBoard.getBitmapQueens() | bitBoard.getBitmapRooks());
         for(long nextPiece: BitIterable.of(straightPieces)) {
             int index = Long.numberOfTrailingZeros(nextPiece);
             for(long[] nextDirection: PreGeneratedMoves.STRAIGHT_MOVES[index]) {
                 for(long nextSquare: nextDirection) {
-                    if((bitBoard.getBitmapAll() & nextSquare) != 0) {
+                    if((allPieces & nextSquare) != 0) {
                         break;
                     }
-                    score += PER_SQUARE;
+                    score += perSquare;
+                    perSquare += 10;
                 }
             }
         }
 
+        perSquare = PER_SQUARE;
         long diagonalPieces = bitBoard.getBitmapColor(color) & (bitBoard.getBitmapQueens() | bitBoard.getBitmapBishops());
         for(long nextPiece: BitIterable.of(diagonalPieces)) {
             int index = Long.numberOfTrailingZeros(nextPiece);
             for(long[] nextDirection: PreGeneratedMoves.DIAGONAL_MOVES[index]) {
                 for(long nextSquare: nextDirection) {
-                    if((bitBoard.getBitmapAll() & nextSquare) != 0) {
+                    if((allPieces & nextSquare) != 0) {
                         break;
                     }
-                    score += PER_SQUARE;
+                    score += perSquare;
+                    perSquare += 10;
                 }
             }
         }

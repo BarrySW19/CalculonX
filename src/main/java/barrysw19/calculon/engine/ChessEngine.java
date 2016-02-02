@@ -37,10 +37,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
+import static java.util.stream.Collectors.toList;
+
 public class ChessEngine {
     private final static Logger LOG = LoggerFactory.getLogger(ChessEngine.class);
     // As we can't have -MIN_VALUE being used...
-    private final static int BIG_VALUE = 10_000_000;
+    private final static int BIG_VALUE = 9_999_999;
     private final static int PRUNE_MARGIN = 1000; // Drop moves this much worse than best move.
 
     private static final ExecutorService executorService = Executors.newFixedThreadPool(2);
@@ -102,7 +104,7 @@ public class ChessEngine {
             }
         }
 
-        LOG.info("Cache stats: {}", scoreCache.stats());
+        LOG.debug("Cache stats: {}", scoreCache.stats());
         scoreCache.invalidateAll();
         return selectBestMove(allMoves);
 	}
@@ -118,7 +120,7 @@ public class ChessEngine {
         terminateTime = System.nanoTime() + (targetTime * 1_000_000_000L);
         terminateTime -= 250_000_000L;  // Safety margin for bullet games 0.25s
         depthForSearch = 1;
-        LOG.info("terminate at: " + terminateTime + ", current: " + System.nanoTime());
+        LOG.debug("terminate at: " + terminateTime + ", current: " + System.nanoTime());
         final Map<String, SearchContext> bestMoves = new HashMap<>();
         final Map<String, SearchContext> allMoves = new HashMap<>();
         while(true) {
@@ -172,7 +174,7 @@ public class ChessEngine {
         this.depthForSearch = depthForSearch;
         this.qDepth = Math.max(5, depthForSearch + 3);
         SearchContext context = new SearchContext(move);
-        return getScoredMoves(bitBoard, Arrays.asList(context)).get(0);
+        return getScoredMoves(bitBoard, Collections.singletonList(context)).get(0);
     }
 
 	private List<SearchContext> getScoredMoves(final BitBoard bitBoard, final List<SearchContext> movesFilter) {
@@ -265,11 +267,14 @@ public class ChessEngine {
 
         final int standPat = scoreCache.get(cacheObj, () -> gameScorer.score(bitBoard));
 
-        final List<BitBoardMove> threatMoves = new MoveGeneratorImpl(bitBoard).getThreateningMoves();
-        final boolean moveIsForced = threatMoves.size() == 1 && CheckDetector.isPlayerToMoveInCheck(bitBoard);
+        List<BitBoardMove> threatMoves = new MoveGeneratorImpl(bitBoard).getThreateningMoves();
+        if(depth < 3 && !CheckDetector.isPlayerToMoveInCheck(bitBoard)) {
+            threatMoves = threatMoves.stream().filter(BitBoardMove::isCapture).collect(toList());
+        }
+        //final boolean moveIsForced = threatMoves.size() == 1 && CheckDetector.isPlayerToMoveInCheck(bitBoard);
 
-        // The player could not make a 'null' move if the move is forced.
-        if ( ! moveIsForced) {
+        // Apply the stand pat if the player could make a null move, or has no moves available.
+        if ( !CheckDetector.isPlayerToMoveInCheck(bitBoard) || standPat == GameScorer.MATE_SCORE) {
             if (standPat >= beta) {
                 searchContext.qAscend();
                 return beta;
@@ -281,20 +286,8 @@ public class ChessEngine {
         }
 
         if(depth <= 0) {
-            if(moveIsForced && depth == 0) { // Add depth=0 just in case of infinite loops
-                bitBoard.makeMove(threatMoves.get(0)); // Forced means exactly one move
-                int score = -quiesce(bitBoard, -beta, -alpha, depth - 1, searchContext.qDescend());
-                bitBoard.unmakeMove();
-                if( score >= beta) {
-                    searchContext.qAscend();
-                    return beta;
-                }
-                if( score > alpha) {
-                    alpha = score;
-                }
-            }
             searchContext.qAscend();
-            return alpha;
+            return beta; // Should this be alpha or beta??
         }
 
         for(BitBoardMove move: threatMoves) {
@@ -353,7 +346,7 @@ public class ChessEngine {
         this.targetTime = max;
     }
 
-    public static interface MoveGeneratorFactory {
-        public MoveGenerator createMoveGenerator(BitBoard bitBoard);
+    public interface MoveGeneratorFactory {
+        MoveGenerator createMoveGenerator(BitBoard bitBoard);
     }
 }

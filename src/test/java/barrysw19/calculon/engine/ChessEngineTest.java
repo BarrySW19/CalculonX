@@ -16,7 +16,7 @@ public class ChessEngineTest {
     public void testCorrectCapture() {
         // Calculon 0.5.11 makes the bad move Nxb2 here - best seems to be Nxe3
         BitBoard board = FENUtils.getBoard("r3kb1r/ppp1pppp/2n5/4P3/3P2B1/4BN2/PP3PPP/R2nK2R b KQkq - 0 11");
-        ChessEngine chessEngine = new ChessEngine(600);
+        ChessEngine chessEngine = new ChessEngine(30);
 
         SearchContext ctx1 = chessEngine.getScoredMove(board, "D1E3", 5, 50);
         SearchContext ctx2 = chessEngine.getScoredMove(board, "D1B2", 5, 50);

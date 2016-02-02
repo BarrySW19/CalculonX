@@ -10,14 +10,14 @@ import static barrysw19.calculon.engine.BitBoard.getFileMap;
 import static barrysw19.calculon.engine.BitBoard.getRankMap;
 
 public class CheckmateScorer implements PositionScorer {
-    private static long[] x = new long[] {
+    private static final long[] SCORE_RANK = new long[] {
             getRankMap(3) | getRankMap(4),
             getRankMap(2) | getRankMap(5),
             getRankMap(1) | getRankMap(6),
             getRankMap(0) | getRankMap(7),
     };
 
-    private static long[] y = new long[] {
+    private static final long[] SCORE_FILE = new long[] {
             getFileMap(3) | getFileMap(4),
             getFileMap(2) | getFileMap(5),
             getFileMap(1) | getFileMap(6),
@@ -30,39 +30,52 @@ public class CheckmateScorer implements PositionScorer {
     }
 
     private int scorePosition(BitBoard bitBoard, final byte color) {
-        if(Long.bitCount(bitBoard.getBitmapOppColor(color)) > 1) {
+        final long enemyPieces = bitBoard.getBitmapOppColor(color);
+        if(Long.bitCount(enemyPieces) > 1) {
+            // Only run against lone king
             return 0;
         }
 
-        final long oppColor = bitBoard.getBitmapOppColor(color);
-        long oKingPos = bitBoard.getBitmapOppColor(color) & bitBoard.getBitmapKings();
+        final long myPieces = bitBoard.getBitmapColor(color);
+        if(Long.bitCount(myPieces) > 3) {
+            return 0;
+        }
+
+        final long enemyKingPos = bitBoard.getBitmapOppColor(color) & bitBoard.getBitmapKings();
         int score = 0;
-        for(int i = 0; i < x.length; i++) {
-            if((oKingPos & x[i]) != 0) {
+
+        // The enemy king is better near the side of the board
+        for(int i = 0; i < SCORE_RANK.length; i++) {
+            if((enemyKingPos & SCORE_RANK[i]) != 0) {
+                score += (i * 50);
+            }
+            if((enemyKingPos & SCORE_FILE[i]) != 0) {
                 score += (i * 50);
             }
         }
 
-        for(int i = 0; i < y.length; i++) {
-            if((oKingPos & y[i]) != 0) {
-                score += (i * 50);
-            }
-        }
-
-        int dist = calcDist(oppColor & bitBoard.getBitmapKings(), ~oppColor & bitBoard.getBitmapKings());
+        // My king is better near the opponent's
+        int dist = calcDist(enemyKingPos, ~myPieces & bitBoard.getBitmapKings());
         score += (14 - dist) * 10;
 
-        long q = (~oppColor & bitBoard.getBitmapQueens());
-        if(Long.bitCount(q) == 1) {
-            dist = calcDist(oppColor & bitBoard.getBitmapKings(), q);
+        long oppMoves = KingMoveGenerator.KING_MOVES[Long.numberOfTrailingZeros(enemyKingPos)];
+
+        final long myQueens = (myPieces & bitBoard.getBitmapQueens());
+        for(long queen: BitIterable.of(myQueens)) {
+            dist = calcDist(enemyKingPos, queen);
             score += (14 - dist) * 10;
+            long attackedSquares = Bitmaps.star2Map[Long.numberOfTrailingZeros(queen)];
+            oppMoves = oppMoves & ~attackedSquares;
         }
 
-        long oppMoves = KingMoveGenerator.KING_MOVES[Long.numberOfTrailingZeros(bitBoard.getBitmapOppColor(color) & bitBoard.getBitmapKings())];
-        for(long l: BitIterable.of(q)) {
-            long atk = Bitmaps.star2Map[Long.numberOfTrailingZeros(l)];
-            oppMoves = oppMoves & ~atk;
+        final long myRooks = (myPieces & bitBoard.getBitmapRooks());
+        for(long rook: BitIterable.of(myRooks)) {
+            dist = calcDist(enemyKingPos, rook);
+            score += (14 - dist) * 5;
+            long attackedSquares = Bitmaps.cross2Map[Long.numberOfTrailingZeros(rook)];
+            oppMoves = oppMoves & ~attackedSquares;
         }
+        // The fewer moves the opponent's king has, the better.
         score -= 15 * Long.bitCount(oppMoves);
 
         return score;

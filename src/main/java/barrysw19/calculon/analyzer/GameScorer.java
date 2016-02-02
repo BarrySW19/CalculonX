@@ -1,7 +1,7 @@
 /**
  * Calculon - A Java chess-engine.
  *
- * Copyright (C) 2008-2009 Barry Smith
+ * Copyright (C) 2008-2016 Barry Smith
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,8 @@ public class GameScorer {
         rv.addScorer(new KingCentralisationScorer());
         rv.addScorer(new PassedPawnScorer());
         rv.addScorer(new AdvancedPawnScorer());
+
+		rv.addScorer(new CheckmateScorer());
 
 		return rv;
 	}
