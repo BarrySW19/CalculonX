@@ -18,6 +18,8 @@ public class ForcedMateTest {
 
     @Test
     public void playKingQueenVsKingEndgame() {
+//        BitBoard bitBoard = FENUtils.getBoard("8/5k2/3Q4/8/8/5K2/8/8 w - - 0 12");
+//        System.out.println(new ChessEngine(2).getPreferredMove(bitBoard));
         expectForcedMateFromPosition("Q7/8/8/8/3k4/8/8/7K w - - 0 0", 50);
     }
 
@@ -28,7 +30,7 @@ public class ForcedMateTest {
 
     private void expectForcedMateFromPosition(String position, int maxMoves) {
         BitBoard board = FENUtils.getBoard(position);
-        ChessEngine chessEngine = new ChessEngine(2);
+        ChessEngine chessEngine = new ChessEngine(5);
         StringBuilder sb = new StringBuilder();
         for(int i = 0; i < maxMoves && GameScorer.getDefaultScorer().score(board) != GameScorer.MATE_SCORE; i++) {
             String algebraic = chessEngine.getPreferredMove(board);

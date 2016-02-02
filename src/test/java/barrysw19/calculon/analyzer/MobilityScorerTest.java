@@ -30,24 +30,24 @@ public class MobilityScorerTest extends AbstractAnalyserTest {
     @Test
     public void testMobilityScore1() {
         setPosition("4k3/8/8/3p4/8/8/6B1/4K3 w - - 0 1");
-        assertEquals(MobilityScorer.PER_SQUARE * 5, scorer.scorePosition(board, context));
+        assertEquals(350, scorer.scorePosition(board, context));
     }
 
     @Test
     public void testMobilityScore2() {
         setPosition("2k5/1q3N2/1p6/3p4/8/8/6B1/4K3 w - - 0 1");
-        assertEquals(MobilityScorer.PER_SQUARE * (5 - 8), scorer.scorePosition(board, context));
+        assertEquals(-180, scorer.scorePosition(board, context));
     }
 
     @Test
     public void testMobilityScore3() {
         setPosition("2k5/1q3N2/1p6/3p4/8/8/1R4B1/4K3 w - - 0 1");
-        assertEquals(MobilityScorer.PER_SQUARE * (5 + 9 - 8), scorer.scorePosition(board, context));
+        assertEquals(630, scorer.scorePosition(board, context));
     }
 
     @Test
     public void testMobilityScore4() {
         setPosition("2r2rk1/1bq2pbp/1np1p1p1/1pN5/pP1PB3/P1P2QP1/1B2RP1P/1R4K1 b - - 0 23");
-        assertEquals(MobilityScorer.PER_SQUARE * (24 - 19), scorer.scorePosition(board, context));
+        assertEquals(780, scorer.scorePosition(board, context));
     }
 }

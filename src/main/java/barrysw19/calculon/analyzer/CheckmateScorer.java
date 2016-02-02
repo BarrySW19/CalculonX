@@ -56,7 +56,7 @@ public class CheckmateScorer implements PositionScorer {
 
         // My king is better near the opponent's
         int dist = calcDist(enemyKingPos, ~myPieces & bitBoard.getBitmapKings());
-        score += (14 - dist) * 10;
+        score += (28 - dist) * 10;
 
         long oppMoves = KingMoveGenerator.KING_MOVES[Long.numberOfTrailingZeros(enemyKingPos)];
 
@@ -84,6 +84,9 @@ public class CheckmateScorer implements PositionScorer {
     private static int calcDist(long p1, long p2) {
         int[] oppPos = BitBoard.toCoords(p1);
         int[] myPos = BitBoard.toCoords(p2);
-        return Math.abs(oppPos[0] - myPos[0]) + Math.abs(oppPos[1] - myPos[1]);
+//        return Math.abs(oppPos[0] - myPos[0]) + Math.abs(oppPos[1] - myPos[1]);
+        int d1 = Math.abs(oppPos[0] - myPos[0]);
+        int d2 = Math.abs(oppPos[1] - myPos[1]);
+        return Math.max(d1, d2) * 3 + Math.min(d1, d2);
     }
 }
