@@ -55,7 +55,7 @@ public class CheckmateScorer implements PositionScorer {
         }
 
         // My king is better near the opponent's
-        int dist = calcDist(enemyKingPos, ~myPieces & bitBoard.getBitmapKings());
+        int dist = calcDist(enemyKingPos, myPieces & bitBoard.getBitmapKings());
         score += (28 - dist) * 10;
 
         long oppMoves = KingMoveGenerator.KING_MOVES[Long.numberOfTrailingZeros(enemyKingPos)];

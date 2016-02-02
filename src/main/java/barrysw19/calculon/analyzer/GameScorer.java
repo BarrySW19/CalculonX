@@ -46,6 +46,7 @@ public class GameScorer {
         rv.addScorer(new KingCentralisationScorer());
         rv.addScorer(new PassedPawnScorer());
         rv.addScorer(new AdvancedPawnScorer());
+//        rv.addScorer(new CastlingScorer());
 
 		rv.addScorer(new CheckmateScorer());
 

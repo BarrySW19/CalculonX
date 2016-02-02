@@ -4,6 +4,7 @@ import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.engine.ChessEngine;
 import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,10 +17,13 @@ import static org.junit.Assert.assertTrue;
 public class ForcedMateTest {
     private static final Logger LOG = LoggerFactory.getLogger(ForcedMateTest.class);
 
+    @Test @Ignore
+    public void playKingQueenPawnVsKingEndgame() {
+        expectForcedMateFromPosition("Q7/8/8/8/3k4/8/P7/7K w - - 0 0", 50);
+    }
+
     @Test
     public void playKingQueenVsKingEndgame() {
-//        BitBoard bitBoard = FENUtils.getBoard("8/5k2/3Q4/8/8/5K2/8/8 w - - 0 12");
-//        System.out.println(new ChessEngine(2).getPreferredMove(bitBoard));
         expectForcedMateFromPosition("Q7/8/8/8/3k4/8/8/7K w - - 0 0", 50);
     }
 
