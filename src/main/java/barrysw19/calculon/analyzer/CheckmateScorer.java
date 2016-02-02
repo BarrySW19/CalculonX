@@ -63,7 +63,7 @@ public class CheckmateScorer implements PositionScorer {
         final long myQueens = (myPieces & bitBoard.getBitmapQueens());
         for(long queen: BitIterable.of(myQueens)) {
             dist = calcDist(enemyKingPos, queen);
-            score += (14 - dist) * 10;
+            score += (28 - dist) * 5;
             long attackedSquares = Bitmaps.star2Map[Long.numberOfTrailingZeros(queen)];
             oppMoves = oppMoves & ~attackedSquares;
         }
@@ -71,7 +71,7 @@ public class CheckmateScorer implements PositionScorer {
         final long myRooks = (myPieces & bitBoard.getBitmapRooks());
         for(long rook: BitIterable.of(myRooks)) {
             dist = calcDist(enemyKingPos, rook);
-            score += (14 - dist) * 5;
+            score += (28 - dist) * 5;
             long attackedSquares = Bitmaps.cross2Map[Long.numberOfTrailingZeros(rook)];
             oppMoves = oppMoves & ~attackedSquares;
         }
