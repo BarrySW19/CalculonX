@@ -74,6 +74,16 @@ public class ProblemsTest {
         runTest("3q1rk1/3n1pp1/1p1p3p/1B1P2n1/1P6/4BP2/5QPP/2R3K1 w - - 5 1", "Bd4", "Nh3+");
     }
 
+    @Test
+    public void testChessTempo006() {
+        runTest("rn3rk1/bpp1qppp/3pbn2/1p2p3/P1N1P3/2PP1N2/2B2PPP/R1BQ1RK1 w - - 0 1", "axb5", "Bxf2+");
+    }
+
+    @Test
+    public void testChessTempo007() {
+        runTest("6k1/pR3p2/7p/2PpN1p1/3rnn2/P7/5PPP/5RK1 w - - 0 1", "c6", "Ne2+");
+    }
+
     private void runTest(String fen, String firstMove, String expectedMove) {
         BitBoard board = FENUtils.getBoard(fen);
         PGNUtils.applyMove(board, firstMove);
