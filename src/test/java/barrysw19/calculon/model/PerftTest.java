@@ -1,7 +1,7 @@
 /**
  * Calculon - A Java chess-engine.
  *
- * Copyright (C) 2008-2009 Barry Smith
+ * Copyright (C) 2008-2016 Barry Smith
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,10 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Spliterator;
+import java.util.function.LongConsumer;
 import java.util.stream.LongStream;
+import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
@@ -42,7 +45,7 @@ import static org.junit.Assert.assertEquals;
 public class PerftTest {
     private static Logger LOG = LoggerFactory.getLogger(PerftTest.class);
 
-    private static final int MAX_COUNT = 10_000_000;
+    private static final long MAX_COUNT = 20_000_000;
 
     @Test
     public void testStartPosition() {
@@ -95,7 +98,7 @@ public class PerftTest {
     @Test
     public void testMidGame3() {
         testConfig(new PerftTestConfig("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
-                new long[] {46, 2_079, 89_890, 3_894_594, 164_075_551, 6_923_051_137L, 287_188_994_746L }));
+                new long[]{46, 2_079, 89_890, 3_894_594, 164_075_551, 6_923_051_137L, 287_188_994_746L}));
     }
 
     private void testConfig(PerftTestConfig config) {
@@ -108,17 +111,21 @@ public class PerftTest {
 
     private void executeBoard(BitBoard board, List<Long> expect) {
         for (int x = 0; x < expect.size(); x++) {
-            assertEquals((long) expect.get(x), generateToDepth(x + 1, board));
-            LOG.debug("Checked count: {}", expect.get(x));
+            CalcSpliterator calcSpliterator = new CalcSpliterator(x + 1, BitBoard.createCopy(board));
+            long result = StreamSupport.longStream(calcSpliterator, true)
+//                  .peek(l -> { LOG.info("Sum {}", l); })
+                    .sum();
+            LOG.debug("Expect: {}, Result: {}", expect.get(x), result);
+            assertEquals(expect.get(x).longValue(), result);
         }
     }
 
-    private int generateToDepth(int depth, BitBoard bitBoard) {
+    private static long generateToDepth(int depth, BitBoard bitBoard) {
         if (depth == 1) {
             return new MoveGeneratorImpl(bitBoard).getAllRemainingMoves().size();
         }
 
-        int count = 0;
+        long count = 0;
         for (Iterator<BitBoardMove> moveItr = new MoveGeneratorImpl(bitBoard); moveItr.hasNext(); ) {
             BitBoardMove move = moveItr.next();
             Object cacheId = bitBoard.getCacheId();
@@ -139,6 +146,62 @@ public class PerftTest {
         private PerftTestConfig(String position, long[] expectedCounts) {
             this.position = position;
             this.expectedCounts = expectedCounts;
+        }
+    }
+
+    private static class CalcSpliterator implements Spliterator.OfLong {
+        private int depth;
+        private BitBoard bitBoard;
+        private List<BitBoardMove> moves;
+        private boolean todo = true;
+
+        public CalcSpliterator(int depth, BitBoard bitBoard) {
+            this(depth, bitBoard, new MoveGeneratorImpl(bitBoard).getAllRemainingMoves());
+        }
+
+        public CalcSpliterator(int depth, BitBoard bitBoard, List<BitBoardMove> moves) {
+//            LOG.info("New spliterator at depth: {}", depth);
+            this.depth = depth;
+            this.bitBoard = bitBoard;
+            this.moves = moves;
+        }
+
+        @Override
+        public Spliterator.OfLong trySplit() {
+            if(depth < 5 || moves.isEmpty()) {
+                return null;
+            }
+
+            if(moves.size() > 1) {
+                List<BitBoardMove> splitMoves = moves.subList(moves.size() / 2, moves.size());
+                moves = moves.subList(0, moves.size() / 2);
+                return new CalcSpliterator(depth, BitBoard.createCopy(bitBoard), splitMoves);
+            }
+
+            bitBoard.makeMove(moves.get(0));
+            depth--;
+            moves = new MoveGeneratorImpl(bitBoard).getAllRemainingMoves();
+            return trySplit();
+        }
+
+        @Override
+        public boolean tryAdvance(LongConsumer action) {
+            if(todo) {
+                action.accept(generateToDepth(depth, bitBoard));
+                todo = false;
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public long estimateSize() {
+            return Long.MAX_VALUE;
+        }
+
+        @Override
+        public int characteristics() {
+            return CONCURRENT | DISTINCT | IMMUTABLE | NONNULL;
         }
     }
 }
