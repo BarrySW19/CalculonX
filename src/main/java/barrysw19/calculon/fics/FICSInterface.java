@@ -17,6 +17,14 @@
  */
 package barrysw19.calculon.fics;
 
+import barrysw19.calculon.engine.BitBoard;
+import barrysw19.calculon.engine.ChessEngine;
+import barrysw19.calculon.notation.PGNUtils;
+import barrysw19.calculon.notation.Style12;
+import barrysw19.calculon.opening.OpeningBook;
+import org.apache.commons.digester.Digester;
+import org.apache.commons.lang.StringUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -28,26 +36,17 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import barrysw19.calculon.engine.ChessEngine;
-import barrysw19.calculon.notation.PGNUtils;
-import barrysw19.calculon.engine.BitBoard;
-import barrysw19.calculon.notation.Style12;
-import barrysw19.calculon.opening.OpeningBook;
-
-import org.apache.commons.digester.Digester;
-import org.apache.commons.lang.StringUtils;
-
 public class FICSInterface {
 
 	private static final Logger log = Logger.getLogger(FICSInterface.class.getName());
 
 	private static boolean shutdown = false;
-	private static String talkResponse = "I'm sorry Dave, I'm afraid I can't do that.";
+	private final static String talkResponse = "I'm sorry Dave, I'm afraid I can't do that.";
 	private static FICSConfig ficsConfig;
 
 	private Socket connection;
 	private Thread moveThread = null;
-	private List<ConnectionListener> listeners = new ArrayList<ConnectionListener>();
+	private List<ConnectionListener> listeners = new ArrayList<>();
 	private PrintStream out;
 	private String opponent = null;
 	private boolean rated = false;
@@ -74,7 +73,7 @@ public class FICSInterface {
 				new FICSInterface().connect();
 			} catch (Exception x) {
 				log.log(Level.SEVERE, "Error", x);
-				try { Thread.sleep(60000); } catch (InterruptedException ix) { }
+				try { Thread.sleep(60000); } catch (InterruptedException ignored) { }
 			}
 		}
 	}
@@ -132,14 +131,12 @@ public class FICSInterface {
 			reseek();
 		}
 
-		Runnable keepAlive = new Runnable() {
-			public void run() {
-				while(alive) {
-					send("date");
-					try { Thread.sleep(60000 * 15); } catch (InterruptedException x) { }
-				}
-			}
-		};
+		Runnable keepAlive = () -> {
+            while(alive) {
+                send("date");
+                try { Thread.sleep(60000 * 15); } catch (InterruptedException ignored) { }
+            }
+        };
 		Thread keepAliveThread = new Thread(keepAlive);
 		keepAliveThread.start();
 
@@ -158,7 +155,7 @@ public class FICSInterface {
 			try {
 				reader.close();
 				out.close();
-			} catch (Exception x) { }
+			} catch (Exception ignored) { }
 		}
 	}
 
@@ -166,6 +163,7 @@ public class FICSInterface {
 		int c;
 		String sLogin = "login: ";
 		int sptr = 0;
+        connection.getOutputStream().write("\n".getBytes());
 		while ((c = connection.getInputStream().read()) != -1) {
 			if (c == sLogin.charAt(sptr)) {
 				sptr++;
@@ -176,6 +174,7 @@ public class FICSInterface {
 					break;
 				}
 			} else {
+				System.out.print((char) c);
 				sptr = 0;
 			}
 		}
@@ -198,20 +197,18 @@ public class FICSInterface {
 	
 	private void reseek() {
 		send("resume");
-		Runnable seeker = new Runnable() {
-			public void run() {
-				for(int i = 0; i < 6; i++) {
-					try { Thread.sleep(15000); } catch (InterruptedException x) { }
-					if(gameNumber != -1) {
-							return;
-					}
-					send("resume");
-				}
-				for(FICSConfig.Seek seek: ficsConfig.getSeekAds()) {
-					send("seek " + seek.getInitialTime() + " " + seek.getIncrement() + " formula");
-				}
-			}
-		};
+		Runnable seeker = () -> {
+            for(int i = 0; i < 6; i++) {
+                try { Thread.sleep(15000); } catch (InterruptedException ignored) { }
+                if(gameNumber != -1) {
+                        return;
+                }
+                send("resume");
+            }
+            for(FICSConfig.Seek seek: ficsConfig.getSeekAds()) {
+                send("seek " + seek.getInitialTime() + " " + seek.getIncrement() + " formula");
+            }
+        };
 		new Thread(seeker).start();
 	}
 
@@ -241,7 +238,7 @@ public class FICSInterface {
 	}
 
 	private interface ConnectionListener {
-		public void message(String s);
+		void message(String s);
 	}
 
 	private class DebugListener implements ConnectionListener {
@@ -327,7 +324,7 @@ public class FICSInterface {
 			}
 
 			if ("do".equals(words.get(3))) {
-				StringBuffer buf = new StringBuffer();
+				StringBuilder buf = new StringBuilder();
 				for (int i = 4; i < words.size(); i++) {
 					buf.append(words.get(i)).append(" ");
 				}
@@ -387,7 +384,7 @@ public class FICSInterface {
 				};
 
 		public void message(String s) {
-			StringBuffer buf = new StringBuffer().append("{Game ").append(
+			StringBuilder buf = new StringBuilder().append("{Game ").append(
 					gameNumber).append(" (");
 			buf.append(playingWhite ? ficsConfig.getLoginName() : opponent);
 			buf.append(" vs. ");
@@ -401,7 +398,7 @@ public class FICSInterface {
 
 			boolean gameEnded = false;
 			for (String ending : PATTERNS) {
-				gameEnded |= (s.indexOf(ending) >= 0);
+				gameEnded |= (s.contains(ending));
 			}
 
 			if (gameEnded) {
@@ -411,7 +408,7 @@ public class FICSInterface {
 				opponent = null;
 				
 				while(moveThread != null && moveThread.isAlive()) {
-					try { Thread.sleep(200); } catch (InterruptedException x) { }
+					try { Thread.sleep(200); } catch (InterruptedException ignored) { }
 				}
 				
 				if (shutdown) {
@@ -482,29 +479,27 @@ public class FICSInterface {
 				return;
 			}
 			
-			Runnable moveMaker = new Runnable() {
-				public void run() {
-					BitBoard myBoard = currentBoard;
-					ChessEngine searchNode = new ChessEngine();
-					String bestMove = searchNode.getPreferredMove(myBoard);
-					if(bestMove != null) {
-						if(gameNumber != -1) {
-							log.info("Moving: " + PGNUtils.translateMove(myBoard, bestMove));
-							if(currentBoard != null) {
-								PGNUtils.applyMove(currentBoard, bestMove);
-							}
-							send(bestMove.toLowerCase());
-							if(currentBoard.getRepeatedCount() >= 3) {
-								log.info("Claiming draw by 3-fold repitition (my move)");
-								send("draw");
-							}
-						} else {
-							log.info("Game not active - move aborted");
-						}
-					}
-					moveThread = null;
-				}
-			};
+			Runnable moveMaker = () -> {
+                BitBoard myBoard = currentBoard;
+                ChessEngine searchNode = new ChessEngine();
+                String bestMove = searchNode.getPreferredMove(myBoard);
+                if(bestMove != null) {
+                    if(gameNumber != -1) {
+                        log.info("Moving: " + PGNUtils.translateMove(myBoard, bestMove));
+                        if(currentBoard != null) {
+                            PGNUtils.applyMove(currentBoard, bestMove);
+                        }
+                        send(bestMove.toLowerCase());
+                        if(currentBoard.getRepeatedCount() >= 3) {
+                            log.info("Claiming draw by 3-fold repitition (my move)");
+                            send("draw");
+                        }
+                    } else {
+                        log.info("Game not active - move aborted");
+                    }
+                }
+                moveThread = null;
+            };
 			
 			moveThread = new Thread(moveMaker);
 			moveThread.start();
@@ -535,13 +530,14 @@ public class FICSInterface {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private class ResponseBlock {
 		private int blockId;
 		private int responseCode;
 		private String data;
 		
 		private ResponseBlock(String s) {
-			StringBuffer buf = new StringBuffer(s);
+			StringBuilder buf = new StringBuilder(s);
 			if(buf.charAt(0) != 0x15) {
 				throw new IllegalArgumentException("Data not started with 0x15");
 			}
@@ -589,17 +585,13 @@ public class FICSInterface {
 		public String toString()
 		{
 		    final String TAB = "    ";
-		    
-		    String retValue = "";
-		    
-		    retValue = "ResponseBlock ( "
-		        + super.toString() + TAB
-		        + "blockId = " + this.blockId + TAB
-		        + "responseCode = " + this.responseCode + TAB
-		        + "data = " + this.data + TAB
-		        + " )";
-		
-		    return retValue;
+
+			return "ResponseBlock ( "
+                + super.toString() + TAB
+                + "blockId = " + this.blockId + TAB
+                + "responseCode = " + this.responseCode + TAB
+                + "data = " + this.data + TAB
+                + " )";
 		}
 	}
 }
