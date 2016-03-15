@@ -45,7 +45,7 @@ public class ChessEngine {
     private final static int BIG_VALUE = 9_999_999;
     private final static int PRUNE_MARGIN = 1000; // Drop moves this much worse than best move.
 
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
     private MoveGeneratorFactory moveGeneratorFactory = MoveGeneratorImpl::new;
 
@@ -87,16 +87,16 @@ public class ChessEngine {
         this.moveGeneratorFactory = moveGeneratorFactory;
     }
 
-	public String getPreferredMove(BitBoard bitBoard) {
-		String bookMove = OpeningBook.getDefaultBook() == null
+    public SearchContext getPreferredMoveContext(BitBoard bitBoard) {
+        String bookMove = OpeningBook.getDefaultBook() == null
                 ? null : OpeningBook.getDefaultBook().getBookMove(bitBoard);
-		if(bookMove != null) {
-			LOG.info("Using book move: {}", bookMove);
-			return PGNUtils.toPgnMoveMap(bitBoard).get(bookMove);
-		}
+        if(bookMove != null) {
+            LOG.info("Using book move: {}", bookMove);
+            return new SearchContext(PGNUtils.toPgnMoveMap(bitBoard).get(bookMove), bitBoard);
+        }
 
         scoreCache.invalidateAll();
-		List<SearchContext> allMoves = new ArrayList<>(getScoredMoves(bitBoard));
+        List<SearchContext> allMoves = new ArrayList<>(getScoredMoves(bitBoard));
         if(LOG.isDebugEnabled()) {
             Collections.sort(allMoves, (o1, o2) -> o1.getAlgebraicMove().compareTo(o2.getAlgebraicMove()));
             for (SearchContext ctx: allMoves) {
@@ -107,6 +107,10 @@ public class ChessEngine {
         LOG.debug("Cache stats: {}", scoreCache.stats());
         scoreCache.invalidateAll();
         return selectBestMove(allMoves);
+    }
+
+	public String getPreferredMove(BitBoard bitBoard) {
+        return getPreferredMoveContext(bitBoard).getAlgebraicMove();
 	}
 
     /**
@@ -173,7 +177,7 @@ public class ChessEngine {
         terminateTime -= 250_000_000L;  // Safety margin for bullet games 0.25s
         this.depthForSearch = depthForSearch;
         this.qDepth = Math.max(5, depthForSearch + 3);
-        SearchContext context = new SearchContext(move);
+        SearchContext context = new SearchContext(move, bitBoard);
         return getScoredMoves(bitBoard, Collections.singletonList(context)).get(0);
     }
 
@@ -191,9 +195,9 @@ public class ChessEngine {
             }
 
             FutureTask<SearchContext> scoredMoveFutureTask = new FutureTask<>(() -> {
+                final SearchContext searchContext = new SearchContext(algebraic, bitBoard);
                 cloneBitBoard.makeMove(move);
-                final SearchContext searchContext = new SearchContext(algebraic);
-                int score = alphaBeta(-BIG_VALUE, BIG_VALUE, depthForSearch, cloneBitBoard, searchContext.descend());
+                int score = alphaBeta(-BIG_VALUE, BIG_VALUE, depthForSearch, cloneBitBoard, searchContext.descend(move));
                 searchContext.setScore(score);
                 LOG.debug("Ran: {}", searchContext);
                 cloneBitBoard.unmakeMove();
@@ -223,8 +227,10 @@ public class ChessEngine {
             return 0;
         }
         if(depthLeft <= 0) {
+            searchContext.flip();
+            int rv = quiesce(bitBoard, alpha, beta, qDepth, searchContext);
             searchContext.ascend();
-            return quiesce(bitBoard, alpha, beta, qDepth, searchContext.qDescend());
+            return rv;
         }
 
         Iterator<BitBoardMove> moveItr = moveGeneratorFactory.createMoveGenerator(bitBoard);
@@ -241,7 +247,7 @@ public class ChessEngine {
             BitBoardMove nextMove = moveItr.next();
             bitBoard.makeMove(nextMove);
 
-            int score = -alphaBeta(-beta, -alpha, depthLeft - 1, bitBoard, searchContext.descend());
+            int score = -alphaBeta(-beta, -alpha, depthLeft - 1, bitBoard, searchContext.descend(nextMove));
             bitBoard.unmakeMove();
             if(score >= beta) {
                 searchContext.ascend();
@@ -263,47 +269,57 @@ public class ChessEngine {
             return 0;
         }
 
+        searchContext.addInfo("Q("+alpha+","+beta+")");
         final BitSet cacheObj = bitBoard.getCacheId();
 
-        final int standPat = scoreCache.get(cacheObj, () -> gameScorer.score(bitBoard));
+        int standPat = scoreCache.get(cacheObj, () -> gameScorer.score(bitBoard));
 
         List<BitBoardMove> threatMoves = new MoveGeneratorImpl(bitBoard).getThreateningMoves();
-        if(depth < 3 && !CheckDetector.isPlayerToMoveInCheck(bitBoard)) {
+        if(searchContext.getQDepth() > 5 && !CheckDetector.isPlayerToMoveInCheck(bitBoard)) {
             threatMoves = threatMoves.stream().filter(BitBoardMove::isCapture).collect(toList());
         }
         //final boolean moveIsForced = threatMoves.size() == 1 && CheckDetector.isPlayerToMoveInCheck(bitBoard);
 
         // Apply the stand pat if the player could make a null move, or has no moves available.
-        if ( !CheckDetector.isPlayerToMoveInCheck(bitBoard) || standPat == GameScorer.MATE_SCORE) {
+        if ( !CheckDetector.isPlayerToMoveInCheck(bitBoard) || standPat == GameScorer.MATE_SCORE || threatMoves.isEmpty()) {
+            if(standPat == GameScorer.MATE_SCORE) {
+                standPat *= Math.max(1, depth+1);
+            }
             if (standPat >= beta) {
+                searchContext.addInfo("rB=" + beta);
                 searchContext.qAscend();
                 return beta;
             }
 
             if (alpha < standPat) {
+                searchContext.addInfo("A=SP=" + standPat);
                 alpha = standPat;
             }
         }
 
-        if(depth <= 0) {
+        if(depth <= 0 && beta != BIG_VALUE) {
+            searchContext.addInfo("^B=" + beta);
             searchContext.qAscend();
             return beta; // Should this be alpha or beta??
         }
 
         for(BitBoardMove move: threatMoves) {
             bitBoard.makeMove(move);
-            int score = -quiesce(bitBoard, -beta, -alpha, depth - 1, searchContext.qDescend());
+            int score = -quiesce(bitBoard, -beta, -alpha, depth - 1, searchContext.qDescend(move));
             bitBoard.unmakeMove();
 
             if( score >= beta) {
+                searchContext.addInfo("mB=" + beta);
                 searchContext.qAscend();
                 return beta;
             }
             if( score > alpha) {
+                searchContext.addInfo("mA=SP=" + standPat);
                 alpha = score;
             }
         }
 
+        searchContext.addInfo("rA=" + alpha);
         searchContext.qAscend();
         return alpha;
     }
@@ -332,14 +348,14 @@ public class ChessEngine {
 		return allMoves;
 	}
 
-	private static String selectBestMove(List<SearchContext> allMoves) {
+	private static SearchContext selectBestMove(List<SearchContext> allMoves) {
 		List<SearchContext> bestMoves = selectBestMoves(allMoves);
 		if(bestMoves.size() == 0) {
 			return null;
 		}
         SearchContext selectedMove = bestMoves.get((int) (Math.random() * bestMoves.size()));
         LOG.info("Selected move: {}", selectedMove);
-		return selectedMove.getAlgebraicMove();
+		return selectedMove;
 	}
 
     public void setTargetTime(int max) {
