@@ -107,13 +107,11 @@ public class MoveGeneratorImpl implements MoveGenerator {
 		if(bitBoard.isDrawnByRule()) {
 			return;
 		}
-		
-		PieceMoveGenerator nextGen = generators.get(genIndex++);
-		nextGen.generateMoves(bitBoard, inCheck, potentialPins, queuedMoves);
-		
-		if(queuedMoves.size() == 0 && genIndex < generators.size()) {
-			populateMoves();
-		}
+
+		while (queuedMoves.isEmpty() && genIndex < generators.size()) {
+            PieceMoveGenerator nextGen = generators.get(genIndex++);
+            nextGen.generateMoves(bitBoard, inCheck, potentialPins, queuedMoves);
+        }
 	}
 	
 	/**
@@ -142,26 +140,6 @@ public class MoveGeneratorImpl implements MoveGenerator {
             }
 		}
 		
-		return moves;
-	}
-	
-	public static Map<String, List<String>> getPossibleMoves(BitBoard bitBoard) {
-		Map<String, List<String>> moves = new HashMap<>();
-		for(BitBoardMove moveObj: new MoveGeneratorImpl(bitBoard).getAllRemainingMoves()) {
-			String move = moveObj.getAlgebraic();
-			if("O-O".equals(move)) {
-				move = bitBoard.getPlayer() == Piece.WHITE ? "E1G1" : "E8G8";
-			}
-			if("O-O-O".equals(move)) {
-				move = bitBoard.getPlayer() == Piece.WHITE ? "E1C1" : "E8C8";
-			}
-			String from = move.substring(0, 2);
-			if(moves.get(from) == null) {
-				moves.put(from, new ArrayList<>());
-			}
-			List<String> toList = moves.get(from);
-			toList.add(move.substring(2));
-		}
 		return moves;
 	}
 }
