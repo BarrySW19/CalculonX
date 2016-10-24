@@ -19,6 +19,7 @@ package barrysw19.calculon.fics;
 
 import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.engine.ChessEngine;
+import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
 import barrysw19.calculon.notation.Style12;
 import barrysw19.calculon.opening.OpeningBook;
@@ -146,6 +147,7 @@ public class FICSInterface {
 //				if (line.trim().length() == 0) {
 //					continue;
 //				}
+                log.info("Recv: '" + line + "'");
 				for (ConnectionListener listener : listeners) {
 					listener.message(line);
 				}
@@ -481,13 +483,14 @@ public class FICSInterface {
 			
 			Runnable moveMaker = () -> {
                 BitBoard myBoard = currentBoard;
-                ChessEngine searchNode = new ChessEngine();
+                ChessEngine searchNode = new ChessEngine(3);
                 String bestMove = searchNode.getPreferredMove(myBoard);
                 if(bestMove != null) {
                     if(gameNumber != -1) {
+                        log.info("Board: " + FENUtils.generate(myBoard));
                         log.info("Moving: " + PGNUtils.translateMove(myBoard, bestMove));
                         if(currentBoard != null) {
-                            PGNUtils.applyMove(currentBoard, bestMove);
+                            PGNUtils.applyMove(currentBoard, PGNUtils.translateMove(myBoard, bestMove));
                         }
                         send(bestMove.toLowerCase());
                         if(currentBoard.getRepeatedCount() >= 3) {
