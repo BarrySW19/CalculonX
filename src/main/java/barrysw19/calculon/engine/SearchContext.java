@@ -127,6 +127,10 @@ public class SearchContext implements Comparable<SearchContext> {
         return depth;
     }
 
+    public BitBoard getInitialBoard() {
+        return initialBoard;
+    }
+
     @Override
     public int compareTo(SearchContext o) {
         return new Integer(score).compareTo(o.getScore());
@@ -145,7 +149,7 @@ public class SearchContext implements Comparable<SearchContext> {
                 '}';
     }
 
-    private static class SearchNode {
+    public static class SearchNode {
         private final BitBoard.BitBoardMove move;
         private String text;
 
@@ -160,6 +164,10 @@ public class SearchContext implements Comparable<SearchContext> {
 
         public void setText(String text) {
             this.text = text;
+        }
+
+        public BitBoard.BitBoardMove getMove() {
+            return move;
         }
 
         @Override
