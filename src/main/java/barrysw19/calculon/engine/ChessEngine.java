@@ -18,16 +18,14 @@
 package barrysw19.calculon.engine;
 
 import barrysw19.calculon.analyzer.GameScorer;
+import barrysw19.calculon.engine.BitBoard.BitBoardMove;
 import barrysw19.calculon.notation.PGNUtils;
-import com.google.common.base.Predicate;
+import barrysw19.calculon.opening.OpeningBook;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import barrysw19.calculon.engine.BitBoard.BitBoardMove;
-import barrysw19.calculon.opening.OpeningBook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,9 +46,6 @@ public class ChessEngine {
     private static final ExecutorService executorService = Executors.newFixedThreadPool(2);
 
     private MoveGeneratorFactory moveGeneratorFactory = MoveGeneratorImpl::new;
-
-    private final static Predicate<SearchContext> NORMAL_MOVES_ONLY =
-            searchContext -> searchContext.getStatus() == SearchContext.Status.NORMAL;
 
 	private GameScorer gameScorer;
     private int depthForSearch;
@@ -231,7 +226,8 @@ public class ChessEngine {
         if( ! moveItr.hasNext()) {
             int rv = gameScorer.score(bitBoard);
             if(rv == GameScorer.MATE_SCORE) {
-                rv *= (depthLeft + 1); // Prefer mate-in-1 to mate-in-2
+//                rv *= (depthLeft + 1); // Prefer mate-in-1 to mate-in-2
+                rv *= (depthLeft + qDepth + 2); // Prefer mate-in-1 to mate-in-2
             }
             searchContext.ascend();
             return rv;
@@ -263,9 +259,9 @@ public class ChessEngine {
             return 0;
         }
 
-        final BitSet cacheObj = bitBoard.getCacheId();
-
-        final int standPat = scoreCache.get(cacheObj, () -> gameScorer.score(bitBoard));
+//        final BitSet cacheObj = bitBoard.getCacheId();
+//        final int standPat = scoreCache.get(cacheObj, () -> gameScorer.score(bitBoard));
+        int standPat = gameScorer.score(bitBoard);
 
         List<BitBoardMove> threatMoves = new MoveGeneratorImpl(bitBoard).getThreateningMoves();
         if(depth < 3 && !CheckDetector.isPlayerToMoveInCheck(bitBoard)) {
@@ -274,7 +270,10 @@ public class ChessEngine {
         //final boolean moveIsForced = threatMoves.size() == 1 && CheckDetector.isPlayerToMoveInCheck(bitBoard);
 
         // Apply the stand pat if the player could make a null move, or has no moves available.
-        if ( !CheckDetector.isPlayerToMoveInCheck(bitBoard) || standPat == GameScorer.MATE_SCORE) {
+        if ( !CheckDetector.isPlayerToMoveInCheck(bitBoard) || standPat == GameScorer.MATE_SCORE || threatMoves.isEmpty()) {
+            if(standPat == GameScorer.MATE_SCORE) {
+                standPat *= Math.max(1, depth+1);
+            }
             if (standPat >= beta) {
                 searchContext.qAscend();
                 return beta;
@@ -285,7 +284,7 @@ public class ChessEngine {
             }
         }
 
-        if(depth <= 0) {
+        if(depth <= 0 && beta != BIG_VALUE) {
             searchContext.qAscend();
             return beta; // Should this be alpha or beta??
         }
@@ -323,7 +322,7 @@ public class ChessEngine {
 			return allMoves;
 		}
 
-        allMoves = Lists.newArrayList(Iterables.filter(allMoves, NORMAL_MOVES_ONLY));
+		allMoves = allMoves.stream().filter(c -> c.getStatus() == SearchContext.Status.NORMAL).collect(toList());
 		Collections.sort(allMoves);
 		int bestScore = allMoves.get(0).getScore();
 		while(allMoves.size() > maxMoves || allMoves.get(allMoves.size()-1).getScore() > bestScore+margin) {
