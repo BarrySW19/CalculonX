@@ -10,6 +10,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 // Some chess problems which the engine should easily solve.
+@Ignore // too slow
 public class ProblemsTest {
 
     @Test

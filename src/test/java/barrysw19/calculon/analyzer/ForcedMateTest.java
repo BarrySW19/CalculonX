@@ -14,6 +14,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Check the engine can force mate in K+Q v K and K+R v K endgames.
  */
+@Ignore // Too slow for normal builds
 public class ForcedMateTest {
     private static final Logger LOG = LoggerFactory.getLogger(ForcedMateTest.class);
 
