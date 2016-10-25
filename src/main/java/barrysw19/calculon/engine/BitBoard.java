@@ -826,18 +826,18 @@ public class BitBoard {
 		public String toString() {
 		    final String TAB = ", ";
 
-            return "BitBoardMove ( "
-                + "colorIndex = " + Piece.COLORS[this.colorIndex] + TAB
-                + "pieceIndex = " + Piece.NAMES[this.pieceIndex] + TAB
+            return "BitBoardMove ("
+                + Piece.COLORS[this.colorIndex] + "/"
+                + Piece.NAMES[this.pieceIndex] + TAB
                 + (capture ? "captureType = " + Piece.NAMES[this.captureType] + TAB : "")
                 + (promotion ? "promoteTo = " + Piece.NAMES[this.promoteTo] + TAB : "")
                 + (capture ? "captureSquare = " + EngineUtils.toCoord(this.captureSquare) + TAB : "")
-                + "from/to = " + EngineUtils.toCoord(this.fromSquare) + EngineUtils.toCoord(this.toSquare) + TAB
+                + EngineUtils.toCoord(this.fromSquare) + EngineUtils.toCoord(this.toSquare) + TAB
                 + (castle ? "castleDir = " + this.castleDir + TAB : "")
 //		        + "xorPattern = " + this.xorPattern + TAB
                 + "castleOff = " + this.castleOff + TAB
                 + (enpassant ? "epFile = " + this.epFile + TAB : "")
-                + " )";
+                + ")";
 		}
 	}
 }
