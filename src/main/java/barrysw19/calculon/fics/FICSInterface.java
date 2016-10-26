@@ -19,6 +19,8 @@ package barrysw19.calculon.fics;
 
 import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.engine.ChessEngine;
+import barrysw19.calculon.engine.ClockStatus;
+import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
 import barrysw19.calculon.notation.Style12;
@@ -31,9 +33,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -60,6 +60,7 @@ public class FICSInterface {
 	private BitBoard currentBoard;
 	private boolean blockOn = false;
 	private int blockCount = 1;
+	private Map<Byte, ClockStatus> clocks = new HashMap<>();
 	
 	public static void main(String[] args) throws Exception {
 		
@@ -113,6 +114,9 @@ public class FICSInterface {
 		listeners.add(new ReseekListener());
 		listeners.add(new ChatListener());
 		listeners.add(new BlockListener());
+
+        clocks.put(Piece.WHITE, new ClockStatus());
+        clocks.put(Piece.BLACK, new ClockStatus());
 	}
 
 	public void connect() throws IOException {
@@ -435,7 +439,12 @@ public class FICSInterface {
 				opponent = style12.getOpponentName();
 				if(style12.isInitialPosition()) {
 					currentBoard = new BitBoard().initialise();
+                    clocks.put(Piece.WHITE, new ClockStatus(style12.getTimeInitial(), style12.getTimeIncrement()));
+                    clocks.put(Piece.BLACK, new ClockStatus(style12.getTimeInitial(), style12.getTimeIncrement()));
+                    log.info("Game starts:" + clocks);
 				}
+                clocks.get(Piece.WHITE).setMsec(style12.getWhiteTime() * 1000);
+                clocks.get(Piece.BLACK).setMsec(style12.getBlackTime() * 1000);
 			}
 			
 			if ( ! (style12.getMyRelationToGame() == Style12.REL_ME_TO_MOVE)) {
@@ -458,7 +467,7 @@ public class FICSInterface {
 				try {
 					PGNUtils.applyMove(currentBoard, style12.getPreviousMovePGN());
 				} catch (Exception x) {
-					log.log(Level.SEVERE, "Apply move failed", x);
+					log.log(Level.SEVERE, "Apply move failed: " + currentBoard + " " + style12.getPreviousMovePGN(), x);
 				}
 			}
 			
@@ -482,9 +491,21 @@ public class FICSInterface {
 			}
 			
 			Runnable moveMaker = () -> {
-                BitBoard myBoard = currentBoard;
-                ChessEngine searchNode = new ChessEngine(3);
-                String bestMove = searchNode.getPreferredMove(myBoard);
+                final BitBoard myBoard = currentBoard;
+                ChessEngine engine = new ChessEngine(3);
+                ClockStatus clockStatus = clocks.get(myBoard.getPlayer());
+
+                if (clockStatus != null) {
+                    int moveTime = clockStatus.getSecondsForMoves(20) / 20;
+                    int maxNow = (int) (clockStatus.getMsec() / 1000);
+                    moveTime = Math.min(moveTime, maxNow);
+                    engine.setTargetTime(Math.max(1, moveTime));
+                    log.info("Set clock " + moveTime);
+                } else {
+                    log.severe("No clock status");
+                }
+
+                String bestMove = engine.getPreferredMove(myBoard);
                 if(bestMove != null) {
                     if(gameNumber != -1) {
                         log.info("Board: " + FENUtils.generate(myBoard));

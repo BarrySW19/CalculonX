@@ -17,14 +17,13 @@
  */
 package barrysw19.calculon.notation;
 
+import barrysw19.calculon.engine.BitBoard;
+import barrysw19.calculon.model.Piece;
+import org.apache.commons.lang.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import barrysw19.calculon.model.Piece;
-import barrysw19.calculon.engine.BitBoard;
-
-import org.apache.commons.lang.StringUtils;
 
 /**
 * the string "<12>" to identify this line.
@@ -59,6 +58,7 @@ import org.apache.commons.lang.StringUtils;
 * pretty notation for the previous move ("none" if there is none)
 * flip field for board orientation: 1 = Black at bottom, 0 = White at bottom.
  */
+@SuppressWarnings("unused")
 public class Style12 {
     private static final String FILES = "abcdefgh";
 
@@ -213,9 +213,7 @@ public class Style12 {
 	{
 	    final String TAB = "    ";
 	    
-	    String retValue = "";
-	    
-	    retValue = "Style12 ( "
+	    return "Style12 ( "
 	        + super.toString() + TAB
 	        + "whiteName = " + this.whiteName + TAB
 	        + "blackName = " + this.blackName + TAB
@@ -232,8 +230,6 @@ public class Style12 {
 	        + "moveNumber = " + this.moveNumber + TAB
 	        + "sideToPlay = " + this.sideToPlay + TAB
 	        + " )";
-	
-	    return retValue;
 	}
 
     public static String convertStyle12(List<String> fields) {

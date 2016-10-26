@@ -517,7 +517,6 @@ public class ICCInterface {
             Runnable moveMaker = () -> {
                 BitBoard myBoard = currentBoard;
                 ChessEngine engine = new ChessEngine();
-                myBoard.getPlayer();
                 ClockStatus clockStatus = clocks.get(myBoard.getPlayer());
                 if (clockStatus != null) {
                     int moveTime = clockStatus.getSecondsForMoves(20) / 20;
