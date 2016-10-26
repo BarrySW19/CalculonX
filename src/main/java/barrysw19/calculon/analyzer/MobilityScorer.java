@@ -23,7 +23,6 @@ import barrysw19.calculon.engine.PreGeneratedMoves;
 import barrysw19.calculon.util.BitIterable;
 
 public class MobilityScorer implements PositionScorer {
-    public static final int PER_SQUARE = 50;
 
     @Override
     public int scorePosition(BitBoard bitBoard, Context context) {
@@ -32,39 +31,32 @@ public class MobilityScorer implements PositionScorer {
 
     private int getScore(BitBoard bitBoard, byte color) {
         int score = 0;
-
         final long allPieces = bitBoard.getBitmapAll();
-        int perSquare = PER_SQUARE;
 
         long straightPieces = bitBoard.getBitmapColor(color) & (bitBoard.getBitmapQueens() | bitBoard.getBitmapRooks());
-        for(long nextPiece: BitIterable.of(straightPieces)) {
-            int index = Long.numberOfTrailingZeros(nextPiece);
-            for(long[] nextDirection: PreGeneratedMoves.STRAIGHT_MOVES[index]) {
-                for(long nextSquare: nextDirection) {
-                    if((allPieces & nextSquare) != 0) {
-                        break;
-                    }
-                    score += perSquare;
-                    perSquare += 10;
-                }
-            }
-        }
+        score += calculateMobility(allPieces, straightPieces, PreGeneratedMoves.STRAIGHT_MOVES) * 50;
 
-        perSquare = PER_SQUARE;
         long diagonalPieces = bitBoard.getBitmapColor(color) & (bitBoard.getBitmapQueens() | bitBoard.getBitmapBishops());
-        for(long nextPiece: BitIterable.of(diagonalPieces)) {
-            int index = Long.numberOfTrailingZeros(nextPiece);
-            for(long[] nextDirection: PreGeneratedMoves.DIAGONAL_MOVES[index]) {
-                for(long nextSquare: nextDirection) {
-                    if((allPieces & nextSquare) != 0) {
-                        break;
-                    }
-                    score += perSquare;
-                    perSquare += 10;
-                }
-            }
-        }
+        score += calculateMobility(allPieces, diagonalPieces, PreGeneratedMoves.DIAGONAL_MOVES) * 50;
 
         return score;
+    }
+
+    private int calculateMobility(long allPieces, long piecesToCheck, long[][][] moves) {
+        int count = 0;
+        for(long nextPiece: BitIterable.of(piecesToCheck)) {
+            int index = Long.numberOfTrailingZeros(nextPiece);
+            int pieceCount = 0;
+            for(long[] nextDirection: moves[index]) {
+                for(long nextSquare: nextDirection) {
+                    if((allPieces & nextSquare) != 0) {
+                        break;
+                    }
+                    pieceCount++;
+                }
+            }
+            count += Math.min(pieceCount, 15);
+        }
+        return count;
     }
 }

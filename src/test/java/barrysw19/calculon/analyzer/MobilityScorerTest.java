@@ -28,26 +28,38 @@ public class MobilityScorerTest extends AbstractAnalyserTest {
     }
 
     @Test
-    public void testMobilityScore1() {
+    public void testMobilityScoreBishopBlockedByPawn() {
         setPosition("4k3/8/8/3p4/8/8/6B1/4K3 w - - 0 1");
-        assertEquals(350, scorer.scorePosition(board, context));
+        assertEquals(250, scorer.scorePosition(board, context));
     }
 
     @Test
-    public void testMobilityScore2() {
+    public void testMobilityScoreQueenVsBishop() {
         setPosition("2k5/1q3N2/1p6/3p4/8/8/6B1/4K3 w - - 0 1");
-        assertEquals(-180, scorer.scorePosition(board, context));
+        assertEquals(250 - 400, scorer.scorePosition(board, context));
     }
 
     @Test
-    public void testMobilityScore3() {
+    public void testMobilityScoreMultiplePieces() {
         setPosition("2k5/1q3N2/1p6/3p4/8/8/1R4B1/4K3 w - - 0 1");
-        assertEquals(630, scorer.scorePosition(board, context));
+        assertEquals((14-8) * 50, scorer.scorePosition(board, context));
     }
 
     @Test
     public void testMobilityScore4() {
         setPosition("2r2rk1/1bq2pbp/1np1p1p1/1pN5/pP1PB3/P1P2QP1/1B2RP1P/1R4K1 b - - 0 23");
-        assertEquals(780, scorer.scorePosition(board, context));
+        assertEquals(250, scorer.scorePosition(board, context));
+    }
+
+    @Test
+    public void testMobilityScoreOneRook() {
+        setPosition("7k/8/8/8/8/8/R7/4K3 w - - 0 1");
+        assertEquals(700, scorer.scorePosition(board, context));
+    }
+
+    @Test
+    public void testMobilityScoreTwoRooks() {
+        setPosition("7k/8/8/8/8/8/R6R/4K3 w - - 0 1");
+        assertEquals(1250, scorer.scorePosition(board, context));
     }
 }
