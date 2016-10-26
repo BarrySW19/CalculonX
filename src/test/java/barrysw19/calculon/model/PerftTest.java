@@ -1,4 +1,4 @@
-/**
+/*
  * Calculon - A Java chess-engine.
  *
  * Copyright (C) 2008-2016 Barry Smith
@@ -45,7 +45,7 @@ import static org.junit.Assert.assertEquals;
 public class PerftTest {
     private static Logger LOG = LoggerFactory.getLogger(PerftTest.class);
 
-    private static final long MAX_COUNT = 20_000_000;
+    private static final long MAX_COUNT = 1_000_000;
 
     @Test
     public void testStartPosition() {
@@ -155,11 +155,11 @@ public class PerftTest {
         private List<BitBoardMove> moves;
         private boolean todo = true;
 
-        public CalcSpliterator(int depth, BitBoard bitBoard) {
+        CalcSpliterator(int depth, BitBoard bitBoard) {
             this(depth, bitBoard, new MoveGeneratorImpl(bitBoard).getAllRemainingMoves());
         }
 
-        public CalcSpliterator(int depth, BitBoard bitBoard, List<BitBoardMove> moves) {
+        CalcSpliterator(int depth, BitBoard bitBoard, List<BitBoardMove> moves) {
 //            LOG.info("New spliterator at depth: {}", depth);
             this.depth = depth;
             this.bitBoard = bitBoard;
