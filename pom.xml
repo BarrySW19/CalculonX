@@ -21,7 +21,7 @@
     <!-- Run "mvn assembly:assembly" to build a standalone JAR -->
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>nl.zoidberg.calculon</groupId>
+    <groupId>barrysw19.calculon</groupId>
     <artifactId>calculon</artifactId>
     <packaging>jar</packaging>
     <version>0.5.12-SNAPSHOT</version>
