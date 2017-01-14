@@ -24,17 +24,26 @@ import barrysw19.calculon.engine.EngineUtils;
 import barrysw19.calculon.engine.MoveGeneratorImpl;
 import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.model.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import static java.lang.String.format;
+
 public class PGNUtils {
+    private static final Logger LOG = LoggerFactory.getLogger(PGNUtils.class);
 
 	private PGNUtils() {
 	}
 
 	public static void applyMove(BitBoard bitBoard, String move) {
-		String algMove = PGNUtils.toPgnMoveMap(bitBoard).get(move);
-		bitBoard.makeMove(bitBoard.getMove(algMove));
+		Optional<String> algMove = Optional.ofNullable(PGNUtils.toPgnMoveMap(bitBoard).get(move));
+        bitBoard.makeMove(bitBoard.getMove(algMove.orElseThrow(() -> {
+            final String errMsg = format("No move found: %s %s", FENUtils.generate(bitBoard), move);
+            LOG.error(errMsg);
+            return new NullPointerException(errMsg);
+        })));
 	}
 	
 	public static void applyMoves(BitBoard bitBoard, String... moves) {
