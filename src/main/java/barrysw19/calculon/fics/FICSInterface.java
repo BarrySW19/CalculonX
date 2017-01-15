@@ -1,4 +1,4 @@
-/**
+/*
  * Calculon - A Java chess-engine.
  *
  * Copyright (C) 2008-2009 Barry Smith
@@ -27,6 +27,8 @@ import barrysw19.calculon.notation.Style12;
 import barrysw19.calculon.opening.OpeningBook;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,12 +36,10 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class FICSInterface {
 
-	private static final Logger log = Logger.getLogger(FICSInterface.class.getName());
+	private static final Logger LOG = LoggerFactory.getLogger(FICSInterface.class);
 
 	private static boolean shutdown = false;
 	private final static String talkResponse = "I'm sorry Dave, I'm afraid I can't do that.";
@@ -66,7 +66,7 @@ public class FICSInterface {
 		
 		if(System.getProperty("calculon.password") == null)
 		{
-			log.log(Level.SEVERE, "password must be specified.");
+			LOG.error("password must be specified.");
 			System.exit(-1);
 		}
 		
@@ -74,7 +74,7 @@ public class FICSInterface {
 			try {
 				new FICSInterface().connect();
 			} catch (Exception x) {
-				log.log(Level.SEVERE, "Error", x);
+				LOG.error("Error", x);
 				try { Thread.sleep(60000); } catch (InterruptedException ignored) { }
 			}
 		}
@@ -98,10 +98,10 @@ public class FICSInterface {
 		try {
 			ficsConfig = (FICSConfig) digester.parse(ClassLoader.getSystemResourceAsStream("calculon.xml"));
 		} catch (Exception e) {
-			log.log(Level.WARNING, "Config reading failed", e);
+			LOG.error("Config reading failed", e);
 			throw new RuntimeException(e);
 		}
-		log.fine(ficsConfig.toString());
+		LOG.debug(ficsConfig.toString());
 		
 		openingBook = OpeningBook.getDefaultBook();
 
@@ -119,7 +119,7 @@ public class FICSInterface {
         clocks.put(Piece.BLACK, new ClockStatus());
 	}
 
-	public void connect() throws IOException {
+	private void connect() throws IOException {
 		connection = new Socket("freechess.org", 23);
 		doLogin();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
@@ -148,10 +148,11 @@ public class FICSInterface {
 		String line;
 		try {
 			while ((line = reader.readLine()) != null) {
-//				if (line.trim().length() == 0) {
-//					continue;
-//				}
-                log.info("Recv: '" + line + "'");
+				if (line.trim().length() == 0) {
+                    LOG.debug("Recv: '" + line + "'");
+					continue;
+				}
+                LOG.info("Recv: '" + line + "'");
 				for (ConnectionListener listener : listeners) {
 					listener.message(line);
 				}
@@ -174,7 +175,7 @@ public class FICSInterface {
 			if (c == sLogin.charAt(sptr)) {
 				sptr++;
 				if (sptr == sLogin.length()) {
-					log.fine("Sending login name");
+					LOG.debug("Sending login name");
 					connection.getOutputStream()
 							.write((ficsConfig.getLoginName() + "\n").getBytes());
 					break;
@@ -191,7 +192,7 @@ public class FICSInterface {
 			if (c == sLogin.charAt(sptr)) {
 				sptr++;
 				if (sptr == sLogin.length()) {
-					log.finer("Sending password");
+					LOG.debug("Sending password");
 					connection.getOutputStream().write((System.getProperty("calculon.password") + "\n").getBytes());
 					break;
 				}
@@ -225,7 +226,7 @@ public class FICSInterface {
 				blockCount = 1;
 			}
 		}
-		log.finer(">>> " + s);
+		LOG.debug(">>> " + s);
 		out.println(s);
 	}
 
@@ -249,7 +250,7 @@ public class FICSInterface {
 
 	private class DebugListener implements ConnectionListener {
 		public void message(String s) {
-			log.finer("<<< " + s);
+			LOG.debug("<<< " + s);
 		}
 	}
 
@@ -272,16 +273,16 @@ public class FICSInterface {
 				
 				if("rated".equals(args[args.length-4]) 
 						&& gameLength >= ficsConfig.getAcceptMin() && gameLength <= ficsConfig.getAcceptMax()) {
-					log.fine("Accepting: '" + s + "' " + gameLength + "s");
+					LOG.debug("Accepting: '" + s + "' " + gameLength + "s");
 					send("accept");
 				} else {
-					log.fine("Rejecting: '" + s + "' " + gameLength + "s");
+					LOG.debug("Rejecting: '" + s + "' " + gameLength + "s");
 					send("decline");
 				}
 				return;
 			}
 			if (s.startsWith("Creating: ")) {
-				log.info("Starting game: '" + s + "'");
+				LOG.info("Starting game: '" + s + "'");
 				List<String> fields = Arrays.asList(StringUtils.split(s));
 				playingWhite = ficsConfig.getLoginName().equals(fields.get(1));
 				opponent = playingWhite ? fields.get(3) : fields.get(1);
@@ -408,7 +409,7 @@ public class FICSInterface {
 			}
 
 			if (gameEnded) {
-				log.info("Game ends: " + s);
+				LOG.info("Game ends: " + s);
 				currentBoard = null;
 				gameNumber = -1;
 				opponent = null;
@@ -441,7 +442,7 @@ public class FICSInterface {
 					currentBoard = new BitBoard().initialise();
                     clocks.put(Piece.WHITE, new ClockStatus(style12.getTimeInitial(), style12.getTimeIncrement()));
                     clocks.put(Piece.BLACK, new ClockStatus(style12.getTimeInitial(), style12.getTimeIncrement()));
-                    log.info("Game starts:" + clocks);
+                    LOG.info("Game starts:" + clocks);
 				}
                 clocks.get(Piece.WHITE).setMsec(style12.getWhiteTime() * 1000);
                 clocks.get(Piece.BLACK).setMsec(style12.getBlackTime() * 1000);
@@ -458,7 +459,7 @@ public class FICSInterface {
 			}
 
 			if(style12.getHalfMoveCount() >= 100) {
-				log.info("Claiming draw by 50-move rule");
+				LOG.info("Claiming draw by 50-move rule");
 				send("draw");
 				return;
 			}
@@ -467,17 +468,17 @@ public class FICSInterface {
 				try {
 					PGNUtils.applyMove(currentBoard, style12.getPreviousMovePGN());
 				} catch (Exception x) {
-					log.log(Level.SEVERE, "Apply move failed: " + currentBoard + " " + style12.getPreviousMovePGN(), x);
+					LOG.error("Apply move failed: " + currentBoard + " " + style12.getPreviousMovePGN(), x);
 				}
 			}
 			
 			if(currentBoard == null || ! currentBoard.getCacheId().equals(style12.getBoard().getCacheId())) {
-				log.warning("Out of sync board detected - resetting!");
+				LOG.warn("Out of sync board detected - resetting!");
 				currentBoard = style12.getBoard();
 			}
 			
 			if(currentBoard.getRepeatedCount() >= 3) {
-				log.info("Claiming draw by 3-fold repitition (opp move)");
+				LOG.info("Claiming draw by 3-fold repitition (opp move)");
 				send("draw");
 				return;
 			}
@@ -486,40 +487,38 @@ public class FICSInterface {
 			if(bookMove != null) {
 				PGNUtils.applyMove(currentBoard, bookMove);
 				send(bookMove);
-				log.fine("Using book move: " + bookMove);
+				LOG.debug("Using book move: " + bookMove);
 				return;
 			}
 			
 			Runnable moveMaker = () -> {
                 final BitBoard myBoard = currentBoard;
                 ChessEngine engine = new ChessEngine(3);
-                ClockStatus clockStatus = clocks.get(myBoard.getPlayer());
 
-                if (clockStatus != null) {
-                    int moveTime = clockStatus.getSecondsForMoves(20) / 20;
-                    int maxNow = (int) (clockStatus.getMsec() / 1000);
-                    moveTime = Math.min(moveTime, maxNow);
-                    engine.setTargetTime(Math.max(1, moveTime));
-                    log.info("Set clock " + moveTime);
-                } else {
-                    log.severe("No clock status");
+                if(!clocks.containsKey(myBoard.getPlayer())) {
+                    LOG.warn("No clock present");
                 }
+                Optional.ofNullable(clocks.get(myBoard.getPlayer())).ifPresent((cs) -> {
+                    final int targetTime = cs.getTargetMoveTime();
+                    LOG.info("Set clock " + targetTime);
+                    engine.setTargetTime(targetTime);
+                });
 
                 String bestMove = engine.getPreferredMove(myBoard);
                 if(bestMove != null) {
                     if(gameNumber != -1) {
-                        log.info("Board: " + FENUtils.generate(myBoard));
-                        log.info("Moving: " + PGNUtils.translateMove(myBoard, bestMove));
+                        LOG.info("Board: " + FENUtils.generate(myBoard));
+                        LOG.info("Moving: " + PGNUtils.translateMove(myBoard, bestMove));
                         if(currentBoard != null) {
                             PGNUtils.applyMove(currentBoard, PGNUtils.translateMove(myBoard, bestMove));
                         }
                         send(bestMove.toLowerCase());
                         if(currentBoard.getRepeatedCount() >= 3) {
-                            log.info("Claiming draw by 3-fold repitition (my move)");
+                            LOG.info("Claiming draw by 3-fold repitition (my move)");
                             send("draw");
                         }
                     } else {
-                        log.info("Game not active - move aborted");
+                        LOG.info("Game not active - move aborted");
                     }
                 }
                 moveThread = null;
@@ -534,6 +533,7 @@ public class FICSInterface {
 		private StringBuffer currentBlock = new StringBuffer();
 		private boolean inBlock = false;
 		
+		@Override
 		public void message(String s) {
 			for(int i = 0; i < s.length(); i++) {
 				if(s.charAt(i) == 0x15) {
@@ -560,7 +560,7 @@ public class FICSInterface {
 		private int responseCode;
 		private String data;
 		
-		private ResponseBlock(String s) {
+		private ResponseBlock(final String s) {
 			StringBuilder buf = new StringBuilder(s);
 			if(buf.charAt(0) != 0x15) {
 				throw new IllegalArgumentException("Data not started with 0x15");
