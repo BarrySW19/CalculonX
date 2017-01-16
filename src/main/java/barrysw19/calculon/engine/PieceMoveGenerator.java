@@ -25,11 +25,6 @@ import java.util.List;
 
 public abstract class PieceMoveGenerator {
 
-    /**
-     * Generate moves for the supported pieces.
-     */
-    public abstract void generateMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoardMove> rv);
-
     public abstract Iterator<BitBoardMove> iterator(final BitBoard bitBoard, final boolean alreadyInCheck, final long potentialPins);
 
     /**
@@ -37,8 +32,9 @@ public abstract class PieceMoveGenerator {
      */
     public void generateThreatMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoardMove> rv) {
         final List<BitBoardMove> tempMoves = new ArrayList<>();
-        generateMoves(bitBoard, alreadyInCheck, potentialPins, tempMoves);
-        for (BitBoardMove move : tempMoves) {
+//        generateMoves(bitBoard, alreadyInCheck, potentialPins, tempMoves);
+        for (Iterator<BitBoardMove> iter = iterator(bitBoard, alreadyInCheck, potentialPins); iter.hasNext(); ) {
+            BitBoardMove move = iter.next();
             if (move.isCapture() || move.isPromotion()) {
                 rv.add(move);
                 continue;

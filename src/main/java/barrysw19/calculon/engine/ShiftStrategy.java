@@ -3,18 +3,18 @@ package barrysw19.calculon.engine;
 /**
  * Use polymorphism instead of conditionals, e.g. if(player == WHITE) ...
  */
-public interface ShiftStrategy {
-    public static final ShiftStrategy WHITE = new WhiteStrategy();
-    public static final ShiftStrategy BLACK = new BlackStrategy();
+interface ShiftStrategy {
+    ShiftStrategy WHITE = new WhiteStrategy();
+    ShiftStrategy BLACK = new BlackStrategy();
 
-    public long shiftForwardOneRank(long pos);
-    public long shiftForward(long pos, int distance);
-    public long shiftBackwardOneRank(long pos);
-    public long shiftBackward(long pos, int distance);
+    long shiftForwardOneRank(long pos);
+    long shiftForward(long pos, int distance);
+    long shiftBackwardOneRank(long pos);
+    long shiftBackward(long pos, int distance);
 
-    public int getPawnStartRank();
+    int getPawnStartRank();
 
-    public static abstract class BasicStrategy implements ShiftStrategy {
+    abstract class BasicStrategy implements ShiftStrategy {
         @Override
         public long shiftForwardOneRank(long pos) {
             return shiftForward(pos, 1);
@@ -26,7 +26,7 @@ public interface ShiftStrategy {
         }
     }
 
-    public static class WhiteStrategy extends BasicStrategy {
+    class WhiteStrategy extends BasicStrategy {
         @Override
         public long shiftForward(long pos, int distance) {
             // Move everything 1 -> 8 and clear back rank
@@ -45,7 +45,7 @@ public interface ShiftStrategy {
         }
     }
 
-    public static class BlackStrategy extends BasicStrategy {
+    class BlackStrategy extends BasicStrategy {
         @Override
         public long shiftForward(long pos, int distance) {
             // Move everything in direction 8 -> 1, new row is automatically empty.

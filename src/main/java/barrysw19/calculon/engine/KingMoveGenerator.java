@@ -23,7 +23,6 @@ import barrysw19.calculon.util.BitIterable;
 
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 
 public class KingMoveGenerator extends PieceMoveGenerator {
 
@@ -116,13 +115,6 @@ public class KingMoveGenerator extends PieceMoveGenerator {
                 new KingMoveIterator(bitBoard, kingMap)
         );
     }
-
-	@Override
-	public void generateMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoardMove> rv) {
-        for (Iterator<BitBoardMove> iter = this.iterator(bitBoard, alreadyInCheck, potentialPins); iter.hasNext(); ) {
-            rv.add(iter.next());
-        }
-	}
 
 	// Bit twiddling routines...
 	private static boolean isCastlingPossible(BitBoard bitBoard, short castleDir) {

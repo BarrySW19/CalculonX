@@ -22,7 +22,6 @@ import barrysw19.calculon.util.BitIterable;
 
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.function.ToLongFunction;
 
 class StraightMoveGenerator extends PieceMoveGenerator {
@@ -43,13 +42,6 @@ class StraightMoveGenerator extends PieceMoveGenerator {
             return Collections.emptyIterator();
         }
         return new StraightMoveIterator(bitBoard, piecesMap, alreadyInCheck, potentialPins);
-    }
-
-    @Override
-    public void generateMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoardMove> rv) {
-        for(Iterator<BitBoardMove> iter = this.iterator(bitBoard, alreadyInCheck, potentialPins); iter.hasNext(); ) {
-            rv.add(iter.next());
-        }
     }
 
     private class StraightMoveIterator extends AbstractMoveIterator {

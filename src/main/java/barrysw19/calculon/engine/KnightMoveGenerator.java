@@ -23,7 +23,6 @@ import barrysw19.calculon.util.BitIterable;
 
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 
 public class KnightMoveGenerator extends PieceMoveGenerator {
 	
@@ -102,13 +101,6 @@ public class KnightMoveGenerator extends PieceMoveGenerator {
             return Collections.emptyIterator();
         }
         return new KnightMoveIterator(bitBoard, piecesMap, alreadyInCheck, potentialPins);
-    }
-
-    @Override
-    public void generateMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoardMove> rv) {
-        for(Iterator<BitBoardMove> iter = this.iterator(bitBoard, alreadyInCheck, potentialPins); iter.hasNext(); ) {
-            rv.add(iter.next());
-        }
     }
 
     private static class KnightMoveIterator extends AbstractMoveIterator {
