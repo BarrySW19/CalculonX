@@ -95,8 +95,13 @@ public class KnightMoveGenerator extends PieceMoveGenerator {
             0b00000000_00100000_01000000_00000000_00000000_00000000_00000000_00000000L,
     };
 
+    @Override
     public Iterator<BitBoardMove> iterator(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins) {
-        return new KnightMoveIterator(bitBoard, alreadyInCheck, potentialPins);
+        long piecesMap = bitBoard.getBitmapColor() & bitBoard.getBitmapKnights();
+        if(piecesMap == 0) {
+            return Collections.emptyIterator();
+        }
+        return new KnightMoveIterator(bitBoard, piecesMap, alreadyInCheck, potentialPins);
     }
 
     @Override
@@ -118,21 +123,14 @@ public class KnightMoveGenerator extends PieceMoveGenerator {
         private boolean safeFromCheck;
         private Iterator<Long> moves;
 
-        public KnightMoveIterator(final BitBoard bitBoard, final boolean alreadyInCheck, final long potentialPins) {
+        public KnightMoveIterator(final BitBoard bitBoard, final long piecesMap, final boolean alreadyInCheck, final long potentialPins) {
             this.bitBoard = bitBoard;
             this.alreadyInCheck = alreadyInCheck;
             this.potentialPins = potentialPins;
             this.player = bitBoard.getPlayer();
             this.enemyPieces = bitBoard.getBitmapOppColor();
 
-            long piecesMap = bitBoard.getBitmapColor() & bitBoard.getBitmapKnights();
-            if(piecesMap == 0) {
-                this.pieces = Collections.emptyIterator();
-                this.moves = Collections.emptyIterator();
-                return;
-            }
-
-            pieces = BitIterable.of(bitBoard.getBitmapColor() & bitBoard.getBitmapKnights()).iterator();
+            pieces = BitIterable.of(piecesMap).iterator();
             nextPiece();
         }
 

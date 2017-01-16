@@ -17,13 +17,19 @@
  */
 package barrysw19.calculon.engine;
 
-import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.engine.BitBoard.BitBoardMove;
+import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.util.BitIterable;
 
+import java.util.Iterator;
 import java.util.List;
 
 public class PawnMoveGenerator extends PieceMoveGenerator {
+
+    @Override
+    public Iterator<BitBoardMove> iterator(final BitBoard bitBoard, final boolean alreadyInCheck, final long potentialPins) {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     public void generateMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoardMove> rv) {

@@ -2661,4 +2661,37 @@ public class PreGeneratedMoves {
             DIAGONAL_MOVES[i] = values.toArray(new long[values.size()][]);
         }
     }
+
+    public static class PreGeneratedMoveIterator {
+        private final long[][] moves;
+
+        private int rowIndex = -1;
+        private int moveIndex = 0;
+
+        public PreGeneratedMoveIterator(final long[][] moves) {
+            this.moves = moves;
+            nextDirection();
+        }
+
+        public long next() {
+            if(rowIndex >= moves.length) {
+                return 0;
+            }
+
+            if(moveIndex >= moves[rowIndex].length) {
+                rowIndex++;
+                moveIndex = 0;
+                return next();
+            }
+
+            return moves[rowIndex][moveIndex++];
+        }
+
+        public void nextDirection() {
+            moveIndex = 0;
+            do {
+                rowIndex++;
+            } while(rowIndex < moves.length && moves[rowIndex].length == 0);
+        }
+    }
 }

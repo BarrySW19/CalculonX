@@ -28,6 +28,7 @@ public class MoveGeneratorImpl implements MoveGenerator {
 	
 	static {
         List<PieceMoveGenerator> list = new LinkedList<>();
+
 		list.add(new PawnCaptureGenerator());
         list.add(new KnightMoveGenerator());
         list.add(new StraightMoveGenerator(
@@ -38,6 +39,7 @@ public class MoveGeneratorImpl implements MoveGenerator {
                 (BitBoard bb) -> (bb.getBitmapColor() & bb.getBitmapQueens()), PreGeneratedMoves.SLIDE_MOVES, Piece.QUEEN));
         list.add(new PawnMoveGenerator());
         list.add(new KingMoveGenerator());
+
         MASTER = Collections.unmodifiableList(list);
 	}
 	
