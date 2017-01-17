@@ -10,7 +10,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 // Some chess problems which the engine should easily solve.
-//@Ignore // too slow
+@Ignore // too slow
 public class ProblemsTest {
 
     @Test
@@ -92,7 +92,7 @@ public class ProblemsTest {
 
     private void runTest(String fen, String pgn) {
         // As all tests should have only one move it should never use 60 secs
-        ChessEngine engine = new ChessEngine(1);
+        ChessEngine engine = new ChessEngine(5);
         BitBoard board = FENUtils.getBoard(fen);
         String move = engine.getPreferredMove(board);
         assertEquals(pgn, PGNUtils.translateMove(board, move));
