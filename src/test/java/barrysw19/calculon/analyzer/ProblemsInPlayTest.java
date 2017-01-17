@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore("too slow for Travis build")
 public class ProblemsInPlayTest {
 
     /**
