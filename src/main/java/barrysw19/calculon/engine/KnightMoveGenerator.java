@@ -155,13 +155,10 @@ public class KnightMoveGenerator extends PieceMoveGenerator {
                 return move;
             }
 
-            bitBoard.makeMove(move);
-            if (!CheckDetector.isPlayerJustMovedInCheck(bitBoard, !alreadyInCheck)) {
-                bitBoard.unmakeMove();
+            if(CheckDetector.isMoveLegal(move, bitBoard, !alreadyInCheck)) {
                 return move;
             }
 
-            bitBoard.unmakeMove();
             return this.fetchNextMove();
         }
     }

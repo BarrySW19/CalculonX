@@ -210,13 +210,10 @@ public class KingMoveGenerator extends PieceMoveGenerator {
                 move = BitBoard.generateCapture(currentPiece, nextMove, player, Piece.KING, bitBoard.getPiece(nextMove));
             }
 
-            bitBoard.makeMove(move);
-            if (!CheckDetector.isPlayerJustMovedInCheck(bitBoard)) {
-                bitBoard.unmakeMove();
+            if(CheckDetector.isMoveLegal(move, bitBoard)) {
                 return move;
             }
 
-            bitBoard.unmakeMove();
             return this.fetchNextMove();
         }
     }

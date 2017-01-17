@@ -127,9 +127,7 @@ class PawnCaptureGenerator extends PieceMoveGenerator {
 
 		boolean moveOk = true;
         if( !safeFromCheck) {
-            bitBoard.makeMove(bbMove);
-            moveOk = !CheckDetector.isPlayerJustMovedInCheck(bitBoard, !alreadyInCheck);
-            bitBoard.unmakeMove();
+            moveOk = CheckDetector.isMoveLegal(bbMove, bitBoard, !alreadyInCheck);
         }
 
 		if(moveOk) {

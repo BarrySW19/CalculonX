@@ -37,7 +37,18 @@ public class CheckDetector {
     	byte color = bitBoard.getPlayer() == Piece.WHITE ? Piece.BLACK : Piece.WHITE;
     	return inCheck(bitBoard, color, pinCheckOnly);
     }
-    
+
+    public static boolean isMoveLegal(BitBoard.BitBoardMove move, BitBoard bitBoard, boolean pinCheckOnly) {
+        bitBoard.makeMove(move);
+        boolean inCheck = isPlayerJustMovedInCheck(bitBoard, pinCheckOnly);
+        bitBoard.unmakeMove();
+        return !inCheck;
+    }
+
+    public static boolean isMoveLegal(BitBoard.BitBoardMove move, BitBoard bitBoard) {
+        return isMoveLegal(move, bitBoard, false);
+    }
+
 	public static boolean isPlayerToMoveInCheck(BitBoard bitBoard) {
     	return inCheck(bitBoard, bitBoard.getPlayer(), false);
 	}

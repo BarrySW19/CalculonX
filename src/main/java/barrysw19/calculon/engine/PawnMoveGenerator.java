@@ -95,7 +95,7 @@ public class PawnMoveGenerator extends PieceMoveGenerator {
 
             if(nextMove == shiftStrategy.shiftForward(currentPiece, 2)) {
                 BitBoardMove pushTwo = BitBoard.generateDoubleAdvanceMove(currentPiece, nextMove, player);
-                if(safeFromCheck || isSafeAfterMove(bitBoard, pushTwo, alreadyInCheck)) {
+                if(safeFromCheck || CheckDetector.isMoveLegal(pushTwo, bitBoard, !alreadyInCheck)) {
                     return pushTwo;
                 } else {
                     return fetchNextMove();
@@ -103,7 +103,7 @@ public class PawnMoveGenerator extends PieceMoveGenerator {
             }
 
             BitBoardMove pushPawn = BitBoard.generateMove(currentPiece, nextMove, player, Piece.PAWN);
-            if(safeFromCheck || isSafeAfterMove(bitBoard, pushPawn, alreadyInCheck)) {
+            if(safeFromCheck || CheckDetector.isMoveLegal(pushPawn, bitBoard, !alreadyInCheck)) {
                 if ((nextMove & BitBoard.FINAL_RANKS) != 0) {
                     queuedMoves.addAll(BitBoard.generatePromotions(currentPiece, nextMove, player));
                     return fetchNextMove();
@@ -112,12 +112,5 @@ public class PawnMoveGenerator extends PieceMoveGenerator {
             }
             return fetchNextMove();
         }
-    }
-
-    private static boolean isSafeAfterMove(final BitBoard bitBoard, final BitBoardMove bitBoardMove, final boolean alreadyInCheck) {
-        bitBoard.makeMove(bitBoardMove);
-        boolean inCheck = CheckDetector.isPlayerJustMovedInCheck(bitBoard, !alreadyInCheck);
-        bitBoard.unmakeMove();
-        return !inCheck;
     }
 }

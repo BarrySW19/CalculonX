@@ -45,60 +45,78 @@ import static org.junit.Assert.assertEquals;
 public class PerftTest {
     private static Logger LOG = LoggerFactory.getLogger(PerftTest.class);
 
-    private static final long MAX_COUNT = 1_000_000;
+    private static final long MAX_COUNT = 5_000_000;
 
     @Test
     public void testStartPosition() {
         testConfig(new PerftTestConfig("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-                new long[]{20, 400, 8_902, 197_281, 4_865_609, 119_060_324, 3_195_901_860L }));
-    }
-
-    @Test
-    public void testMidGame1() {
-        testConfig(new PerftTestConfig("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
-                new long[]{48, 2_039, 97_862, 4_085_603, 193_690_690,}));
+                20, 400, 8_902, 197_281, 4_865_609, 119_060_324, 3_195_901_860L));
     }
 
     @Test
     public void testEndGame1() {
         testConfig(new PerftTestConfig("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
-                new long[]{14, 191, 2_812, 43_238, 674_624, 11_030_083, 178_633_661,}));
+                14, 191, 2_812, 43_238, 674_624, 11_030_083, 178_633_661));
     }
 
     @Test
     public void testManyCaptures1() {
         testConfig(new PerftTestConfig("r3k2r/pppq1ppp/2nbbn2/3pp3/3PP3/2NBBN2/PPPQ1PPP/R3K2R w KQkq - 0 8",
-                new long[]{41, 1_680, 69_126, 2_833_127,}));
+                41, 1_680, 69_126, 2_833_127));
     }
 
     @Test
     public void testManyCaptures2() {
         testConfig(new PerftTestConfig("r3k2r/ppp2p1p/3bbnpB/n2Np3/q2PP3/2PB1N2/PP1Q1PPP/R3K2R w KQkq - 0 11",
-                new long[]{47, 2_055, 93_774,}));
+                47, 2_055, 93_774));
     }
 
     @Test
     public void testEndGame2() {
         testConfig(new PerftTestConfig("8/PPP4k/8/8/8/8/4Kppp/8 w - - 0 1",
-                new long[]{18, 290, 5_044, 89_363, 1_745_545,}));
+                18, 290, 5_044, 89_363, 1_745_545));
     }
 
     @Test
     public void testEndGame3() {
         testConfig(new PerftTestConfig("8/3K4/2p5/p2b2r1/5k2/8/8/1q6 b - - 0 1",
-                new long[]{50, 279, 13_310, 54_703, 2_538_084,}));
+                50, 279, 13_310, 54_703, 2_538_084));
     }
 
     @Test
     public void testEndGame4() {
         testConfig(new PerftTestConfig("8/p3kp2/6p1/3r1p1p/7P/8/3p2P1/3R1K2 w - - 0 1",
-                new long[]{10, 218, 2_886, 63_771, 927_197,}));
+                10, 218, 2_886, 63_771, 927_197));
+    }
+
+    @Test
+    public void testMidGame1() {
+        testConfig(new PerftTestConfig("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+                48, 2_039, 97_862, 4_085_603, 193_690_690));
+    }
+
+    @Test
+    public void testMidGame2() {
+        testConfig(new PerftTestConfig("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1",
+                6, 264, 9_467, 422_333, 15_833_292, 706_045_033));
     }
 
     @Test
     public void testMidGame3() {
+        testConfig(new PerftTestConfig("r2q1rk1/pP1p2pp/Q4n2/bbp1p3/Np6/1B3NBn/pPPP1PPP/R3K2R b KQ - 0 1",
+                6, 264, 9_467, 422_333, 15_833_292, 706_045_033));
+    }
+
+    @Test
+    public void testMidGame4() {
         testConfig(new PerftTestConfig("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
-                new long[]{46, 2_079, 89_890, 3_894_594, 164_075_551, 6_923_051_137L, 287_188_994_746L}));
+                46, 2_079, 89_890, 3_894_594, 164_075_551, 6_923_051_137L, 287_188_994_746L));
+    }
+
+    @Test
+    public void testMidGame5() {
+        testConfig(new PerftTestConfig("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
+                44, 1_486, 62_379, 2_103_487, 89_941_194));
     }
 
     private void testConfig(PerftTestConfig config) {
@@ -143,7 +161,7 @@ public class PerftTest {
         private String position;
         private long[] expectedCounts;
 
-        private PerftTestConfig(String position, long[] expectedCounts) {
+        private PerftTestConfig(String position, long... expectedCounts) {
             this.position = position;
             this.expectedCounts = expectedCounts;
         }
