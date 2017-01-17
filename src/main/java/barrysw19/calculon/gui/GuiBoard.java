@@ -24,7 +24,7 @@ public class GuiBoard extends JPanel {
     public void paintComponent(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setColor(cDark);
-        g2d.fillRect(0, 0, getWidth(), getHeight());
+        g2d.fillRect(0, 0, dimension * 8, dimension * 8);
         g2d.setColor(cLight);
         for(int i = 0; i < 4; i++) {
             for(int j = 0; j < 4; j++) {
