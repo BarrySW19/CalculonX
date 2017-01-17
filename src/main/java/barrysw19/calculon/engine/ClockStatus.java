@@ -35,9 +35,19 @@ public class ClockStatus {
         return msec;
     }
 
+    /**
+     * Update with the number of milliseconds remaining on the player's clock.
+     */
     public ClockStatus setMsec(long msec) {
         this.msec = msec;
         return this;
+    }
+
+    public int getTargetMoveTime() {
+        int moveTime = this.getSecondsForMoves(20) / 20;
+        int maxNow = (int) (this.getMsec() / 1000);
+        moveTime = Math.min(moveTime, maxNow);
+        return Math.max(1, moveTime);
     }
 
     /**

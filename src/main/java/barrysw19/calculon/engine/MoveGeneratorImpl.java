@@ -28,6 +28,7 @@ public class MoveGeneratorImpl implements MoveGenerator {
 	
 	static {
         List<PieceMoveGenerator> list = new LinkedList<>();
+
 		list.add(new PawnCaptureGenerator());
         list.add(new KnightMoveGenerator());
         list.add(new StraightMoveGenerator(
@@ -38,6 +39,7 @@ public class MoveGeneratorImpl implements MoveGenerator {
                 (BitBoard bb) -> (bb.getBitmapColor() & bb.getBitmapQueens()), PreGeneratedMoves.SLIDE_MOVES, Piece.QUEEN));
         list.add(new PawnMoveGenerator());
         list.add(new KingMoveGenerator());
+
         MASTER = Collections.unmodifiableList(list);
 	}
 	
@@ -110,7 +112,9 @@ public class MoveGeneratorImpl implements MoveGenerator {
 
 		while (queuedMoves.isEmpty() && genIndex < generators.size()) {
             PieceMoveGenerator nextGen = generators.get(genIndex++);
-            nextGen.generateMoves(bitBoard, inCheck, potentialPins, queuedMoves);
+            for(Iterator<BitBoardMove> iter = nextGen.iterator(bitBoard, inCheck, potentialPins); iter.hasNext(); ) {
+                queuedMoves.add(iter.next());
+            }
         }
 	}
 	
@@ -134,7 +138,9 @@ public class MoveGeneratorImpl implements MoveGenerator {
             // Rule: If the player is in check then all moves are needed, otherwise just
             // captures, checks and pawn promotions.
             if(CheckDetector.isPlayerToMoveInCheck(bitBoard)) {
-                generator.generateMoves(bitBoard, inCheck, potentialPins, moves);
+                for(Iterator<BitBoardMove> iter = generator.iterator(bitBoard, inCheck, potentialPins); iter.hasNext(); ) {
+                    moves.add(iter.next());
+                }
             } else {
 			    generator.generateThreatMoves(bitBoard, inCheck, potentialPins, moves);
             }

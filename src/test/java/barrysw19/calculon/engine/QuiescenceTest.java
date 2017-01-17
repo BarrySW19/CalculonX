@@ -256,7 +256,8 @@ public class QuiescenceTest {
         BitBoard board = FENUtils.getBoard("3k4/8/3p4/5P2/4P3/8/8/3K4 w - - 0 1");
         PieceMoveGenerator generator = new PawnCaptureGenerator();
         List<BitBoard.BitBoardMove> moves = new ArrayList<>();
-        generator.generateMoves(board, false, 0L, moves);
+
+        BitBoardTest.generateMoves(generator, board, false, 0L, moves);
         assertEquals(0, moves.size());
     }
 

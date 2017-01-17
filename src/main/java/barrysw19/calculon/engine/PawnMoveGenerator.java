@@ -1,4 +1,4 @@
-/**
+/*
  * Calculon - A Java chess-engine.
  *
  * Copyright (C) 2008-2009 Barry Smith
@@ -17,16 +17,16 @@
  */
 package barrysw19.calculon.engine;
 
-import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.engine.BitBoard.BitBoardMove;
+import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.util.BitIterable;
 
-import java.util.List;
+import java.util.*;
 
 public class PawnMoveGenerator extends PieceMoveGenerator {
 
     @Override
-    public void generateMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoardMove> rv) {
+    public Iterator<BitBoardMove> iterator(final BitBoard bitBoard, final boolean alreadyInCheck, final long potentialPins) {
         byte playerIdx = bitBoard.getPlayer();
         ShiftStrategy shiftStrategy = BitBoard.getShiftStrategy(playerIdx);
         long myPawns = bitBoard.getBitmapPawns() & bitBoard.getBitmapColor(playerIdx);
@@ -35,48 +35,89 @@ public class PawnMoveGenerator extends PieceMoveGenerator {
         long movablePawns = shiftStrategy.shiftBackwardOneRank(
                 shiftStrategy.shiftForwardOneRank(myPawns) & ~bitBoard.getAllPieces());
 
-        // As we know which pawns can move one, see which of them can move two.
-        long doubleMovePawns = movablePawns & BitBoard.getRankMap(shiftStrategy.getPawnStartRank());
-        doubleMovePawns = shiftStrategy.shiftBackward(
-                shiftStrategy.shiftForward(doubleMovePawns, 2) & ~bitBoard.getAllPieces(), 2);
+        if(movablePawns == 0) {
+            return Collections.emptyIterator();
+        }
 
-        for(long nextPawn: BitIterable.of(movablePawns)) {
-            boolean doubleMove = (doubleMovePawns & nextPawn) != 0;
-            boolean safeFromCheck = ((nextPawn & potentialPins) == 0) & !alreadyInCheck;
+        return new PawnMoveIterator(bitBoard, movablePawns, alreadyInCheck, potentialPins);
+    }
 
-            long toSquare = shiftStrategy.shiftForwardOneRank(nextPawn);
-            if (safeFromCheck) {
-                if ((toSquare & BitBoard.FINAL_RANKS) != 0) {
-                    rv.addAll(BitBoard.generatePromotions(nextPawn, toSquare, playerIdx));
+    private static class PawnMoveIterator extends AbstractMoveIterator {
+        private final BitBoard bitBoard;
+        private final boolean alreadyInCheck;
+        private final long potentialPins;
+        private Iterator<Long> pieces;
+        private long currentPiece;
+        private boolean safeFromCheck;
+        private Iterator<Long> moves;
+        private final ShiftStrategy shiftStrategy;
+        private final List<BitBoardMove> queuedMoves = new LinkedList<>();
+        private final byte player;
+
+        PawnMoveIterator(final BitBoard bitBoard, final long piecesMap, final boolean alreadyInCheck, final long potentialPins) {
+            this.bitBoard = bitBoard;
+            this.alreadyInCheck = alreadyInCheck;
+            this.potentialPins = potentialPins;
+            this.player = bitBoard.getPlayer();
+            this.shiftStrategy =  BitBoard.getShiftStrategy(this.player);
+
+            pieces = BitIterable.of(piecesMap).iterator();
+            nextPiece();
+        }
+
+        private void nextPiece() {
+            currentPiece = pieces.next();
+            safeFromCheck = ((currentPiece & potentialPins) == 0) & !alreadyInCheck;
+            long movesMap = shiftStrategy.shiftForward(currentPiece, 1);
+            if((currentPiece & BitBoard.getRankMap(shiftStrategy.getPawnStartRank())) != 0) {
+                movesMap |= shiftStrategy.shiftForward(currentPiece, 2) & ~bitBoard.getAllPieces();
+            }
+
+            moves = BitIterable.of(movesMap).iterator();
+        }
+
+        @Override
+        BitBoardMove fetchNextMove() {
+            if(!queuedMoves.isEmpty()) {
+                return queuedMoves.remove(0);
+            }
+
+            if(!moves.hasNext() && !pieces.hasNext()) {
+                return null;
+            }
+
+            if(!moves.hasNext()) {
+                nextPiece();
+                return this.fetchNextMove();
+            }
+
+            long nextMove = moves.next();
+
+            if(nextMove == shiftStrategy.shiftForward(currentPiece, 2)) {
+                BitBoardMove pushTwo = BitBoard.generateDoubleAdvanceMove(currentPiece, nextMove, player);
+                if(safeFromCheck || isSafeAfterMove(bitBoard, pushTwo, alreadyInCheck)) {
+                    return pushTwo;
                 } else {
-                    rv.add(BitBoard.generateMove(nextPawn, toSquare, playerIdx, Piece.PAWN));
-                    if(doubleMove) {
-                        rv.add(BitBoard.generateDoubleAdvanceMove(
-                                nextPawn, shiftStrategy.shiftForward(nextPawn, 2), playerIdx));
-                    }
-                }
-            } else {
-                BitBoardMove bbMove = BitBoard.generateMove(nextPawn, toSquare, playerIdx, Piece.PAWN);
-                bitBoard.makeMove(bbMove);
-                if (!CheckDetector.isPlayerJustMovedInCheck(bitBoard, !alreadyInCheck)) {
-                    if ((toSquare & BitBoard.FINAL_RANKS) != 0) {
-                        rv.addAll(BitBoard.generatePromotions(nextPawn, toSquare, playerIdx));
-                    } else {
-                        rv.add(bbMove);
-                    }
-                }
-                bitBoard.unmakeMove();
-
-                if(doubleMove) {
-                    BitBoardMove pushTwo = BitBoard.generateDoubleAdvanceMove(
-                            nextPawn, shiftStrategy.shiftForward(nextPawn, 2), playerIdx);
-                    bitBoard.makeMove(pushTwo);
-                    if(!CheckDetector.isPlayerJustMovedInCheck(bitBoard, !alreadyInCheck)) {
-                        rv.add(pushTwo);
-                    }
-                    bitBoard.unmakeMove();
+                    return fetchNextMove();
                 }
             }
+
+            BitBoardMove pushPawn = BitBoard.generateMove(currentPiece, nextMove, player, Piece.PAWN);
+            if(safeFromCheck || isSafeAfterMove(bitBoard, pushPawn, alreadyInCheck)) {
+                if ((nextMove & BitBoard.FINAL_RANKS) != 0) {
+                    queuedMoves.addAll(BitBoard.generatePromotions(currentPiece, nextMove, player));
+                    return fetchNextMove();
+                }
+                return pushPawn;
+            }
+            return fetchNextMove();
         }
+    }
+
+    private static boolean isSafeAfterMove(final BitBoard bitBoard, final BitBoardMove bitBoardMove, final boolean alreadyInCheck) {
+        bitBoard.makeMove(bitBoardMove);
+        boolean inCheck = CheckDetector.isPlayerJustMovedInCheck(bitBoard, !alreadyInCheck);
+        bitBoard.unmakeMove();
+        return !inCheck;
     }
 }
