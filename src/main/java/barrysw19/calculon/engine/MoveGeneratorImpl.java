@@ -34,12 +34,9 @@ public class MoveGeneratorImpl implements MoveGenerator {
 
 		list.add(new PawnCaptureGenerator());
         list.add(new KnightMoveGenerator());
-        list.add(new StraightMoveGenerator(
-				(BitBoard bb) -> (bb.getBitmapColor() & bb.getBitmapBishops()), PreGeneratedMoves.DIAGONAL_MOVES, Piece.BISHOP));
-        list.add(new StraightMoveGenerator(
-                (BitBoard bb) -> (bb.getBitmapColor() & bb.getBitmapRooks()), PreGeneratedMoves.STRAIGHT_MOVES, Piece.ROOK));
-        list.add(new StraightMoveGenerator(
-                (BitBoard bb) -> (bb.getBitmapColor() & bb.getBitmapQueens()), PreGeneratedMoves.SLIDE_MOVES, Piece.QUEEN));
+        list.add(new StraightMoveGenerator(Piece.BISHOP));
+        list.add(new StraightMoveGenerator(Piece.ROOK));
+        list.add(new StraightMoveGenerator(Piece.QUEEN));
         list.add(new PawnMoveGenerator());
         list.add(new KingMoveGenerator());
 

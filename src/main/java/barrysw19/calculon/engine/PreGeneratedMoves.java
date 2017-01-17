@@ -2639,26 +2639,26 @@ public class PreGeneratedMoves {
                 },
         };
 
-        for(int i = 0; i < SLIDE_MOVES.length; i++) {
-            long[][] movesFromSquare = SLIDE_MOVES[i];
+        for(int square = 0; square < SLIDE_MOVES.length; square++) {
+            long[][] movesFromSquare = SLIDE_MOVES[square];
             List<long[]> values = new ArrayList<>();
             for(int j = 0; j < movesFromSquare.length; j += 2) {
                 if(movesFromSquare[j].length > 0) {
                     values.add(movesFromSquare[j]);
                 }
             }
-            STRAIGHT_MOVES[i] = values.toArray(new long[values.size()][]);
+            STRAIGHT_MOVES[square] = values.toArray(new long[values.size()][]);
         }
 
-        for(int i = 0; i < SLIDE_MOVES.length; i++) {
-            long[][] movesFromSquare = SLIDE_MOVES[i];
+        for(int square = 0; square < SLIDE_MOVES.length; square++) {
+            long[][] movesFromSquare = SLIDE_MOVES[square];
             List<long[]> values = new ArrayList<>();
             for(int j = 1; j < movesFromSquare.length; j += 2) {
                 if(movesFromSquare[j].length > 0) {
                     values.add(movesFromSquare[j]);
                 }
             }
-            DIAGONAL_MOVES[i] = values.toArray(new long[values.size()][]);
+            DIAGONAL_MOVES[square] = values.toArray(new long[values.size()][]);
         }
     }
 

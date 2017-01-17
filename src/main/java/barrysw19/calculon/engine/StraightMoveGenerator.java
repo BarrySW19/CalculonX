@@ -18,21 +18,41 @@
 package barrysw19.calculon.engine;
 
 import barrysw19.calculon.engine.BitBoard.BitBoardMove;
+import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.util.BitIterable;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.function.ToLongFunction;
 
 class StraightMoveGenerator extends PieceMoveGenerator {
     private final ToLongFunction<BitBoard> fSelectPieces;
     private final long[][][] slidingMoves;
     private final byte pieceType;
+    private final long[] allMoves;
 
-    StraightMoveGenerator(ToLongFunction<BitBoard> fSelectPieces, long[][][] slidingMoves, byte pieceType) {
-        this.fSelectPieces = fSelectPieces;
-        this.slidingMoves = slidingMoves;
+    StraightMoveGenerator(final byte pieceType) {
         this.pieceType = pieceType;
+        switch (pieceType) {
+            case Piece.BISHOP:
+                this.slidingMoves = PreGeneratedMoves.DIAGONAL_MOVES;
+                this.allMoves = Bitmaps.diag2Map;
+                this.fSelectPieces = (BitBoard bb) -> (bb.getBitmapColor() & bb.getBitmapBishops());
+                break;
+            case Piece.ROOK:
+                this.slidingMoves = PreGeneratedMoves.STRAIGHT_MOVES;
+                this.allMoves = Bitmaps.cross2Map;
+                this.fSelectPieces = (BitBoard bb) -> (bb.getBitmapColor() & bb.getBitmapRooks());
+                break;
+            case Piece.QUEEN:
+                this.slidingMoves = PreGeneratedMoves.SLIDE_MOVES;
+                this.allMoves = Bitmaps.star2Map;
+                this.fSelectPieces = (BitBoard bb) -> (bb.getBitmapColor() & bb.getBitmapQueens());
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
     @Override
@@ -41,7 +61,20 @@ class StraightMoveGenerator extends PieceMoveGenerator {
         if(piecesMap == 0) {
             return Collections.emptyIterator();
         }
-        return new StraightMoveIterator(bitBoard, piecesMap, alreadyInCheck, potentialPins);
+        return new StraightMoveIterator(bitBoard, piecesMap, alreadyInCheck, potentialPins, false);
+    }
+
+    @Override
+    public void generateThreatMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoardMove> rv) {
+        long piecesMap = fSelectPieces.applyAsLong(bitBoard);
+        if(piecesMap == 0) {
+            return;
+        }
+
+        StraightMoveIterator iterator = new StraightMoveIterator(bitBoard, piecesMap, alreadyInCheck, potentialPins, true);
+        while(iterator.hasNext()) {
+            rv.add(iterator.next());
+        }
     }
 
     private class StraightMoveIterator extends AbstractMoveIterator {
@@ -50,18 +83,23 @@ class StraightMoveGenerator extends PieceMoveGenerator {
         private final long potentialPins;
         private final long enemyPieces;
         private final byte player;
+        private final boolean threatsOnly;
 
         private Iterator<Long> pieces;
         private long currentPiece;
         private boolean safeFromCheck;
         private PreGeneratedMoves.PreGeneratedMoveIterator moves;
+        private long threatSquares = ~0L;
 
-        public StraightMoveIterator(final BitBoard bitBoard, final long piecesMap, final boolean alreadyInCheck, final long potentialPins) {
+        StraightMoveIterator(final BitBoard bitBoard, final long piecesMap,
+                             final boolean alreadyInCheck, final long potentialPins, final boolean threatsOnly)
+        {
             this.bitBoard = bitBoard;
             this.alreadyInCheck = alreadyInCheck;
             this.potentialPins = potentialPins;
             this.player = bitBoard.getPlayer();
             this.enemyPieces = bitBoard.getBitmapOppColor();
+            this.threatsOnly = threatsOnly;
 
             pieces = BitIterable.of(piecesMap).iterator();
             nextPiece();
@@ -70,6 +108,11 @@ class StraightMoveGenerator extends PieceMoveGenerator {
         private void nextPiece() {
             currentPiece = pieces.next();
             safeFromCheck = ((currentPiece & potentialPins) == 0) & !alreadyInCheck;
+            if(threatsOnly) {
+                threatSquares = allMoves[Long.numberOfTrailingZeros(bitBoard.getBitmapOppColor() & bitBoard.getBitmapKings())];
+                threatSquares &= allMoves[Long.numberOfTrailingZeros(currentPiece)];
+                threatSquares |= bitBoard.getBitmapOppColor();
+            }
             moves = new PreGeneratedMoves.PreGeneratedMoveIterator(slidingMoves[Long.numberOfTrailingZeros(currentPiece)]);
         }
 
@@ -88,6 +131,10 @@ class StraightMoveGenerator extends PieceMoveGenerator {
             BitBoardMove move;
             if((nextMove & bitBoard.getBitmapColor()) != 0) {
                 moves.nextDirection();
+                return fetchNextMove();
+            }
+
+            if((nextMove & threatSquares) == 0) {
                 return fetchNextMove();
             }
 

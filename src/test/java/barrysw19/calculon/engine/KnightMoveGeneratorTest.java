@@ -18,7 +18,8 @@ public class KnightMoveGeneratorTest {
     @Test
     public void testNormalMoveGeneration() {
         BitBoard board = FENUtils.getBoard("5k2/8/8/1p3p2/3N4/8/7P/7K w - - 0 1"); // N on d4, p on b5, f5
-        List<BitBoard.BitBoardMove> allMoves = Lists.newArrayList(new KnightMoveGenerator().iterator(board, false, 0));
+        List<BitBoard.BitBoardMove> allMoves = Lists.newArrayList(
+                new KnightMoveGenerator().iterator(board, CheckDetector.isPlayerJustMovedInCheck(board), 0));
         Set<String> knightMoves = allMoves.stream().map(m -> PGNUtils.translateMove(board, m.getAlgebraic())).collect(toSet());
 
         assertEquals(Sets.newHashSet("Nc6", "Nc2", "Nxf5", "Nxb5", "Nf3", "Nb3", "Ne6+", "Ne2"), knightMoves);
@@ -26,11 +27,11 @@ public class KnightMoveGeneratorTest {
 
     @Test
     public void testThreatMoveGeneration() {
-        BitBoard board = FENUtils.getBoard("5k2/8/8/1p3p2/3N4/8/7P/7K w - - 0 1"); // N on d4, p on b5, f5
+        BitBoard board = FENUtils.getBoard("8/6k1/8/1p6/3N4/5p2/7P/7K w - - 0 1"); // N on d4, p on b5, f5
         List<BitBoard.BitBoardMove> threatMoves = new ArrayList<>();
-        new KnightMoveGenerator().generateThreatMoves(board, false, 0, threatMoves);
+        new KnightMoveGenerator().generateThreatMoves(board, CheckDetector.isPlayerJustMovedInCheck(board), 0, threatMoves);
 
         Set<String> knightMoves = threatMoves.stream().map(m -> PGNUtils.translateMove(board, m.getAlgebraic())).collect(toSet());
-        assertEquals(Sets.newHashSet("Nxf5", "Nxb5", "Ne6+"), knightMoves);
+        assertEquals(Sets.newHashSet("Nxf3", "Nxb5", "Ne6+", "Nf5+"), knightMoves);
     }
 }
