@@ -1,7 +1,7 @@
-/**
+/*
  * Calculon - A Java chess-engine.
  *
- * Copyright (C) 2008-2009 Barry Smith
+ * Copyright (C) 2008-2017 Barry Smith
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,12 @@ import barrysw19.calculon.engine.BitBoard.BitBoardMove;
 
 import java.util.*;
 
+import static java.util.stream.Collectors.toList;
+
 public class MoveGeneratorImpl implements MoveGenerator {
-	
-	private static final List<PieceMoveGenerator> MASTER;
+    private static final int[] DIR_LINE = new int[] { Bitmaps.BM_U, Bitmaps.BM_D, Bitmaps.BM_L, Bitmaps.BM_R, };
+    private static final int[] DIR_DIAG = new int[] { Bitmaps.BM_UR, Bitmaps.BM_DR, Bitmaps.BM_UL, Bitmaps.BM_DL, };
+    private static final List<PieceMoveGenerator> MASTER;
 	
 	static {
         List<PieceMoveGenerator> list = new LinkedList<>();
@@ -43,15 +46,13 @@ public class MoveGeneratorImpl implements MoveGenerator {
         MASTER = Collections.unmodifiableList(list);
 	}
 	
-	private static int[] DIR_LINE = new int[] { Bitmaps.BM_U, Bitmaps.BM_D, Bitmaps.BM_L, Bitmaps.BM_R, };
-	private static int[] DIR_DIAG = new int[] { Bitmaps.BM_UR, Bitmaps.BM_DR, Bitmaps.BM_UL, Bitmaps.BM_DL, };
-	
     private List<PieceMoveGenerator> generators;
-	private BitBoard bitBoard;
-	private List<BitBoardMove> queuedMoves = new LinkedList<>();
-	private int genIndex = 0;
-	private boolean inCheck;
-	private long potentialPins = 0;
+	private final BitBoard bitBoard;
+	private final boolean inCheck;
+    private final boolean drawnByRule;
+    private long potentialPins = 0;
+
+    private final Iterator<BitBoardMove> moveIterator;
 
 	public MoveGeneratorImpl(BitBoard bitBoard) {
 		this.bitBoard = bitBoard;
@@ -73,6 +74,12 @@ public class MoveGeneratorImpl implements MoveGenerator {
                 potentialPins |= Bitmaps.maps2[aDIR_DIAG][myKingIdx];
             }
         }
+
+        List<Iterator<BitBoardMove>> iterators =
+                MASTER.stream().map(g -> g.iterator(this.bitBoard, this.inCheck, this.potentialPins)).collect(toList());
+        //noinspection unchecked
+        moveIterator = new CompoundIterator<>(iterators.toArray(new Iterator[iterators.size()]));
+        drawnByRule = bitBoard.isDrawnByRule();
 	}
 
     public void setGenerators(PieceMoveGenerator... g) {
@@ -80,42 +87,19 @@ public class MoveGeneratorImpl implements MoveGenerator {
     }
 
 	public boolean hasNext() {
-		if(queuedMoves.size() == 0) {
-			populateMoves();
-		}
-		return (queuedMoves.size() > 0);
-	}
+        return !drawnByRule && moveIterator.hasNext();
+    }
 
 	public BitBoardMove next() {
-		if(queuedMoves.size() == 0) {
-			populateMoves();
-		}
-		if(queuedMoves.size() == 0) {
-			throw new NoSuchElementException();
-		}
+        if(!hasNext()) {
+            throw new NoSuchElementException();
+        }
 
-		return queuedMoves.remove(0);
+        return moveIterator.next();
 	}
 
 	public void remove() {
 		throw new UnsupportedOperationException();
-	}
-	
-	private void populateMoves() {
-		if(genIndex >= generators.size()) {
-			return;
-		}
-
-		if(bitBoard.isDrawnByRule()) {
-			return;
-		}
-
-		while (queuedMoves.isEmpty() && genIndex < generators.size()) {
-            PieceMoveGenerator nextGen = generators.get(genIndex++);
-            for(Iterator<BitBoardMove> iter = nextGen.iterator(bitBoard, inCheck, potentialPins); iter.hasNext(); ) {
-                queuedMoves.add(iter.next());
-            }
-        }
 	}
 	
 	/**
