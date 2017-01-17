@@ -145,11 +145,16 @@ class StraightMoveGenerator extends PieceMoveGenerator {
                 moves.nextDirection();
             }
 
-            if(safeFromCheck) {
-                return move;
-            }
-
-            if(CheckDetector.isMoveLegal(move, bitBoard, !alreadyInCheck)) {
+            // TODO - improve this - only make the move once.
+            if(safeFromCheck || CheckDetector.isMoveLegal(move, bitBoard, !alreadyInCheck)) {
+                if(threatsOnly && (nextMove & bitBoard.getBitmapOppColor()) == 0) {
+                    bitBoard.makeMove(move);
+                    boolean isCheck = CheckDetector.isPlayerToMoveInCheck(bitBoard);
+                    bitBoard.unmakeMove();
+                    if(!isCheck) {
+                        return fetchNextMove();
+                    }
+                }
                 return move;
             }
 

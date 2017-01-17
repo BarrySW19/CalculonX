@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static java.util.stream.Collectors.toSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -57,7 +58,7 @@ public class QuiescenceTest {
                 Sets.newHashSet(Iterables.transform(new MoveGeneratorImpl(board).getThreateningMoves(), TO_STRING)));
 
         PGNUtils.applyMove(board, "Qg1+");
-        assertEquals(new HashSet<>(Arrays.asList("E1D2")),
+        assertEquals(Collections.singleton("E1D2"),
                 Sets.newHashSet(Iterables.transform(new MoveGeneratorImpl(board).getThreateningMoves(), TO_STRING)));
 
         PGNUtils.applyMove(board, "Kd2");
