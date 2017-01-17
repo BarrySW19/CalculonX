@@ -23,6 +23,7 @@ import barrysw19.calculon.util.BitIterable;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 public class KnightMoveGenerator extends PieceMoveGenerator {
 	
@@ -100,7 +101,20 @@ public class KnightMoveGenerator extends PieceMoveGenerator {
         if(piecesMap == 0) {
             return Collections.emptyIterator();
         }
-        return new KnightMoveIterator(bitBoard, piecesMap, alreadyInCheck, potentialPins);
+        return new KnightMoveIterator(bitBoard, piecesMap, alreadyInCheck, potentialPins, false);
+    }
+
+    @Override
+    public void generateThreatMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoardMove> rv) {
+        long piecesMap = bitBoard.getBitmapColor() & bitBoard.getBitmapKnights();
+        if(piecesMap == 0) {
+            return;
+        }
+
+        KnightMoveIterator iterator = new KnightMoveIterator(bitBoard, piecesMap, alreadyInCheck, potentialPins, true);
+        while(iterator.hasNext()) {
+            rv.add(iterator.next());
+        }
     }
 
     private static class KnightMoveIterator extends AbstractMoveIterator {
@@ -115,12 +129,15 @@ public class KnightMoveGenerator extends PieceMoveGenerator {
         private boolean safeFromCheck;
         private Iterator<Long> moves;
 
-        public KnightMoveIterator(final BitBoard bitBoard, final long piecesMap, final boolean alreadyInCheck, final long potentialPins) {
+        private final boolean threatsOnly;
+
+        public KnightMoveIterator(final BitBoard bitBoard, final long piecesMap, final boolean alreadyInCheck, final long potentialPins, final boolean threatsOnly) {
             this.bitBoard = bitBoard;
             this.alreadyInCheck = alreadyInCheck;
             this.potentialPins = potentialPins;
             this.player = bitBoard.getPlayer();
             this.enemyPieces = bitBoard.getBitmapOppColor();
+            this.threatsOnly = threatsOnly;
 
             pieces = BitIterable.of(piecesMap).iterator();
             nextPiece();
@@ -129,7 +146,17 @@ public class KnightMoveGenerator extends PieceMoveGenerator {
         private void nextPiece() {
             currentPiece = pieces.next();
             safeFromCheck = ((currentPiece & potentialPins) == 0) & !alreadyInCheck;
-            moves = BitIterable.of(KNIGHT_MOVES[Long.numberOfTrailingZeros(currentPiece)] & ~bitBoard.getBitmapColor()).iterator();
+            long allMoves = KNIGHT_MOVES[Long.numberOfTrailingZeros(currentPiece)] & ~bitBoard.getBitmapColor();
+            if(threatsOnly) {
+                long threatMoves = allMoves & bitBoard.getBitmapOppColor(); // Captures
+                for(long otherMove: BitIterable.of(allMoves & ~threatMoves)) { // Checks
+                    if((KNIGHT_MOVES[Long.numberOfTrailingZeros(otherMove)] & bitBoard.getBitmapOppColor() & bitBoard.getBitmapKings()) != 0) {
+                        threatMoves |= otherMove;
+                    }
+                }
+                allMoves = threatMoves;
+            }
+            moves = BitIterable.of(allMoves).iterator();
         }
 
         @Override
