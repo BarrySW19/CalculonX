@@ -62,24 +62,4 @@ public class ChessEngineTest {
             assertEquals(SearchContext.Status.NORMAL, scoredMove.getStatus());
         }
     }
-
-//    @Test
-//    public void testDebug1() {
-//        BitBoard board = FENUtils.getBoard("r3k2r/pppq1ppp/2nbbn2/3pp3/3PP3/2NBBN2/PPPQ1PPP/R3K2R w KQkq - 0 8");
-//        ChessEngine chessEngine = new ChessEngine();
-//        chessEngine.setTargetTime(10);
-//        chessEngine.setQDepth(10);
-//        long time = System.nanoTime();
-//        Collection <SearchContext> result = chessEngine.getScoredMoves(board);
-//        System.out.println((System.nanoTime() - time) / 1_000_000);
-//    }
-//
-//    @Test
-//    public void testDebug2() {
-//        BitBoard board = FENUtils.getBoard("3k4/3p4/8/8/8/8/6P1/6K1 w - - 0 0");
-//        ChessEngine chessEngine = new ChessEngine();
-//        chessEngine.setTargetTime(10);
-//        chessEngine.setQDepth(10);
-//        Collection<SearchContext> result = chessEngine.getScoredMoves(board);
-//    }
 }

@@ -29,14 +29,13 @@ public class ProblemsInPlayTest {
         runTest("r2qkb1r/1Q3ppp/p4n2/2p1p3/3nP3/N7/PPP2P1P/R1B1KB1R b kq - 0 15", "Rb8"); // Qa5+ is bad
     }
 
-    @Test @Ignore("fix by improving engine")
+    @Test
     public void testBadMove2() {
         runTest("3rkb1r/1Q3ppp/p4n2/q1p1p3/4PP2/N1P2n2/PP3K1P/R1B2B1R b k - 0 18", "Nd2"); // Rd7 is bad
     }
 
     private void runTest(String fen, String pgn) {
-        // As all tests should have only one move it should never use 60 secs
-        ChessEngine engine = new ChessEngine(60);
+        ChessEngine engine = new ChessEngine(2);
         engine.setQDepth(7);
         BitBoard board = FENUtils.getBoard(fen);
         String move = engine.getPreferredMove(board);

@@ -45,7 +45,7 @@ import static org.junit.Assert.assertEquals;
 public class PerftTest {
     private static Logger LOG = LoggerFactory.getLogger(PerftTest.class);
 
-    private static final long MAX_COUNT = 5_000_000;
+    private static final long MAX_COUNT = 3_000_000;
 
     @Test
     public void testStartPosition() {

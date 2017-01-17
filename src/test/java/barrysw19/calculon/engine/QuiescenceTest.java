@@ -20,13 +20,12 @@ package barrysw19.calculon.engine;
 
 import barrysw19.calculon.analyzer.GameScorer;
 import barrysw19.calculon.analyzer.MaterialScorer;
+import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import barrysw19.calculon.notation.FENUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.*;
@@ -209,30 +208,6 @@ public class QuiescenceTest {
         assertEquals("B3E3", results.get(0).getAlgebraicMove());
         // Immediate score - queen - pawn = 8000
         assertEquals(-3000, results.get(0).getScore());
-    }
-
-    /**
-     * Another capture is possible, but the analysis should reject it as it leads to greater loss.
-     */
-    @Test @Ignore("not sure about this one")
-    public void testExpectPartialQuiesce() {
-        BitBoard board = FENUtils.getBoard("k4q2/pp2b3/8/8/5R2/8/4R3/7K w - - 0 1");
-        assertEquals(2*MaterialScorer.VALUE_ROOK
-                - (MaterialScorer.VALUE_QUEEN + MaterialScorer.VALUE_BISHOP + 2*MaterialScorer.VALUE_PAWN), gameScorer.score(board));
-
-        ChessEngine chessEngine = new ChessEngine(gameScorer);
-        chessEngine.setTargetTime(1);
-        chessEngine.setMoveGeneratorFactory(new TestGeneratorFactory(
-                new String[][] {
-                        { "E2F2" },
-                        { "E7F6" },
-                }
-        ));
-        // Expect RxB, but not QxR follow up for a score of 0
-        List<SearchContext> results = chessEngine.getScoredMoves(board);
-        assertEquals("E2F2", results.get(0).getAlgebraicMove());
-        // Immediate score - queen - pawn = 8000
-        assertEquals(MaterialScorer.VALUE_PAWN, results.get(0).getScore());
     }
 
     @Test

@@ -1,11 +1,10 @@
 package barrysw19.calculon.icc;
 
+import barrysw19.calculon.engine.BitBoard;
+import barrysw19.calculon.notation.FENUtils;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import barrysw19.calculon.engine.BitBoard;
-import barrysw19.calculon.notation.FENUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ws.rs.core.MediaType;
@@ -67,7 +66,7 @@ public class GamesMonitorTest {
 
     public static final String SERVER_ROOT_URI = "http://localhost:7474/db/data/";
 
-    @Test @Ignore("Live server test")
+    // Live server test
     public void patternTest2() {
         WebResource resource = Client.create().resource(SERVER_ROOT_URI + "node");
         ClientResponse response = resource.accept(MediaType.APPLICATION_JSON)
