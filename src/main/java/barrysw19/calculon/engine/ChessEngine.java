@@ -279,14 +279,16 @@ public class ChessEngine {
         searchContext.addInfo("Q("+alpha+","+beta+")");
         int standPat = gameScorer.score(bitBoard);
 
-        List<BitBoardMove> threatMoves = new MoveGeneratorImpl(bitBoard).getThreateningMoves();
+        //List<BitBoardMove> threatMoves = Lists.newArrayList(new MoveGeneratorImpl(bitBoard).getThreatMovesIterator());
+        Iterator<BitBoardMove> iter = new MoveGeneratorImpl(bitBoard).getThreatMovesIterator();
+
         if(depth < 3 && !CheckDetector.isPlayerToMoveInCheck(bitBoard)) {
-            threatMoves = threatMoves.stream().filter(BitBoardMove::isCapture).collect(toList());
+            iter = new IteratorFilter(iter, BitBoardMove::isCapture);
         }
         //final boolean moveIsForced = threatMoves.size() == 1 && CheckDetector.isPlayerToMoveInCheck(bitBoard);
 
         // Apply the stand pat if the player could make a null move, or has no moves available.
-        if ( !CheckDetector.isPlayerToMoveInCheck(bitBoard) || standPat == GameScorer.MATE_SCORE || threatMoves.isEmpty()) {
+        if ( !CheckDetector.isPlayerToMoveInCheck(bitBoard) || standPat == GameScorer.MATE_SCORE || !iter.hasNext()) {
             if(standPat == GameScorer.MATE_SCORE) {
                 standPat *= Math.max(1, depth+1);
             }
@@ -308,7 +310,8 @@ public class ChessEngine {
             return beta; // Should this be alpha or beta??
         }
 
-        for(BitBoardMove move: threatMoves) {
+        while(iter.hasNext()) {
+            BitBoardMove move = iter.next();
             bitBoard.makeMove(move);
             int score = -quiesce(bitBoard, -beta, -alpha, depth - 1, searchContext.qDescend(move));
             bitBoard.unmakeMove();

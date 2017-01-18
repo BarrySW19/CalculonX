@@ -50,7 +50,7 @@
 		<accept-min>280</accept-min>
 		<accept-max>1600</accept-max>
 		<max-rematches>2</max-rematches>
-		<reseek>true</reseek>
+		<reseek>false</reseek>
 	</fics>
 	
 

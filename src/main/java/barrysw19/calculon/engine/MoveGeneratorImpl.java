@@ -31,7 +31,7 @@ public class MoveGeneratorImpl implements MoveGenerator {
     private static final List<PieceMoveGenerator> MASTER;
 	
 	static {
-        List<PieceMoveGenerator> list = new LinkedList<>();
+        final List<PieceMoveGenerator> list = new LinkedList<>();
 
 		list.add(new PawnCaptureGenerator());
         list.add(new KnightMoveGenerator());
@@ -53,9 +53,7 @@ public class MoveGeneratorImpl implements MoveGenerator {
 
 	public MoveGeneratorImpl(BitBoard bitBoard) {
         this.generators = MASTER;
-
         context = new MoveGeneratorContext(bitBoard);
-
         drawnByRule = bitBoard.isDrawnByRule();
 	}
 
@@ -133,22 +131,14 @@ public class MoveGeneratorImpl implements MoveGenerator {
 		return moves;
 	}
 
-    @Override
-	public List<BitBoardMove> getThreateningMoves() {
-		List<BitBoardMove> moves = new LinkedList<>();
-
-		for(PieceMoveGenerator generator: generators) {
-            // Rule: If the player is in check then all moves are needed, otherwise just
-            // captures, checks and pawn promotions.
-            if(CheckDetector.isPlayerToMoveInCheck(context.bitBoard)) {
-                moves.addAll(Lists.newArrayList(generator.iterator(context)));
-            } else {
-                moves.addAll(Lists.newArrayList(generator.generateThreatMoves(context)));
-            }
-		}
-		
-		return moves;
-	}
+	@Override
+	public Iterator<BitBoardMove> getThreatMovesIterator() {
+	    if(CheckDetector.isPlayerToMoveInCheck(context.bitBoard)) {
+            return new CompoundIterator<>(generators.stream().map(m -> m.iterator(context)).collect(toList()));
+        } else {
+            return new CompoundIterator<>(generators.stream().map(m -> m.generateThreatMoves(context)).collect(toList()));
+        }
+    }
 
     /**
      * Holder for any information which might be useful to multiple generators but can be calculated only once.

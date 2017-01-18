@@ -10,5 +10,6 @@ public class PerformanceMetric {
         chessEngine.getPreferredMoveContext(bitBoard);
 
         System.out.println("Calls: " + chessEngine.getCallMetric());
+        System.exit(0);
     }
 }

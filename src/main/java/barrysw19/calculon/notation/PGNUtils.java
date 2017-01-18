@@ -24,6 +24,7 @@ import barrysw19.calculon.engine.EngineUtils;
 import barrysw19.calculon.engine.MoveGeneratorImpl;
 import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.model.Result;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,11 +48,16 @@ public class PGNUtils {
         })));
 	}
 
-	public static Set<String> convertMovesToPgn(final BitBoard bitBoard, final Collection<BitBoardMove> moves) {
-	    return moves.stream().map(BitBoardMove::getAlgebraic).map(a -> PGNUtils.translateMove(bitBoard, a)).collect(toSet());
+    public static Set<String> convertMovesToPgn(final BitBoard bitBoard, final Collection<BitBoardMove> moves) {
+        return moves.stream().map(BitBoardMove::getAlgebraic).map(a -> PGNUtils.translateMove(bitBoard, a)).collect(toSet());
     }
 
-	public static void applyMoves(BitBoard bitBoard, String... moves) {
+    public static Set<String> convertMovesToPgn(final BitBoard bitBoard, final Iterator<BitBoardMove> moves) {
+	    List<BitBoardMove> movesList = Lists.newArrayList(moves);
+	    return convertMovesToPgn(bitBoard, movesList);
+    }
+
+    public static void applyMoves(BitBoard bitBoard, String... moves) {
 		for(String s: moves) {
 			applyMove(bitBoard, s);
 		}

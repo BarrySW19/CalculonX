@@ -1,5 +1,6 @@
 package barrysw19.calculon.engine;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -9,6 +10,11 @@ public class CompoundIterator<T> implements Iterator<T> {
 
     public CompoundIterator(Iterator<T>... iterators) {
         this.iterators = iterators;
+    }
+
+    public CompoundIterator(Collection<Iterator<T>> iterators) {
+        //noinspection unchecked
+        this.iterators = iterators.toArray(new Iterator[iterators.size()]);
     }
 
     @Override
