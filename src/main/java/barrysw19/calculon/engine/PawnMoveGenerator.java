@@ -1,7 +1,7 @@
 /*
  * Calculon - A Java chess-engine.
  *
- * Copyright (C) 2008-2009 Barry Smith
+ * Copyright (C) 2008-2017 Barry Smith
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,28 +21,41 @@ import barrysw19.calculon.engine.BitBoard.BitBoardMove;
 import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.util.BitIterable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
-public class PawnMoveGenerator extends PieceMoveGenerator {
+public class PawnMoveGenerator implements PieceMoveGenerator {
 
     @Override
-    public Iterator<BitBoardMove> iterator(final BitBoard bitBoard, final boolean alreadyInCheck, final long potentialPins) {
-        byte playerIdx = bitBoard.getPlayer();
-        ShiftStrategy shiftStrategy = BitBoard.getShiftStrategy(playerIdx);
-        long myPawns = bitBoard.getBitmapPawns() & bitBoard.getBitmapColor(playerIdx);
+    public Iterator<BitBoardMove> iterator(final MoveGeneratorImpl.MoveGeneratorContext context) {
+        return iteratorIntern(context, false);
+    }
+
+    @Override
+    public Iterator<BitBoardMove> generateThreatMoves(final MoveGeneratorImpl.MoveGeneratorContext context) {
+        return iteratorIntern(context, true);
+    }
+
+    private Iterator<BitBoardMove> iteratorIntern(final MoveGeneratorImpl.MoveGeneratorContext context, final boolean threatsOnly) {
+        final byte playerIdx = context.getBitBoard().getPlayer();
+        final ShiftStrategy shiftStrategy = BitBoard.getShiftStrategy(playerIdx);
+        final long myPawns = context.getBitBoard().getBitmapPawns() & context.getBitBoard().getBitmapColor(playerIdx);
 
         // Calculate pawns with nothing in front of them
-        long movablePawns = shiftStrategy.shiftBackwardOneRank(
-                shiftStrategy.shiftForwardOneRank(myPawns) & ~bitBoard.getAllPieces());
+        final long movablePawns = shiftStrategy.shiftBackwardOneRank(
+                shiftStrategy.shiftForwardOneRank(myPawns) & ~context.getBitBoard().getAllPieces());
 
         if(movablePawns == 0) {
             return Collections.emptyIterator();
         }
 
-        return new PawnMoveIterator(bitBoard, movablePawns, alreadyInCheck, potentialPins);
+        return new PawnMoveIterator(context, movablePawns, threatsOnly);
     }
 
     private static class PawnMoveIterator extends AbstractMoveIterator {
+        private final MoveGeneratorImpl.MoveGeneratorContext context;
         private final BitBoard bitBoard;
         private final boolean alreadyInCheck;
         private final long potentialPins;
@@ -53,11 +66,14 @@ public class PawnMoveGenerator extends PieceMoveGenerator {
         private final ShiftStrategy shiftStrategy;
         private final List<BitBoardMove> queuedMoves = new LinkedList<>();
         private final byte player;
+        private final boolean threatsOnly;
 
-        PawnMoveIterator(final BitBoard bitBoard, final long piecesMap, final boolean alreadyInCheck, final long potentialPins) {
-            this.bitBoard = bitBoard;
-            this.alreadyInCheck = alreadyInCheck;
-            this.potentialPins = potentialPins;
+        PawnMoveIterator(final MoveGeneratorImpl.MoveGeneratorContext context, final long piecesMap, final boolean threatsOnly) {
+            this.context = context;
+            this.threatsOnly = threatsOnly;
+            this.bitBoard = context.getBitBoard();
+            this.alreadyInCheck = context.isAlreadyInCheck();
+            this.potentialPins = context.getPotentialPins();
             this.player = bitBoard.getPlayer();
             this.shiftStrategy =  BitBoard.getShiftStrategy(this.player);
 
@@ -68,6 +84,12 @@ public class PawnMoveGenerator extends PieceMoveGenerator {
         private void nextPiece() {
             currentPiece = pieces.next();
             safeFromCheck = ((currentPiece & potentialPins) == 0) & !alreadyInCheck;
+
+            if(threatsOnly && (currentPiece & context.getPotentialDiscoveries()) == 0) {
+                moves = BitIterable.empty().iterator();
+                return;
+            }
+
             long movesMap = shiftStrategy.shiftForward(currentPiece, 1);
             if((currentPiece & BitBoard.getRankMap(shiftStrategy.getPawnStartRank())) != 0) {
                 movesMap |= shiftStrategy.shiftForward(currentPiece, 2) & ~bitBoard.getAllPieces();

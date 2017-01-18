@@ -20,27 +20,13 @@ package barrysw19.calculon.engine;
 import barrysw19.calculon.engine.BitBoard.BitBoardMove;
 
 import java.util.Iterator;
-import java.util.List;
 
-public abstract class PieceMoveGenerator {
+public interface PieceMoveGenerator {
 
-    public abstract Iterator<BitBoardMove> iterator(final BitBoard bitBoard, final boolean alreadyInCheck, final long potentialPins);
+    Iterator<BitBoardMove> iterator(final MoveGeneratorImpl.MoveGeneratorContext context);
 
     /**
      * Generate threatening moves to use in quiescence searching.
      */
-    public void generateThreatMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoardMove> rv) {
-        for (Iterator<BitBoardMove> iter = iterator(bitBoard, alreadyInCheck, potentialPins); iter.hasNext(); ) {
-            BitBoardMove move = iter.next();
-            if (move.isCapture() || move.isPromotion()) {
-                rv.add(move);
-                continue;
-            }
-            bitBoard.makeMove(move);
-            if (CheckDetector.isPlayerToMoveInCheck(bitBoard)) {
-                rv.add(move);
-            }
-            bitBoard.unmakeMove();
-        }
-    }
+    Iterator<BitBoardMove> generateThreatMoves(final MoveGeneratorImpl.MoveGeneratorContext context);
 }

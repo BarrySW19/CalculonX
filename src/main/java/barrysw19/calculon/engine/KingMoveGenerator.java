@@ -24,7 +24,7 @@ import barrysw19.calculon.util.BitIterable;
 import java.util.Collections;
 import java.util.Iterator;
 
-public class KingMoveGenerator extends PieceMoveGenerator {
+public class KingMoveGenerator implements PieceMoveGenerator {
 
 	private static final long EMPTY_WKS = 3L<<5;
 	private static final long EMPTY_WQS = 7L<<1;
@@ -100,19 +100,28 @@ public class KingMoveGenerator extends PieceMoveGenerator {
     };
 
     @Override
-    public Iterator<BitBoardMove> iterator(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins) {
-        long kingMap = bitBoard.getBitmapColor() & bitBoard.getBitmapKings();
+    public Iterator<BitBoardMove> iterator(final MoveGeneratorImpl.MoveGeneratorContext context) {
+        return iteratorIntern(context, false);
+    }
+
+    @Override
+    public Iterator<BitBoardMove> generateThreatMoves(final MoveGeneratorImpl.MoveGeneratorContext context) {
+        return iteratorIntern(context, true);
+    }
+
+    private Iterator<BitBoardMove> iteratorIntern(final MoveGeneratorImpl.MoveGeneratorContext context, boolean threatsOnly) {
+        long kingMap = context.getBitBoard().getBitmapColor() & context.getBitBoard().getBitmapKings();
         if(kingMap == 0) {
             return Collections.emptyIterator(); // Shouldn't really happen.
         }
 
-        if(alreadyInCheck) {
-            return new KingMoveIterator(bitBoard, kingMap);
+        if(context.isAlreadyInCheck() || threatsOnly) {
+            return new KingMoveIterator(context, kingMap, threatsOnly);
         }
 
         return new CompoundIterator<>(
-                new CastlingIterator(bitBoard, kingMap),
-                new KingMoveIterator(bitBoard, kingMap)
+                new CastlingIterator(context.getBitBoard(), kingMap),
+                new KingMoveIterator(context, kingMap, false)
         );
     }
 
@@ -184,16 +193,23 @@ public class KingMoveGenerator extends PieceMoveGenerator {
         private final BitBoard bitBoard;
         private final long enemyPieces;
         private final byte player;
+        private final boolean threatsOnly;
 
-        private long currentPiece;
+        private long kingPos;
         private Iterator<Long> moves;
 
-        KingMoveIterator(final BitBoard bitBoard, final long piecesMap) {
-            this.bitBoard = bitBoard;
-            this.player = bitBoard.getPlayer();
-            this.enemyPieces = bitBoard.getBitmapOppColor();
-            this.currentPiece = piecesMap;
-            this.moves = BitIterable.of(KING_MOVES[Long.numberOfTrailingZeros(piecesMap)]&(~bitBoard.getBitmapColor())).iterator();
+        KingMoveIterator(final MoveGeneratorImpl.MoveGeneratorContext context, final long kingPos, final boolean threatsOnly) {
+            this.bitBoard = context.getBitBoard();
+            this.player = context.getBitBoard().getPlayer();
+            this.enemyPieces = context.getBitBoard().getBitmapOppColor();
+            this.kingPos = kingPos;
+            this.threatsOnly = threatsOnly;
+
+            long movesMap = KING_MOVES[Long.numberOfTrailingZeros(kingPos)]&(~bitBoard.getBitmapColor());
+            if((context.getPotentialDiscoveries() & kingPos) == 0 && threatsOnly) {
+                movesMap &= bitBoard.getBitmapOppColor();
+            }
+            this.moves = BitIterable.of(movesMap).iterator();
         }
 
         @Override
@@ -205,9 +221,20 @@ public class KingMoveGenerator extends PieceMoveGenerator {
             long nextMove = moves.next();
             BitBoardMove move;
             if((nextMove & enemyPieces) == 0) {
-                move = BitBoard.generateMove(currentPiece, nextMove, player, Piece.KING);
+                move = BitBoard.generateMove(kingPos, nextMove, player, Piece.KING);
             } else {
-                move = BitBoard.generateCapture(currentPiece, nextMove, player, Piece.KING, bitBoard.getPiece(nextMove));
+                move = BitBoard.generateCapture(kingPos, nextMove, player, Piece.KING, bitBoard.getPiece(nextMove));
+            }
+
+            if(threatsOnly && !move.isCapture()) {
+                bitBoard.makeMove(move);
+                boolean isLegal = !CheckDetector.isPlayerJustMovedInCheck(bitBoard);
+                boolean discoveredCheck = CheckDetector.isPlayerToMoveInCheck(bitBoard);
+                bitBoard.unmakeMove();
+                if(isLegal && discoveredCheck) {
+                    return move;
+                }
+                return fetchNextMove();
             }
 
             if(CheckDetector.isMoveLegal(move, bitBoard)) {

@@ -55,6 +55,8 @@ public class ChessEngine {
     private Cache<BitSet, Integer> scoreCache
             = CacheBuilder.newBuilder().maximumSize(5*1024*1024).recordStats().build();
 
+    private volatile long callMetric = 0;
+
     public ChessEngine() {
         this(GameScorer.getDefaultScorer());
 	}
@@ -107,6 +109,10 @@ public class ChessEngine {
 	public String getPreferredMove(BitBoard bitBoard) {
         return getPreferredMoveContext(bitBoard).getAlgebraicMove();
 	}
+
+    public long getCallMetric() {
+        return callMetric;
+    }
 
     /**
      * Outer loop - responsible for getting the move scores and pruning them down to
@@ -216,11 +222,14 @@ public class ChessEngine {
 
     // Negamax
     private int alphaBeta(int alpha, int beta, int depthLeft, BitBoard bitBoard, SearchContext searchContext) throws ExecutionException {
+        callMetric++;
+
         if(System.nanoTime() > terminateTime) {
             searchContext.setStatus(SearchContext.Status.TIMEOUT);
             searchContext.ascend();
             return 0;
         }
+
         if(depthLeft <= 0) {
             searchContext.flip();
             int rv = quiesce(bitBoard, alpha, beta, qDepth, searchContext);
@@ -259,6 +268,8 @@ public class ChessEngine {
     }
 
     private int quiesce(final BitBoard bitBoard, int alpha, int beta, int depth, SearchContext searchContext) throws ExecutionException {
+        callMetric++;
+
         if(System.nanoTime() > terminateTime) {
             searchContext.setStatus(SearchContext.Status.TIMEOUT);
             searchContext.qAscend();

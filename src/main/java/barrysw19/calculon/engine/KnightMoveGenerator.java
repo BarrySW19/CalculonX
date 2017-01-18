@@ -1,7 +1,7 @@
 /*
  * Calculon - A Java chess-engine.
  *
- * Copyright (C) 2008-2009 Barry Smith
+ * Copyright (C) 2008-2017 Barry Smith
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,8 @@ import barrysw19.calculon.util.BitIterable;
 
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 
-public class KnightMoveGenerator extends PieceMoveGenerator {
+public class KnightMoveGenerator implements PieceMoveGenerator {
 	
 	// Pre-generated knight moves
     public static final long[] KNIGHT_MOVES = new long[] {
@@ -96,28 +95,27 @@ public class KnightMoveGenerator extends PieceMoveGenerator {
     };
 
     @Override
-    public Iterator<BitBoardMove> iterator(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins) {
-        long piecesMap = bitBoard.getBitmapColor() & bitBoard.getBitmapKnights();
+    public Iterator<BitBoardMove> iterator(final MoveGeneratorImpl.MoveGeneratorContext context) {
+        long piecesMap = context.getBitBoard().getBitmapColor() & context.getBitBoard().getBitmapKnights();
         if(piecesMap == 0) {
             return Collections.emptyIterator();
         }
-        return new KnightMoveIterator(bitBoard, piecesMap, alreadyInCheck, potentialPins, false);
+        return new KnightMoveIterator(context, piecesMap, false);
     }
 
     @Override
-    public void generateThreatMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoardMove> rv) {
-        long piecesMap = bitBoard.getBitmapColor() & bitBoard.getBitmapKnights();
+    public Iterator<BitBoardMove> generateThreatMoves(final MoveGeneratorImpl.MoveGeneratorContext context) {
+        long piecesMap = context.getBitBoard().getBitmapColor() & context.getBitBoard().getBitmapKnights();
         if(piecesMap == 0) {
-            return;
+            return Collections.emptyIterator();
         }
 
-        KnightMoveIterator iterator = new KnightMoveIterator(bitBoard, piecesMap, alreadyInCheck, potentialPins, true);
-        while(iterator.hasNext()) {
-            rv.add(iterator.next());
-        }
+        return new KnightMoveIterator(context, piecesMap, true);
     }
 
     private static class KnightMoveIterator extends AbstractMoveIterator {
+        private final MoveGeneratorImpl.MoveGeneratorContext context;
+
         private final BitBoard bitBoard;
         private final boolean alreadyInCheck;
         private final long potentialPins;
@@ -130,11 +128,14 @@ public class KnightMoveGenerator extends PieceMoveGenerator {
         private Iterator<Long> moves;
 
         private final boolean threatsOnly;
+        private boolean possibleDiscovery;
 
-        public KnightMoveIterator(final BitBoard bitBoard, final long piecesMap, final boolean alreadyInCheck, final long potentialPins, final boolean threatsOnly) {
-            this.bitBoard = bitBoard;
-            this.alreadyInCheck = alreadyInCheck;
-            this.potentialPins = potentialPins;
+        KnightMoveIterator(final MoveGeneratorImpl.MoveGeneratorContext context, final long piecesMap, final boolean threatsOnly) {
+            this.context = context;
+
+            this.bitBoard = context.getBitBoard();
+            this.alreadyInCheck = context.isAlreadyInCheck();
+            this.potentialPins = context.getPotentialPins();
             this.player = bitBoard.getPlayer();
             this.enemyPieces = bitBoard.getBitmapOppColor();
             this.threatsOnly = threatsOnly;
@@ -145,9 +146,12 @@ public class KnightMoveGenerator extends PieceMoveGenerator {
 
         private void nextPiece() {
             currentPiece = pieces.next();
+            possibleDiscovery = (currentPiece & context.getPotentialDiscoveries()) != 0;
             safeFromCheck = ((currentPiece & potentialPins) == 0) & !alreadyInCheck;
+
             long allMoves = KNIGHT_MOVES[Long.numberOfTrailingZeros(currentPiece)] & ~bitBoard.getBitmapColor();
-            if(threatsOnly) {
+            if(!possibleDiscovery && threatsOnly) {
+                // Discovered checks are not possible, so just try captures and checks.
                 long threatMoves = allMoves & bitBoard.getBitmapOppColor(); // Captures
                 for(long otherMove: BitIterable.of(allMoves & ~threatMoves)) { // Checks
                     if((KNIGHT_MOVES[Long.numberOfTrailingZeros(otherMove)] & bitBoard.getBitmapOppColor() & bitBoard.getBitmapKings()) != 0) {
@@ -178,11 +182,25 @@ public class KnightMoveGenerator extends PieceMoveGenerator {
                 move = BitBoard.generateCapture(currentPiece, nextMove, player, Piece.KNIGHT, bitBoard.getPiece(nextMove));
             }
 
+            boolean legalityChecked = false;
+            // If we are only generating threats, and the move is not a capture or a direct check then see if it's a discovered check
+            if(threatsOnly && !move.isCapture()
+                && (KNIGHT_MOVES[Long.numberOfTrailingZeros(nextMove)] & enemyPieces & bitBoard.getBitmapKings()) == 0)
+            {
+                bitBoard.makeMove(move);
+                legalityChecked = !CheckDetector.isPlayerJustMovedInCheck(bitBoard);
+                boolean discoveredCheck = CheckDetector.isPlayerToMoveInCheck(bitBoard);
+                bitBoard.unmakeMove();
+                if(!discoveredCheck) {
+                    return fetchNextMove();
+                }
+            }
+
             if(safeFromCheck) {
                 return move;
             }
 
-            if(CheckDetector.isMoveLegal(move, bitBoard, !alreadyInCheck)) {
+            if(legalityChecked || CheckDetector.isMoveLegal(move, bitBoard, !alreadyInCheck)) {
                 return move;
             }
 

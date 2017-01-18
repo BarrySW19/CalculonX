@@ -211,6 +211,10 @@ public class BitBoard {
         return (bitmaps[IDX_FLAGS] & PLAYER_MASK) == 0 ? Piece.WHITE : Piece.BLACK;
 	}
 
+	public byte getOppPlayer() {
+        return getPlayer() == Piece.WHITE ? Piece.BLACK : Piece.WHITE;
+    }
+
     @SuppressWarnings("unused")
 	public static long toMap(int file, int rank) {
 		return 1L<<(rank<<3)<<file;
@@ -233,6 +237,23 @@ public class BitBoard {
 		
 		return buf.toString();
 	}
+
+	public static String printBits(long v) {
+        long bit = 1L<<63;
+        StringBuilder sb = new StringBuilder();
+        StringBuilder sb2 = new StringBuilder();
+        for(int r = 0; r < 8; r++) {
+            for(int c = 0; c < 8; c++) {
+                sb.insert(0, (v & bit) == 0 ? ". " : "X ");
+                bit = bit>>>1;
+            }
+            sb2.append(sb.toString()).append("\n");
+            sb.setLength(0);
+        }
+        System.out.println(sb2.toString());
+        System.out.println();
+        return sb2.toString();
+    }
 	
     /**
      * Not a flip, but a complete reversal of colors. Creates essentially the same position, but with colors reversed.

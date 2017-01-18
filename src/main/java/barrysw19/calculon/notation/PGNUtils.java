@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toSet;
 
 public class PGNUtils {
@@ -48,7 +47,7 @@ public class PGNUtils {
         })));
 	}
 
-	public static Collection<String> convertMovesToPgn(final BitBoard bitBoard, final Collection<BitBoardMove> moves) {
+	public static Set<String> convertMovesToPgn(final BitBoard bitBoard, final Collection<BitBoardMove> moves) {
 	    return moves.stream().map(BitBoardMove::getAlgebraic).map(a -> PGNUtils.translateMove(bitBoard, a)).collect(toSet());
     }
 

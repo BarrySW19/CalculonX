@@ -1,7 +1,7 @@
 /*
  * Calculon - A Java chess-engine.
  *
- * Copyright (C) 2008-2016 Barry Smith
+ * Copyright (C) 2008-2017 Barry Smith
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,9 @@ import barrysw19.calculon.util.BitIterable;
 
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.function.ToLongFunction;
 
-class StraightMoveGenerator extends PieceMoveGenerator {
+class StraightMoveGenerator implements PieceMoveGenerator {
     private final ToLongFunction<BitBoard> fSelectPieces;
     private final long[][][] slidingMoves;
     private final byte pieceType;
@@ -56,31 +55,27 @@ class StraightMoveGenerator extends PieceMoveGenerator {
     }
 
     @Override
-    public Iterator<BitBoardMove> iterator(final BitBoard bitBoard, final boolean alreadyInCheck, final long potentialPins) {
-        final long piecesMap = fSelectPieces.applyAsLong(bitBoard);
+    public Iterator<BitBoardMove> iterator(final MoveGeneratorImpl.MoveGeneratorContext context) {
+        final long piecesMap = fSelectPieces.applyAsLong(context.getBitBoard());
         if(piecesMap == 0) {
             return Collections.emptyIterator();
         }
-        return new StraightMoveIterator(bitBoard, piecesMap, alreadyInCheck, potentialPins, false);
+        return new StraightMoveIterator(context, piecesMap, false);
     }
 
     @Override
-    public void generateThreatMoves(BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoardMove> rv) {
-        long piecesMap = fSelectPieces.applyAsLong(bitBoard);
+    public Iterator<BitBoardMove> generateThreatMoves(final MoveGeneratorImpl.MoveGeneratorContext context) {
+        long piecesMap = fSelectPieces.applyAsLong(context.getBitBoard());
         if(piecesMap == 0) {
-            return;
+            return Collections.emptyIterator();
         }
 
-        StraightMoveIterator iterator = new StraightMoveIterator(bitBoard, piecesMap, alreadyInCheck, potentialPins, true);
-        while(iterator.hasNext()) {
-            rv.add(iterator.next());
-        }
+        return new StraightMoveIterator(context, piecesMap, true);
     }
 
     private class StraightMoveIterator extends AbstractMoveIterator {
-        private final BitBoard bitBoard;
-        private final boolean alreadyInCheck;
-        private final long potentialPins;
+        private final MoveGeneratorImpl.MoveGeneratorContext context;
+
         private final long enemyPieces;
         private final byte player;
         private final boolean threatsOnly;
@@ -90,15 +85,12 @@ class StraightMoveGenerator extends PieceMoveGenerator {
         private boolean safeFromCheck;
         private PreGeneratedMoves.PreGeneratedMoveIterator moves;
         private long threatSquares = ~0L;
+        private boolean possibleDiscovery;
 
-        StraightMoveIterator(final BitBoard bitBoard, final long piecesMap,
-                             final boolean alreadyInCheck, final long potentialPins, final boolean threatsOnly)
-        {
-            this.bitBoard = bitBoard;
-            this.alreadyInCheck = alreadyInCheck;
-            this.potentialPins = potentialPins;
-            this.player = bitBoard.getPlayer();
-            this.enemyPieces = bitBoard.getBitmapOppColor();
+        StraightMoveIterator(final MoveGeneratorImpl.MoveGeneratorContext context, final long piecesMap, final boolean threatsOnly) {
+            this.context = context;
+            this.player = context.getBitBoard().getPlayer();
+            this.enemyPieces = context.getBitBoard().getBitmapOppColor();
             this.threatsOnly = threatsOnly;
 
             pieces = BitIterable.of(piecesMap).iterator();
@@ -107,12 +99,13 @@ class StraightMoveGenerator extends PieceMoveGenerator {
 
         private void nextPiece() {
             currentPiece = pieces.next();
-            safeFromCheck = ((currentPiece & potentialPins) == 0) & !alreadyInCheck;
+            safeFromCheck = ((currentPiece & context.getPotentialPins()) == 0) & !context.isAlreadyInCheck();
             if(threatsOnly) {
-                threatSquares = allMoves[Long.numberOfTrailingZeros(bitBoard.getBitmapOppColor() & bitBoard.getBitmapKings())];
+                threatSquares = allMoves[Long.numberOfTrailingZeros(context.getBitBoard().getBitmapOppColor() & context.getBitBoard().getBitmapKings())];
                 threatSquares &= allMoves[Long.numberOfTrailingZeros(currentPiece)];
-                threatSquares |= bitBoard.getBitmapOppColor();
+                threatSquares |= context.getBitBoard().getBitmapOppColor();
             }
+            possibleDiscovery = (currentPiece & context.getPotentialDiscoveries()) != 0;
             moves = new PreGeneratedMoves.PreGeneratedMoveIterator(slidingMoves[Long.numberOfTrailingZeros(currentPiece)]);
         }
 
@@ -129,28 +122,28 @@ class StraightMoveGenerator extends PieceMoveGenerator {
             }
 
             BitBoardMove move;
-            if((nextMove & bitBoard.getBitmapColor()) != 0) {
+            if((nextMove & context.getBitBoard().getBitmapColor()) != 0) {
                 moves.nextDirection();
                 return fetchNextMove();
             }
 
-            if((nextMove & threatSquares) == 0) {
+            if(!possibleDiscovery && (nextMove & threatSquares) == 0) {
                 return fetchNextMove();
             }
 
             if((nextMove & enemyPieces) == 0) {
                 move = BitBoard.generateMove(currentPiece, nextMove, player, pieceType);
             } else {
-                move = BitBoard.generateCapture(currentPiece, nextMove, player, pieceType, bitBoard.getPiece(nextMove));
+                move = BitBoard.generateCapture(currentPiece, nextMove, player, pieceType, context.getBitBoard().getPiece(nextMove));
                 moves.nextDirection();
             }
 
             // TODO - improve this - only make the move once.
-            if(safeFromCheck || CheckDetector.isMoveLegal(move, bitBoard, !alreadyInCheck)) {
-                if(threatsOnly && (nextMove & bitBoard.getBitmapOppColor()) == 0) {
-                    bitBoard.makeMove(move);
-                    boolean isCheck = CheckDetector.isPlayerToMoveInCheck(bitBoard);
-                    bitBoard.unmakeMove();
+            if(safeFromCheck || CheckDetector.isMoveLegal(move, context.getBitBoard(), !context.isAlreadyInCheck())) {
+                if(threatsOnly && (nextMove & context.getBitBoard().getBitmapOppColor()) == 0) {
+                    context.getBitBoard().makeMove(move);
+                    boolean isCheck = CheckDetector.isPlayerToMoveInCheck(context.getBitBoard());
+                    context.getBitBoard().unmakeMove();
                     if(!isCheck) {
                         return fetchNextMove();
                     }
