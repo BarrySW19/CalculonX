@@ -30,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toSet;
 
 public class PGNUtils {
     private static final Logger LOG = LoggerFactory.getLogger(PGNUtils.class);
@@ -45,7 +47,11 @@ public class PGNUtils {
             return new NullPointerException(errMsg);
         })));
 	}
-	
+
+	public static Collection<String> convertMovesToPgn(final BitBoard bitBoard, final Collection<BitBoardMove> moves) {
+	    return moves.stream().map(BitBoardMove::getAlgebraic).map(a -> PGNUtils.translateMove(bitBoard, a)).collect(toSet());
+    }
+
 	public static void applyMoves(BitBoard bitBoard, String... moves) {
 		for(String s: moves) {
 			applyMove(bitBoard, s);

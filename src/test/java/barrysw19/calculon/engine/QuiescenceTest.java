@@ -1,7 +1,7 @@
-/**
+/*
  * Calculon - A Java chess-engine.
  *
- * Copyright (C) 2008-2012 Barry Smith
+ * Copyright (C) 2008-2017 Barry Smith
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,26 +22,17 @@ import barrysw19.calculon.analyzer.GameScorer;
 import barrysw19.calculon.analyzer.MaterialScorer;
 import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.*;
 
-import static java.util.stream.Collectors.toSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class QuiescenceTest {
     private GameScorer gameScorer;
-    private Function<BitBoard.BitBoardMove, String> TO_STRING = new Function<BitBoard.BitBoardMove, String>() {
-        @Override
-        public String apply(BitBoard.BitBoardMove bitBoardMove) {
-            return bitBoardMove.getAlgebraic();
-        }
-    };
 
     @Before
     public void setUp() {
@@ -54,15 +45,15 @@ public class QuiescenceTest {
         BitBoard board = FENUtils.getBoard("2rr4/5p1k/6pp/8/3QBn2/P4P2/1P3P1q/2RRK3 w - - 3 30");
 
         PGNUtils.applyMove(board, "Qxd8");
-        assertEquals(new HashSet<>(Arrays.asList("F4G2", "F4D3", "C8D8", "C8C1", "H2F2", "H2H1", "H2G1")),
-                Sets.newHashSet(Iterables.transform(new MoveGeneratorImpl(board).getThreateningMoves(), TO_STRING)));
+        assertEquals(Sets.newHashSet("Rxc1", "Qxf2+", "Ng2+", "Qg1+", "Qh1+", "Nd3+", "Rxd8"),
+                PGNUtils.convertMovesToPgn(board, new MoveGeneratorImpl(board).getThreateningMoves()));
 
         PGNUtils.applyMove(board, "Qg1+");
-        assertEquals(Collections.singleton("E1D2"),
-                Sets.newHashSet(Iterables.transform(new MoveGeneratorImpl(board).getThreateningMoves(), TO_STRING)));
+        assertEquals(Collections.singleton("Kd2"),
+                PGNUtils.convertMovesToPgn(board, new MoveGeneratorImpl(board).getThreateningMoves()));
 
         PGNUtils.applyMove(board, "Kd2");
-        assertTrue(Sets.newHashSet(Iterables.transform(new MoveGeneratorImpl(board).getThreateningMoves(), TO_STRING)).contains("G1F2"));
+        assertTrue(PGNUtils.convertMovesToPgn(board, new MoveGeneratorImpl(board).getThreateningMoves()).contains("Qxf2#"));
     }
 
     @Test
@@ -293,7 +284,7 @@ public class QuiescenceTest {
     public static class TestGeneratorFactory implements ChessEngine.MoveGeneratorFactory {
         private List<String[]> moveList = new ArrayList<>();
 
-        public TestGeneratorFactory(String[][] moves) {
+        TestGeneratorFactory(String[][] moves) {
             Collections.addAll(moveList, moves);
         }
 
@@ -311,7 +302,7 @@ public class QuiescenceTest {
         private BitBoard bitBoard;
         private Iterator<BitBoard.BitBoardMove> iterator;
 
-        public TestGenerator(String[] moves, BitBoard bitBoard) {
+        TestGenerator(String[] moves, BitBoard bitBoard) {
             this.bitBoard = bitBoard;
             List<BitBoard.BitBoardMove> moveList = new ArrayList<>();
             for(String s: moves) {

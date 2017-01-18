@@ -8,6 +8,7 @@ import com.google.common.collect.Sets;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -22,7 +23,7 @@ public class StraightMoveIteratorTest {
         List<BitBoard.BitBoardMove> getMoves = Lists.newArrayList(
                 new StraightMoveGenerator(Piece.BISHOP).iterator(bitBoard, CheckDetector.isPlayerJustMovedInCheck(bitBoard), 0));
 
-        Set<String> moves = getMoves.stream().map(m -> PGNUtils.translateMove(bitBoard, m.getAlgebraic())).collect(toSet());
+        Collection<String> moves = PGNUtils.convertMovesToPgn(bitBoard, getMoves);
         assertEquals(Sets.newHashSet("Bf6", "Bg7", "Bh8", "Bc3", "Bxa7", "Bc5", "Be5+", "Bxb2", "Bb6+"), moves);
     }
 
@@ -33,7 +34,7 @@ public class StraightMoveIteratorTest {
         new StraightMoveGenerator(Piece.BISHOP).generateThreatMoves(
                 bitBoard, CheckDetector.isPlayerJustMovedInCheck(bitBoard), 0, getMoves);
 
-        Set<String> moves = getMoves.stream().map(m -> PGNUtils.translateMove(bitBoard, m.getAlgebraic())).collect(toSet());
+        Collection<String> moves = PGNUtils.convertMovesToPgn(bitBoard, getMoves);
         assertEquals(Sets.newHashSet("Bxa7", "Be5+", "Bxb2", "Bb6+"), moves);
     }
 
@@ -43,7 +44,7 @@ public class StraightMoveIteratorTest {
         List<BitBoard.BitBoardMove> getMoves = Lists.newArrayList(
                 new StraightMoveGenerator(Piece.ROOK).iterator(bitBoard, CheckDetector.isPlayerJustMovedInCheck(bitBoard), 0));
 
-        Set<String> moves = getMoves.stream().map(m -> PGNUtils.translateMove(bitBoard, m.getAlgebraic())).collect(toSet());
+        Collection<String> moves = PGNUtils.convertMovesToPgn(bitBoard, getMoves);
         assertEquals(Sets.newHashSet("Rd7+", "Rd5", "Rxe4", "Rd6", "Rd8", "Rc4+", "Rxb4"), moves);
     }
 
@@ -54,7 +55,7 @@ public class StraightMoveIteratorTest {
         new StraightMoveGenerator(Piece.ROOK).generateThreatMoves(
                 bitBoard, CheckDetector.isPlayerJustMovedInCheck(bitBoard), 0, getMoves);
 
-        Set<String> moves = getMoves.stream().map(m -> PGNUtils.translateMove(bitBoard, m.getAlgebraic())).collect(toSet());
+        Collection<String> moves = PGNUtils.convertMovesToPgn(bitBoard, getMoves);
         assertEquals(Sets.newHashSet("Rd7+", "Rxe4", "Rc4+", "Rxb4"), moves);
     }
 }
