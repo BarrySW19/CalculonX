@@ -188,7 +188,7 @@ public class KnightMoveGenerator implements PieceMoveGenerator {
                 && (KNIGHT_MOVES[Long.numberOfTrailingZeros(nextMove)] & enemyPieces & bitBoard.getBitmapKings()) == 0)
             {
                 bitBoard.makeMove(move);
-                legalityChecked = !CheckDetector.isPlayerJustMovedInCheck(bitBoard);
+                legalityChecked = !CheckDetector.isPlayerJustMovedInCheck(bitBoard, !context.isAlreadyInCheck());
                 boolean discoveredCheck = CheckDetector.isPlayerToMoveInCheck(bitBoard);
                 bitBoard.unmakeMove();
                 if(!discoveredCheck) {

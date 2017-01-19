@@ -276,7 +276,9 @@ public class ChessEngine {
             return 0;
         }
 
-        searchContext.addInfo("Q("+alpha+","+beta+")");
+        if(LOG.isDebugEnabled()) {
+            searchContext.addInfo("Q(" + alpha + "," + beta + ")");
+        }
         int standPat = gameScorer.score(bitBoard);
 
         //List<BitBoardMove> threatMoves = Lists.newArrayList(new MoveGeneratorImpl(bitBoard).getThreatMovesIterator());
@@ -293,19 +295,21 @@ public class ChessEngine {
                 standPat *= Math.max(1, depth+1);
             }
             if (standPat >= beta) {
-                searchContext.addInfo("rB=" + beta);
+                searchContext.addInfo(() -> "rB=" + beta);
                 searchContext.qAscend();
                 return beta;
             }
 
             if (alpha < standPat) {
-                searchContext.addInfo("A=SP=" + standPat);
+                if(LOG.isDebugEnabled()) {
+                    searchContext.addInfo("A=SP=" + standPat);
+                }
                 alpha = standPat;
             }
         }
 
         if(depth <= 0 && beta != BIG_VALUE) {
-            searchContext.addInfo("^B=" + beta);
+            searchContext.addInfo(() -> "^B=" + beta);
             searchContext.qAscend();
             return beta; // Should this be alpha or beta??
         }
@@ -317,17 +321,21 @@ public class ChessEngine {
             bitBoard.unmakeMove();
 
             if( score >= beta) {
-                searchContext.addInfo("mB=" + beta);
+                searchContext.addInfo(() -> "mB=" + beta);
                 searchContext.qAscend();
                 return beta;
             }
             if( score > alpha) {
-                searchContext.addInfo("mA=SP=" + standPat);
+                if(LOG.isDebugEnabled()) {
+                    searchContext.addInfo("mA=SP=" + standPat);
+                }
                 alpha = score;
             }
         }
 
-        searchContext.addInfo("rA=" + alpha);
+        if(LOG.isDebugEnabled()) {
+            searchContext.addInfo("rA=" + alpha);
+        }
         searchContext.qAscend();
         return alpha;
     }

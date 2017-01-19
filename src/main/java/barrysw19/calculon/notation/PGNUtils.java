@@ -62,6 +62,11 @@ public class PGNUtils {
 			applyMove(bitBoard, s);
 		}
 	}
+
+	public static Set<String> getAllMoves(final BitBoard bitBoard) {
+        return new MoveGeneratorImpl(bitBoard).getAllRemainingMoves().stream()
+                .map(BitBoardMove::getAlgebraic).map(m -> PGNUtils.translateMove(bitBoard, m)).collect(toSet());
+    }
 	
 	public static Map<String, String> toPgnMoveMap(BitBoard bitBoard) {
 		List<BitBoardMove> allMoves = new MoveGeneratorImpl(bitBoard).getAllRemainingMoves();

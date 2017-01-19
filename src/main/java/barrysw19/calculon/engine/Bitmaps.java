@@ -45,8 +45,52 @@ public class Bitmaps {
 	public static final long[] cross2Map = new long[64];
 	public static final long[] diag2Map = new long[64];
 	public static final long[] star2Map = new long[64];
-	
-	static {
+
+	public static final long[][] SLIDE_MOVES = generateSlideMoves();
+
+    private static long[][] generateSlideMoves() {
+        final long[][] moves = new long[64][64];
+        for(int i = 0; i < 64; i++) {
+            for(int j = 0; j < 64; j++) {
+                if(i == j) {
+                    continue;
+                }
+
+                int[] from = new int[] { Math.min(i, j) >>> 3, Math.min(i, j) & 0x07 };
+                int[] to = new int[] { Math.max(i, j) >>> 3, Math.max(i, j) & 0x07 };
+
+                if(from[0] == to[0]) {
+                    int p = from[1] + 1;
+                    while(p < to[1]) {
+                        moves[i][j] |= (1L<<(from[0]<<3))<<p;
+                        p++;
+                    }
+                }
+
+                if(from[1] == to[1]) {
+                    int p = from[0] + 1;
+                    while(p < to[0]) {
+                        moves[i][j] |= (1L<<(p<<3))<<from[1];
+                        p++;
+                    }
+                }
+
+                if(Math.abs(from[0] - to[0]) == Math.abs(from[1] - to[1])) {
+                    int p = from[0] + 1;
+                    int dir = (from[1] < to[1]) ? 1 : -1;
+                    while(p < to[0]) {
+                        long rBit = (1L<<(p<<3))<<from[1];
+                        moves[i][j] |= dir > 0 ? rBit<<dir : rBit>>>Math.abs(dir);
+                        dir += Math.signum(dir);
+                        p++;
+                    }
+                }
+            }
+        }
+        return moves;
+    }
+
+    static {
 		maps2[BM_UL][0] = 0L;
 		maps2[BM_DL][0] = 0L;
 		maps2[BM_U][0] = 72340172838076672L;

@@ -17,9 +17,9 @@
  */
 package barrysw19.calculon.engine;
 
-import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.engine.BitBoard.BitBoardMove;
-import com.google.common.collect.Lists;
+import barrysw19.calculon.model.Piece;
+import barrysw19.calculon.util.BitIterable;
 
 import java.util.*;
 
@@ -63,25 +63,33 @@ public class MoveGeneratorImpl implements MoveGenerator {
      * a type which can attack in that direction). This means that any move from one of these squares could
      * possibly result in a discovered check. For such moves the CheckDetector needs to be called.</p>
      *
-     * TODO: This is still a bit quick and dirty - it should be possible to reduce the number of squares to check
-     * TODO: by including only those between the attacker and the king, and also by considering other pieces
-     * TODO: already on those squares.
+     * @param color the side to calculate for, if this is the side to play then calculate pins, otherwise discoveries.
      */
 	private static long calculatePotentialPins(BitBoard bitBoard, byte color) {
-        final int myKingIdx = Long.numberOfTrailingZeros(bitBoard.getBitmapColor(color) & bitBoard.getBitmapKings(color));
-        final long enemyDiagAttackers = bitBoard.getBitmapOppColor(color) & (bitBoard.getBitmapBishops() | bitBoard.getBitmapQueens());
-        final long enemyLineAttackers = bitBoard.getBitmapOppColor(color) & (bitBoard.getBitmapRooks() | bitBoard.getBitmapQueens());
+        final int kingIdx = Long.numberOfTrailingZeros(bitBoard.getBitmapKings(color));
+        final long enemyDiagAttackers = Bitmaps.diag2Map[kingIdx] & bitBoard.getBitmapOppColor(color) & (bitBoard.getBitmapBishops() | bitBoard.getBitmapQueens());
+        final long enemyLineAttackers = Bitmaps.cross2Map[kingIdx] & bitBoard.getBitmapOppColor(color) & (bitBoard.getBitmapRooks() | bitBoard.getBitmapQueens());
 
         long potentialPins = 0;
-        for (int direction : DIR_LINE) {
-            if ((Bitmaps.maps2[direction][myKingIdx] & enemyLineAttackers) != 0) {
-                potentialPins |= Bitmaps.maps2[direction][myKingIdx];
+        for(long l: BitIterable.of(enemyLineAttackers|enemyDiagAttackers)) {
+            final long pinningSquares = Bitmaps.SLIDE_MOVES[kingIdx][Long.numberOfTrailingZeros(l)];
+            final long ownPieces = pinningSquares & bitBoard.getBitmapColor(); // Pieces of the side to move
+            final int ownPieceCount = Long.bitCount(ownPieces);
+            if (ownPieceCount == 1 && (pinningSquares & bitBoard.getBitmapOppColor()) == 0) {
+                potentialPins |= ownPieces;
             }
-        }
 
-        for (int direction : DIR_DIAG) {
-            if ((Bitmaps.maps2[direction][myKingIdx] & enemyDiagAttackers) != 0) {
-                potentialPins |= Bitmaps.maps2[direction][myKingIdx];
+            // Note: There is a situation where two pieces can be removed from a rank in a single move - en passant.
+            // This means a pawn could potentially be pinned on a rank even though another pawn is next to it; it
+            // could legally advance or capture normally but not via en passant.
+            if (bitBoard.isEnPassant()) {
+                int enPassantRank = bitBoard.getPlayer() == Piece.WHITE ? 4 : 3;
+                long enPassantPawn = (1L << (enPassantRank << 3)) << bitBoard.getEnPassantFile();
+                long neighbours = (enPassantPawn << 1 | enPassantPawn >>> 1) & BitBoard.getRankMap(enPassantRank);
+                if (ownPieceCount == 1 && (pinningSquares & (bitBoard.getBitmapOppColor() & ~enPassantPawn)) == 0
+                        && (ownPieces & neighbours) != 0) {
+                    potentialPins |= ownPieces;
+                }
             }
         }
 

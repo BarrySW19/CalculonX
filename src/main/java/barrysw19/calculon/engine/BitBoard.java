@@ -160,9 +160,11 @@ public class BitBoard {
 	public BitBoard initialise() {
 		bitmaps = new long[9];
 		bitmaps[Piece.WHITE] = 0xFFFFL;
-		bitmaps[Piece.BLACK] = 0xFFFFL<<48;
+        //noinspection NumericOverflow
+        bitmaps[Piece.BLACK] = 0xFFFFL<<48;
 		bitmaps[Piece.PAWN] = 0xFFL<<48 | 0xFFL<<8;
-		bitmaps[Piece.ROOK] = 0x81L<<56 | 0x81L;
+        //noinspection NumericOverflow
+        bitmaps[Piece.ROOK] = 0x81L<<56 | 0x81L;
 		bitmaps[Piece.KNIGHT] = 0x42L<<56 | 0x42L;
 		bitmaps[Piece.BISHOP] = 0x24L<<56 | 0x24L;
 		bitmaps[Piece.QUEEN] = 0x08L<<56 | 0x08L;
@@ -245,6 +247,31 @@ public class BitBoard {
         for(int r = 0; r < 8; r++) {
             for(int c = 0; c < 8; c++) {
                 sb.insert(0, (v & bit) == 0 ? ". " : "X ");
+                bit = bit>>>1;
+            }
+            sb2.append(sb.toString()).append("\n");
+            sb.setLength(0);
+        }
+        System.out.println(sb2.toString());
+        System.out.println();
+        return sb2.toString();
+    }
+
+    public String printBoard() {
+        long bit = 1L<<63;
+        StringBuilder sb = new StringBuilder();
+        StringBuilder sb2 = new StringBuilder();
+        for(int r = 0; r < 8; r++) {
+            for(int c = 0; c < 8; c++) {
+                String s = ". ";
+                if((bit & getBitmapPawns()) != 0) s = "P ";
+                if((bit & getBitmapRooks()) != 0) s = "R ";
+                if((bit & getBitmapKnights()) != 0) s = "N ";
+                if((bit & getBitmapBishops()) != 0) s = "B ";
+                if((bit & getBitmapQueens()) != 0) s = "Q ";
+                if((bit & getBitmapKings()) != 0) s = "K ";
+                sb.insert(0, (bit & getBitmapWhite()) == 0 ? s.toLowerCase() : s);
+
                 bit = bit>>>1;
             }
             sb2.append(sb.toString()).append("\n");

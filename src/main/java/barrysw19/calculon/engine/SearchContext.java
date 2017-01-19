@@ -1,12 +1,17 @@
 package barrysw19.calculon.engine;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
+import java.util.function.Supplier;
 
 public class SearchContext implements Comparable<SearchContext> {
+    private static final Logger LOG = LoggerFactory.getLogger(SearchContext.class);
 
-    public static enum Status {
+    public enum Status {
         NORMAL, TIMEOUT, ABORT, CHECKMATE
     }
 
@@ -93,8 +98,16 @@ public class SearchContext implements Comparable<SearchContext> {
     }
 
     public void addInfo(String s) {
-        SearchNode node = ((SearchNode)currentNode.getUserObject());
-        node.setText(node.getText() + " " + s);
+        if(LOG.isDebugEnabled()) {
+            SearchNode node = ((SearchNode) currentNode.getUserObject());
+            node.setText(node.getText() + " " + s);
+        }
+    }
+
+    public void addInfo(Supplier<String> s) {
+        if(LOG.isDebugEnabled()) {
+            addInfo(s.get());
+        }
     }
 
     public SearchContext qDescend(BitBoard.BitBoardMove move) {
@@ -105,7 +118,6 @@ public class SearchContext implements Comparable<SearchContext> {
     }
 
     public SearchContext flip() {
-        //depth--;
         qDepth++;
         maxQDepth = Math.max(maxQDepth, qDepth);
         return this;
