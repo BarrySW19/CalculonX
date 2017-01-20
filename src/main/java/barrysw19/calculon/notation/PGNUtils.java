@@ -24,12 +24,14 @@ import barrysw19.calculon.engine.EngineUtils;
 import barrysw19.calculon.engine.MoveGeneratorImpl;
 import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.model.Result;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toSet;
 
 public class PGNUtils {
     private static final Logger LOG = LoggerFactory.getLogger(PGNUtils.class);
@@ -45,12 +47,26 @@ public class PGNUtils {
             return new NullPointerException(errMsg);
         })));
 	}
-	
-	public static void applyMoves(BitBoard bitBoard, String... moves) {
+
+    public static Set<String> convertMovesToPgn(final BitBoard bitBoard, final Collection<BitBoardMove> moves) {
+        return moves.stream().map(BitBoardMove::getAlgebraic).map(a -> PGNUtils.translateMove(bitBoard, a)).collect(toSet());
+    }
+
+    public static Set<String> convertMovesToPgn(final BitBoard bitBoard, final Iterator<BitBoardMove> moves) {
+	    List<BitBoardMove> movesList = Lists.newArrayList(moves);
+	    return convertMovesToPgn(bitBoard, movesList);
+    }
+
+    public static void applyMoves(BitBoard bitBoard, String... moves) {
 		for(String s: moves) {
 			applyMove(bitBoard, s);
 		}
 	}
+
+	public static Set<String> getAllMoves(final BitBoard bitBoard) {
+        return new MoveGeneratorImpl(bitBoard).getAllRemainingMoves().stream()
+                .map(BitBoardMove::getAlgebraic).map(m -> PGNUtils.translateMove(bitBoard, m)).collect(toSet());
+    }
 	
 	public static Map<String, String> toPgnMoveMap(BitBoard bitBoard) {
 		List<BitBoardMove> allMoves = new MoveGeneratorImpl(bitBoard).getAllRemainingMoves();

@@ -55,6 +55,8 @@ public class ChessEngine {
     private Cache<BitSet, Integer> scoreCache
             = CacheBuilder.newBuilder().maximumSize(5*1024*1024).recordStats().build();
 
+    private volatile long callMetric = 0;
+
     public ChessEngine() {
         this(GameScorer.getDefaultScorer());
 	}
@@ -107,6 +109,10 @@ public class ChessEngine {
 	public String getPreferredMove(BitBoard bitBoard) {
         return getPreferredMoveContext(bitBoard).getAlgebraicMove();
 	}
+
+    public long getCallMetric() {
+        return callMetric;
+    }
 
     /**
      * Outer loop - responsible for getting the move scores and pruning them down to
@@ -216,11 +222,14 @@ public class ChessEngine {
 
     // Negamax
     private int alphaBeta(int alpha, int beta, int depthLeft, BitBoard bitBoard, SearchContext searchContext) throws ExecutionException {
+        callMetric++;
+
         if(System.nanoTime() > terminateTime) {
             searchContext.setStatus(SearchContext.Status.TIMEOUT);
             searchContext.ascend();
             return 0;
         }
+
         if(depthLeft <= 0) {
             searchContext.flip();
             int rv = quiesce(bitBoard, alpha, beta, qDepth, searchContext);
@@ -259,61 +268,74 @@ public class ChessEngine {
     }
 
     private int quiesce(final BitBoard bitBoard, int alpha, int beta, int depth, SearchContext searchContext) throws ExecutionException {
+        callMetric++;
+
         if(System.nanoTime() > terminateTime) {
             searchContext.setStatus(SearchContext.Status.TIMEOUT);
             searchContext.qAscend();
             return 0;
         }
 
-        searchContext.addInfo("Q("+alpha+","+beta+")");
+        if(LOG.isDebugEnabled()) {
+            searchContext.addInfo("Q(" + alpha + "," + beta + ")");
+        }
         int standPat = gameScorer.score(bitBoard);
 
-        List<BitBoardMove> threatMoves = new MoveGeneratorImpl(bitBoard).getThreateningMoves();
+        //List<BitBoardMove> threatMoves = Lists.newArrayList(new MoveGeneratorImpl(bitBoard).getThreatMovesIterator());
+        Iterator<BitBoardMove> iter = new MoveGeneratorImpl(bitBoard).getThreatMovesIterator();
+
         if(depth < 3 && !CheckDetector.isPlayerToMoveInCheck(bitBoard)) {
-            threatMoves = threatMoves.stream().filter(BitBoardMove::isCapture).collect(toList());
+            iter = new IteratorFilter(iter, BitBoardMove::isCapture);
         }
         //final boolean moveIsForced = threatMoves.size() == 1 && CheckDetector.isPlayerToMoveInCheck(bitBoard);
 
         // Apply the stand pat if the player could make a null move, or has no moves available.
-        if ( !CheckDetector.isPlayerToMoveInCheck(bitBoard) || standPat == GameScorer.MATE_SCORE || threatMoves.isEmpty()) {
+        if ( !CheckDetector.isPlayerToMoveInCheck(bitBoard) || standPat == GameScorer.MATE_SCORE || !iter.hasNext()) {
             if(standPat == GameScorer.MATE_SCORE) {
                 standPat *= Math.max(1, depth+1);
             }
             if (standPat >= beta) {
-                searchContext.addInfo("rB=" + beta);
+                searchContext.addInfo(() -> "rB=" + beta);
                 searchContext.qAscend();
                 return beta;
             }
 
             if (alpha < standPat) {
-                searchContext.addInfo("A=SP=" + standPat);
+                if(LOG.isDebugEnabled()) {
+                    searchContext.addInfo("A=SP=" + standPat);
+                }
                 alpha = standPat;
             }
         }
 
         if(depth <= 0 && beta != BIG_VALUE) {
-            searchContext.addInfo("^B=" + beta);
+            searchContext.addInfo(() -> "^B=" + beta);
             searchContext.qAscend();
             return beta; // Should this be alpha or beta??
         }
 
-        for(BitBoardMove move: threatMoves) {
+        while(iter.hasNext()) {
+            BitBoardMove move = iter.next();
             bitBoard.makeMove(move);
             int score = -quiesce(bitBoard, -beta, -alpha, depth - 1, searchContext.qDescend(move));
             bitBoard.unmakeMove();
 
             if( score >= beta) {
-                searchContext.addInfo("mB=" + beta);
+                searchContext.addInfo(() -> "mB=" + beta);
                 searchContext.qAscend();
                 return beta;
             }
             if( score > alpha) {
-                searchContext.addInfo("mA=SP=" + standPat);
+                if(LOG.isDebugEnabled()) {
+                    searchContext.addInfo("mA=SP=" + standPat);
+                }
                 alpha = score;
             }
         }
 
-        searchContext.addInfo("rA=" + alpha);
+        if(LOG.isDebugEnabled()) {
+            searchContext.addInfo("rA=" + alpha);
+        }
         searchContext.qAscend();
         return alpha;
     }

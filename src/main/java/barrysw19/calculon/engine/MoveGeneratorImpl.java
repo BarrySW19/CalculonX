@@ -17,8 +17,9 @@
  */
 package barrysw19.calculon.engine;
 
-import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.engine.BitBoard.BitBoardMove;
+import barrysw19.calculon.model.Piece;
+import barrysw19.calculon.util.BitIterable;
 
 import java.util.*;
 
@@ -30,16 +31,13 @@ public class MoveGeneratorImpl implements MoveGenerator {
     private static final List<PieceMoveGenerator> MASTER;
 	
 	static {
-        List<PieceMoveGenerator> list = new LinkedList<>();
+        final List<PieceMoveGenerator> list = new LinkedList<>();
 
 		list.add(new PawnCaptureGenerator());
         list.add(new KnightMoveGenerator());
-        list.add(new StraightMoveGenerator(
-				(BitBoard bb) -> (bb.getBitmapColor() & bb.getBitmapBishops()), PreGeneratedMoves.DIAGONAL_MOVES, Piece.BISHOP));
-        list.add(new StraightMoveGenerator(
-                (BitBoard bb) -> (bb.getBitmapColor() & bb.getBitmapRooks()), PreGeneratedMoves.STRAIGHT_MOVES, Piece.ROOK));
-        list.add(new StraightMoveGenerator(
-                (BitBoard bb) -> (bb.getBitmapColor() & bb.getBitmapQueens()), PreGeneratedMoves.SLIDE_MOVES, Piece.QUEEN));
+        list.add(new StraightMoveGenerator(Piece.BISHOP));
+        list.add(new StraightMoveGenerator(Piece.ROOK));
+        list.add(new StraightMoveGenerator(Piece.QUEEN));
         list.add(new PawnMoveGenerator());
         list.add(new KingMoveGenerator());
 
@@ -47,47 +45,74 @@ public class MoveGeneratorImpl implements MoveGenerator {
 	}
 	
     private List<PieceMoveGenerator> generators;
-	private final BitBoard bitBoard;
-	private final boolean inCheck;
     private final boolean drawnByRule;
-    private long potentialPins = 0;
 
-    private final Iterator<BitBoardMove> moveIterator;
+    private final MoveGeneratorContext context;
+
+    private Iterator<BitBoardMove> moveIterator;
 
 	public MoveGeneratorImpl(BitBoard bitBoard) {
-		this.bitBoard = bitBoard;
         this.generators = MASTER;
-		this.inCheck = CheckDetector.isPlayerToMoveInCheck(bitBoard);
-		
-		long enemyDiagAttackers = bitBoard.getBitmapOppColor() & (bitBoard.getBitmapBishops() | bitBoard.getBitmapQueens());
-		long enemyLineAttackers = bitBoard.getBitmapOppColor() & (bitBoard.getBitmapRooks() | bitBoard.getBitmapQueens());
-		int myKingIdx = Long.numberOfTrailingZeros(bitBoard.getBitmapColor() & bitBoard.getBitmapKings());
-
-        for (int aDIR_LINE : DIR_LINE) {
-            if ((Bitmaps.maps2[aDIR_LINE][myKingIdx] & enemyLineAttackers) != 0) {
-                potentialPins |= Bitmaps.maps2[aDIR_LINE][myKingIdx];
-            }
-        }
-
-        for (int aDIR_DIAG : DIR_DIAG) {
-            if ((Bitmaps.maps2[aDIR_DIAG][myKingIdx] & enemyDiagAttackers) != 0) {
-                potentialPins |= Bitmaps.maps2[aDIR_DIAG][myKingIdx];
-            }
-        }
-
-        List<Iterator<BitBoardMove>> iterators =
-                MASTER.stream().map(g -> g.iterator(this.bitBoard, this.inCheck, this.potentialPins)).collect(toList());
-        //noinspection unchecked
-        moveIterator = new CompoundIterator<>(iterators.toArray(new Iterator[iterators.size()]));
+        context = new MoveGeneratorContext(bitBoard);
         drawnByRule = bitBoard.isDrawnByRule();
 	}
+
+    /**
+     * <p>Potential pins is a quick way to determine which moves need to be checked for discovered checks.
+     * The resulting long is all the directions from the king which contain a sliding attacker (of
+     * a type which can attack in that direction). This means that any move from one of these squares could
+     * possibly result in a discovered check. For such moves the CheckDetector needs to be called.</p>
+     *
+     * @param color the side to calculate for, if this is the side to play then calculate pins, otherwise discoveries.
+     */
+	private static long calculatePotentialPins(BitBoard bitBoard, byte color) {
+        final int kingIdx = Long.numberOfTrailingZeros(bitBoard.getBitmapKings(color));
+        final long enemyDiagAttackers = Bitmaps.diag2Map[kingIdx] & bitBoard.getBitmapOppColor(color) & (bitBoard.getBitmapBishops() | bitBoard.getBitmapQueens());
+        final long enemyLineAttackers = Bitmaps.cross2Map[kingIdx] & bitBoard.getBitmapOppColor(color) & (bitBoard.getBitmapRooks() | bitBoard.getBitmapQueens());
+
+        long potentialPins = 0;
+        for(long l: BitIterable.of(enemyLineAttackers|enemyDiagAttackers)) {
+            final long pinningSquares = Bitmaps.SLIDE_MOVES[kingIdx][Long.numberOfTrailingZeros(l)];
+            final long ownPieces = pinningSquares & bitBoard.getBitmapColor(); // Pieces of the side to move
+            final int ownPieceCount = Long.bitCount(ownPieces);
+            if (ownPieceCount == 1 && (pinningSquares & bitBoard.getBitmapOppColor()) == 0) {
+                potentialPins |= ownPieces;
+            }
+
+            // Note: There is a situation where two pieces can be removed from a rank in a single move - en passant.
+            // This means a pawn could potentially be pinned on a rank even though another pawn is next to it; it
+            // could legally advance or capture normally but not via en passant.
+            if (bitBoard.isEnPassant()) {
+                int enPassantRank = bitBoard.getPlayer() == Piece.WHITE ? 4 : 3;
+                long enPassantPawn = (1L << (enPassantRank << 3)) << bitBoard.getEnPassantFile();
+                long neighbours = (enPassantPawn << 1 | enPassantPawn >>> 1) & BitBoard.getRankMap(enPassantRank);
+                if (ownPieceCount == 1 && (pinningSquares & (bitBoard.getBitmapOppColor() & ~enPassantPawn)) == 0
+                        && (ownPieces & neighbours) != 0) {
+                    potentialPins |= ownPieces;
+                }
+            }
+        }
+
+        return potentialPins;
+    }
 
     public void setGenerators(PieceMoveGenerator... g) {
         generators = Arrays.asList(g);
     }
 
 	public boolean hasNext() {
-        return !drawnByRule && moveIterator.hasNext();
+        return !drawnByRule && getMoveIterator().hasNext();
+    }
+
+    private Iterator<BitBoardMove> getMoveIterator() {
+        if(moveIterator == null) {
+            List<Iterator<BitBoardMove>> iterators =
+                    MASTER.stream().map(g -> g.iterator(context)).collect(toList());
+
+            //noinspection unchecked
+            moveIterator = new CompoundIterator<>(iterators.toArray(new Iterator[iterators.size()]));
+        }
+        return moveIterator;
     }
 
 	public BitBoardMove next() {
@@ -95,7 +120,7 @@ public class MoveGeneratorImpl implements MoveGenerator {
             throw new NoSuchElementException();
         }
 
-        return moveIterator.next();
+        return getMoveIterator().next();
 	}
 
 	public void remove() {
@@ -114,22 +139,45 @@ public class MoveGeneratorImpl implements MoveGenerator {
 		return moves;
 	}
 
-    @Override
-	public List<BitBoardMove> getThreateningMoves() {
-		List<BitBoardMove> moves = new LinkedList<>();
+	@Override
+	public Iterator<BitBoardMove> getThreatMovesIterator() {
+	    if(CheckDetector.isPlayerToMoveInCheck(context.bitBoard)) {
+            return new CompoundIterator<>(generators.stream().map(m -> m.iterator(context)).collect(toList()));
+        } else {
+            return new CompoundIterator<>(generators.stream().map(m -> m.generateThreatMoves(context)).collect(toList()));
+        }
+    }
 
-		for(PieceMoveGenerator generator: generators) {
-            // Rule: If the player is in check then all moves are needed, otherwise just
-            // captures, checks and pawn promotions.
-            if(CheckDetector.isPlayerToMoveInCheck(bitBoard)) {
-                for(Iterator<BitBoardMove> iter = generator.iterator(bitBoard, inCheck, potentialPins); iter.hasNext(); ) {
-                    moves.add(iter.next());
-                }
-            } else {
-			    generator.generateThreatMoves(bitBoard, inCheck, potentialPins, moves);
-            }
-		}
-		
-		return moves;
-	}
+    /**
+     * Holder for any information which might be useful to multiple generators but can be calculated only once.
+     */
+	public static class MoveGeneratorContext {
+        private final BitBoard bitBoard;
+        private final boolean alreadyInCheck;
+        private final long potentialPins;
+        private final long potentialDiscoveries;
+
+        public MoveGeneratorContext(final BitBoard bitBoard) {
+            this.bitBoard = bitBoard;
+            this.alreadyInCheck = CheckDetector.isPlayerToMoveInCheck(bitBoard);
+            this.potentialPins = calculatePotentialPins(bitBoard, bitBoard.getPlayer());
+            this.potentialDiscoveries = calculatePotentialPins(bitBoard, bitBoard.getOppPlayer());
+        }
+
+        public BitBoard getBitBoard() {
+            return bitBoard;
+        }
+
+        boolean isAlreadyInCheck() {
+            return alreadyInCheck;
+        }
+
+        long getPotentialPins() {
+            return potentialPins;
+        }
+
+        long getPotentialDiscoveries() {
+            return potentialDiscoveries;
+        }
+    }
 }

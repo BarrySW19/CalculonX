@@ -25,19 +25,19 @@ import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 
-class PawnCaptureGenerator extends PieceMoveGenerator {
+class PawnCaptureGenerator implements PieceMoveGenerator {
     private static final int[] PROMOTE_PIECES = { Piece.QUEEN, Piece.ROOK, Piece.BISHOP, Piece.KNIGHT };
 
 	@Override
-	public Iterator<BitBoardMove> iterator(final BitBoard bitBoard, final boolean alreadyInCheck, final long potentialPins) {
-        byte player = bitBoard.getPlayer();
+    public Iterator<BitBoardMove> iterator(final MoveGeneratorImpl.MoveGeneratorContext context) {
+        byte player = context.getBitBoard().getPlayer();
 
-        long myPawns = bitBoard.getBitmapColor(player) & bitBoard.getBitmapPawns();
-        long enemyPieces = bitBoard.getBitmapOppColor(player);
+        long myPawns = context.getBitBoard().getBitmapColor(player) & context.getBitBoard().getBitmapPawns();
+        long enemyPieces = context.getBitBoard().getBitmapOppColor(player);
         long epLocation = -1;
-        if(bitBoard.isEnPassant()) {
+        if(context.getBitBoard().isEnPassant()) {
             // Just treat the enpassant square as another enemy piece.
-            epLocation = 1L<<(bitBoard.getEnPassantRank()<<3)<<bitBoard.getEnPassantFile();
+            epLocation = 1L<<(context.getBitBoard().getEnPassantRank()<<3)<<context.getBitBoard().getEnPassantFile();
             enemyPieces |= epLocation;
         }
 
@@ -51,8 +51,13 @@ class PawnCaptureGenerator extends PieceMoveGenerator {
             return Collections.emptyIterator();
         }
 
-		return new PawnCaptureIterator(bitBoard, myPawns, alreadyInCheck, potentialPins, enemyPieces, epLocation);
+		return new PawnCaptureIterator(context.getBitBoard(), myPawns, context.isAlreadyInCheck(), context.getPotentialPins(), enemyPieces, epLocation);
 	}
+
+	@Override
+    public Iterator<BitBoardMove> generateThreatMoves(final MoveGeneratorImpl.MoveGeneratorContext context) {
+        return iterator(context);
+    }
 
     private static class PawnCaptureIterator extends AbstractMoveIterator {
         private final BitBoard bitBoard;

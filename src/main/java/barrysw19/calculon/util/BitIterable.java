@@ -12,6 +12,8 @@ import java.util.stream.LongStream;
  * The individual bits set in the supplied value can be read out via an iterator of a LongStream.
  */
 public class BitIterable implements Iterable<Long> {
+    private static final long[] EMPTY = new long[0];
+
     private final long value;
     private final long[] bitValues;
 
@@ -23,6 +25,11 @@ public class BitIterable implements Iterable<Long> {
             bitValues[i] = Long.lowestOneBit(value);
             value ^= bitValues[i];
         }
+    }
+
+    private BitIterable() {
+        this.value = 0;
+        this.bitValues = EMPTY;
     }
 
     public BitIterable(long[] bitValues) {
@@ -37,6 +44,10 @@ public class BitIterable implements Iterable<Long> {
 
     public static BitIterable of(long val) {
         return new BitIterable(val);
+    }
+
+    public static BitIterable empty() {
+        return new BitIterable();
     }
 
     public static BitIterable of(long[] bitValues) {

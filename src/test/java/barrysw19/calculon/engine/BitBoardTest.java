@@ -1,4 +1,4 @@
-/**
+/*
  * Calculon - A Java chess-engine.
  *
  * Copyright (C) 2008-2009 Barry Smith
@@ -127,7 +127,7 @@ public class BitBoardTest {
 	public void pawnCaptures() {
 		BitBoard board = FENUtils.getBoard("7k/7p/8/bp1n2P1/1PP1P3/8/8/7K w - - 0 1");
 		List<BitBoardMove> rv = new ArrayList<>();
-		generateMoves(new PawnCaptureGenerator(), board, false, -1L, rv);
+		generateMoves(new PawnCaptureGenerator(), board, rv);
 		assertEquals(4, rv.size());
 
 		String fen = "7k/7p/8/bp1n2P1/1PP1P3/8/8/7K b - - 0 1";
@@ -139,22 +139,21 @@ public class BitBoardTest {
 		assertEquals(5, board.getEnPassantRank());
 		
 		rv.clear();
-		generateMoves(new PawnCaptureGenerator(), board, false, -1L, rv);
+		generateMoves(new PawnCaptureGenerator(), board, rv);
 		assertEquals(5, rv.size());
 		
 		board = board.reverse();
 		rv.clear();
-		generateMoves(new PawnCaptureGenerator(), board, false, -1L, rv);
+		generateMoves(new PawnCaptureGenerator(), board, rv);
 		assertEquals(5, rv.size());
 		assertTrue(board.isEnPassant());
 		assertEquals(7, board.getEnPassantFile());
 		assertEquals(2, board.getEnPassantRank());
 	}
 
-	static List<BitBoard.BitBoardMove> generateMoves(PieceMoveGenerator generator,
-													 BitBoard bitBoard, boolean alreadyInCheck, long potentialPins, List<BitBoard.BitBoardMove> moves)
+	static List<BitBoard.BitBoardMove> generateMoves(PieceMoveGenerator generator, BitBoard bitBoard, List<BitBoard.BitBoardMove> moves)
 	{
-		for(Iterator<BitBoardMove> iter = generator.iterator(bitBoard, alreadyInCheck, potentialPins); iter.hasNext(); ) {
+		for(Iterator<BitBoardMove> iter = generator.iterator(new MoveGeneratorImpl.MoveGeneratorContext(bitBoard)); iter.hasNext(); ) {
 			moves.add(iter.next());
 		}
 		return moves;

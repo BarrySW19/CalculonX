@@ -1,7 +1,7 @@
-/**
+/*
  * Calculon - A Java chess-engine.
  *
- * Copyright (C) 2008-2012 Barry Smith
+ * Copyright (C) 2008-2017 Barry Smith
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@ package barrysw19.calculon.engine;
 
 import barrysw19.calculon.analyzer.GameScorer;
 import barrysw19.calculon.analyzer.MaterialScorer;
+import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,12 +35,6 @@ import static org.junit.Assert.assertTrue;
 
 public class QuiescenceTest {
     private GameScorer gameScorer;
-    private Function<BitBoard.BitBoardMove, String> TO_STRING = new Function<BitBoard.BitBoardMove, String>() {
-        @Override
-        public String apply(BitBoard.BitBoardMove bitBoardMove) {
-            return bitBoardMove.getAlgebraic();
-        }
-    };
 
     @Before
     public void setUp() {
@@ -49,19 +43,19 @@ public class QuiescenceTest {
     }
 
     @Test
-    public void testMoveGeneration() {
+    public void testThreatMoveGeneration() {
         BitBoard board = FENUtils.getBoard("2rr4/5p1k/6pp/8/3QBn2/P4P2/1P3P1q/2RRK3 w - - 3 30");
 
         PGNUtils.applyMove(board, "Qxd8");
-        assertEquals(new HashSet<>(Arrays.asList("F4G2", "F4D3", "C8D8", "C8C1", "H2F2", "H2H1", "H2G1")),
-                Sets.newHashSet(Iterables.transform(new MoveGeneratorImpl(board).getThreateningMoves(), TO_STRING)));
+        assertEquals(Sets.newHashSet("Rxc1", "Qxf2+", "Ng2+", "Qg1+", "Qh1+", "Nd3+", "Rxd8"),
+                PGNUtils.convertMovesToPgn(board, new MoveGeneratorImpl(board).getThreatMovesIterator()));
 
         PGNUtils.applyMove(board, "Qg1+");
-        assertEquals(new HashSet<>(Arrays.asList("E1D2")),
-                Sets.newHashSet(Iterables.transform(new MoveGeneratorImpl(board).getThreateningMoves(), TO_STRING)));
+        assertEquals(Collections.singleton("Kd2"),
+                PGNUtils.convertMovesToPgn(board, new MoveGeneratorImpl(board).getThreatMovesIterator()));
 
         PGNUtils.applyMove(board, "Kd2");
-        assertTrue(Sets.newHashSet(Iterables.transform(new MoveGeneratorImpl(board).getThreateningMoves(), TO_STRING)).contains("G1F2"));
+        assertTrue(PGNUtils.convertMovesToPgn(board, new MoveGeneratorImpl(board).getThreatMovesIterator()).contains("Qxf2#"));
     }
 
     @Test
@@ -232,7 +226,7 @@ public class QuiescenceTest {
         PieceMoveGenerator generator = new PawnCaptureGenerator();
         List<BitBoard.BitBoardMove> moves = new ArrayList<>();
 
-        BitBoardTest.generateMoves(generator, board, false, 0L, moves);
+        BitBoardTest.generateMoves(generator, board, moves);
         assertEquals(0, moves.size());
     }
 
@@ -240,8 +234,7 @@ public class QuiescenceTest {
     public void testPawnCaptures2() {
         BitBoard board = FENUtils.getBoard("3k4/8/8/3p1P2/4P3/8/8/3K4 w - - 0 1");
         PieceMoveGenerator generator = new PawnCaptureGenerator();
-        List<BitBoard.BitBoardMove> moves = new ArrayList<>();
-        generator.generateThreatMoves(board, false, 0L, moves);
+        List<BitBoard.BitBoardMove> moves = Lists.newArrayList(generator.generateThreatMoves(new MoveGeneratorImpl.MoveGeneratorContext(board)));
         assertEquals(1, moves.size());
         assertEquals("E4D5", moves.get(0).getAlgebraic());
     }
@@ -251,48 +244,37 @@ public class QuiescenceTest {
         BitBoard board = FENUtils.getBoard("3k4/8/8/3p1P2/4P3/8/8/3K4 w - - 0 1");
         MoveGeneratorImpl generator = new MoveGeneratorImpl(board);
         generator.setGenerators(new PawnMoveGenerator());
-        List<BitBoard.BitBoardMove> moves = generator.getThreateningMoves();
+        Set<String> moves = PGNUtils.convertMovesToPgn(board, generator.getThreatMovesIterator());
 
-        assertEquals(0, moves.size());
+        assertEquals(Collections.emptySet(), moves);
     }
 
-//    @Test
-//    public void testPawnMoves2() {
-//        // Pawn push gives discovered check
-//        BitBoard board = FENUtils.getBoard("8/8/8/3p1P2/k3P2R/8/8/3K4 w - - 0 1");
-//        MoveGeneratorImpl generator = new MoveGeneratorImpl(board);
-//        generator.setGenerators(new PawnMoveGenerator());
-//        Set<String> moves = getAlgebraicSet(generator.getThreateningMoves());
-//
-//        assertEquals(1, moves.size());
-//        assertTrue(moves.contains("E4E5"));
-//    }
+    @Test
+    public void testPawnMoves2() {
+        // Pawn push gives discovered check
+        BitBoard board = FENUtils.getBoard("8/8/8/3p1P2/k3P2R/8/8/3K4 w - - 0 1");
+        MoveGeneratorImpl generator = new MoveGeneratorImpl(board);
+        generator.setGenerators(new PawnMoveGenerator());
+        Set<String> moves = PGNUtils.convertMovesToPgn(board, generator.getThreatMovesIterator());
 
-//    @Test
-//    public void testBishopMoves1() {
-//        // Pawn push gives discovered check
-//        BitBoard board = FENUtils.getBoard("2k5/7p/8/8/4B3/8/8/7K w - - 0 1");
-//        MoveGeneratorImpl generator = new MoveGeneratorImpl(board);
-//        generator.setGenerators(new BishopMoveGenerator());
-//        Set<String> moves = getAlgebraicSet(generator.getThreateningMoves());
-//
-//        System.out.println(moves);
-//        assertEquals(3, moves.size());
-//        assertTrue(moves.containsAll(Arrays.asList("E4H7", "E4B7", "E4F5")));
-//    }
+        assertEquals(Sets.newHashSet("e5+"), moves);
+    }
 
-//    private static Set<String> getAlgebraicSet(Collection<BitBoard.BitBoardMove> moves) {
-//        Set<String> values = new TreeSet<>();
-//        for(BitBoard.BitBoardMove move: moves) {
-//            values.add(move.getAlgebraic());
-//        }
-//        return values;
-//    }
+    @Test
+    public void testBishopMoves1() {
+        // Pawn push gives discovered check
+        BitBoard board = FENUtils.getBoard("2k5/7p/8/8/4B3/8/8/7K w - - 0 1");
+        MoveGeneratorImpl generator = new MoveGeneratorImpl(board);
+        generator.setGenerators(new StraightMoveGenerator(Piece.BISHOP));
+        Set<String> moves = PGNUtils.convertMovesToPgn(board, generator.getThreatMovesIterator());
 
-    public static class TestGeneratorFactory implements ChessEngine.MoveGeneratorFactory {
+        assertEquals(Sets.newHashSet("Bxh7", "Bf5+", "Bb7+"), moves);
+    }
+
+    private static class TestGeneratorFactory implements ChessEngine.MoveGeneratorFactory {
         private List<String[]> moveList = new ArrayList<>();
 
-        public TestGeneratorFactory(String[][] moves) {
+        TestGeneratorFactory(String[][] moves) {
             Collections.addAll(moveList, moves);
         }
 
@@ -306,11 +288,11 @@ public class QuiescenceTest {
         }
     }
 
-    public static class TestGenerator implements MoveGenerator {
+    private static class TestGenerator implements MoveGenerator {
         private BitBoard bitBoard;
         private Iterator<BitBoard.BitBoardMove> iterator;
 
-        public TestGenerator(String[] moves, BitBoard bitBoard) {
+        TestGenerator(String[] moves, BitBoard bitBoard) {
             this.bitBoard = bitBoard;
             List<BitBoard.BitBoardMove> moveList = new ArrayList<>();
             for(String s: moves) {
@@ -320,9 +302,8 @@ public class QuiescenceTest {
         }
 
         @Override
-        public List<BitBoard.BitBoardMove> getThreateningMoves() {
-            // Delegate to real instance
-            return new MoveGeneratorImpl(bitBoard).getThreateningMoves();
+        public Iterator<BitBoard.BitBoardMove> getThreatMovesIterator() {
+            return new MoveGeneratorImpl(bitBoard).getThreatMovesIterator();
         }
 
         @Override

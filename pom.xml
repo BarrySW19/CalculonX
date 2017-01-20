@@ -24,7 +24,7 @@
     <groupId>barrysw19.calculon</groupId>
     <artifactId>calculon</artifactId>
     <packaging>jar</packaging>
-    <version>0.5.12-SNAPSHOT</version>
+    <version>0.6.1-SNAPSHOT</version>
     <name>calculon</name>
     <url>http://maven.apache.org</url>
 

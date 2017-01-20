@@ -1,12 +1,18 @@
 package barrysw19.calculon.engine;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
+import java.util.function.Supplier;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class SearchContext implements Comparable<SearchContext> {
+    private static final Logger LOG = LoggerFactory.getLogger(SearchContext.class);
 
-    public static enum Status {
+    public enum Status {
         NORMAL, TIMEOUT, ABORT, CHECKMATE
     }
 
@@ -21,7 +27,7 @@ public class SearchContext implements Comparable<SearchContext> {
     private DefaultMutableTreeNode currentNode;
     private final BitBoard initialBoard;
 
-    private BitBoard.BitBoardMove[] moves = new BitBoard.BitBoardMove[20];
+    private BitBoard.BitBoardMove[] moves = new BitBoard.BitBoardMove[30];
 
     public SearchContext(String algebraicMove, BitBoard bitBoard) {
         this.algebraicMove = algebraicMove;
@@ -76,25 +82,37 @@ public class SearchContext implements Comparable<SearchContext> {
     }
 
     public SearchContext ascend() {
-        currentNode = (DefaultMutableTreeNode) currentNode.getParent();
+        if(LOG.isDebugEnabled()) {
+            currentNode = (DefaultMutableTreeNode) currentNode.getParent();
+        }
         depth--;
         return this;
     }
 
     private void descendNode(BitBoard.BitBoardMove move) {
-        if(treeModel == null) {
-            currentNode = new DefaultMutableTreeNode(new SearchNode(move));
-            treeModel = new DefaultTreeModel(currentNode);
-        } else {
-            DefaultMutableTreeNode node = new DefaultMutableTreeNode(new SearchNode(move));
-            currentNode.add(node);
-            currentNode = node;
+        if(LOG.isDebugEnabled()) {
+            if (treeModel == null) {
+                currentNode = new DefaultMutableTreeNode(new SearchNode(move));
+                treeModel = new DefaultTreeModel(currentNode);
+            } else {
+                DefaultMutableTreeNode node = new DefaultMutableTreeNode(new SearchNode(move));
+                currentNode.add(node);
+                currentNode = node;
+            }
         }
     }
 
     public void addInfo(String s) {
-        SearchNode node = ((SearchNode)currentNode.getUserObject());
-        node.setText(node.getText() + " " + s);
+        if(LOG.isDebugEnabled()) {
+            SearchNode node = ((SearchNode) currentNode.getUserObject());
+            node.setText(node.getText() + " " + s);
+        }
+    }
+
+    public void addInfo(Supplier<String> s) {
+        if(LOG.isDebugEnabled()) {
+            addInfo(s.get());
+        }
     }
 
     public SearchContext qDescend(BitBoard.BitBoardMove move) {
@@ -105,7 +123,6 @@ public class SearchContext implements Comparable<SearchContext> {
     }
 
     public SearchContext flip() {
-        //depth--;
         qDepth++;
         maxQDepth = Math.max(maxQDepth, qDepth);
         return this;
@@ -113,7 +130,7 @@ public class SearchContext implements Comparable<SearchContext> {
 
     public SearchContext qAscend() {
         qDepth--;
-        if(qDepth > 0) {
+        if(LOG.isDebugEnabled() && qDepth > 0) {
             currentNode = (DefaultMutableTreeNode) currentNode.getParent();
         }
         return this;

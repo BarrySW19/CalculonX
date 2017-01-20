@@ -205,7 +205,7 @@ public class FICSInterface {
 	private void reseek() {
 		send("resume");
 		Runnable seeker = () -> {
-            for(int i = 0; i < 6; i++) {
+            for(int i = 0; i < 1; i++) {
                 try { Thread.sleep(15000); } catch (InterruptedException ignored) { }
                 if(gameNumber != -1) {
                         return;
