@@ -46,6 +46,7 @@ public class Bitmaps {
 	public static final long[] diag2Map = new long[64];
 	public static final long[] star2Map = new long[64];
 
+	/** Bitmaps of all the squares between pieces on the two specified indexes */
 	public static final long[][] SLIDE_MOVES = generateSlideMoves();
 
     private static long[][] generateSlideMoves() {

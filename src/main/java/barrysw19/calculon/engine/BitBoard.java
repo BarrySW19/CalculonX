@@ -375,8 +375,24 @@ public class BitBoard {
         return getBitmapColor(color) & bitmaps[MAP_KINGS];
     }
 
+	public final long getBitmapKnights(byte color) {
+		return getBitmapColor(color) & bitmaps[MAP_KNIGHTS];
+	}
+
+	public final long getBitmapBishops(byte color) {
+		return getBitmapColor(color) & bitmaps[MAP_BISHOPS];
+	}
+
     public final long getBitmapPawns(byte color) {
         return getBitmapColor(color) & bitmaps[MAP_PAWNS];
+    }
+
+    public final long getBitmapRooks(byte color) {
+        return getBitmapColor(color) & bitmaps[MAP_ROOKS];
+    }
+
+    public final long getBitmapQueens(byte color) {
+        return getBitmapColor(color) & bitmaps[MAP_QUEENS];
     }
 
     public static String toPrettyString(long val) {

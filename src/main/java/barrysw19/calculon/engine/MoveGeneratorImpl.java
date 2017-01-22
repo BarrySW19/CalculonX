@@ -26,9 +26,10 @@ import java.util.*;
 import static java.util.stream.Collectors.toList;
 
 public class MoveGeneratorImpl implements MoveGenerator {
-    private static final int[] DIR_LINE = new int[] { Bitmaps.BM_U, Bitmaps.BM_D, Bitmaps.BM_L, Bitmaps.BM_R, };
-    private static final int[] DIR_DIAG = new int[] { Bitmaps.BM_UR, Bitmaps.BM_DR, Bitmaps.BM_UL, Bitmaps.BM_DL, };
     private static final List<PieceMoveGenerator> MASTER;
+
+    private static final long EDGES = BitBoard.getFileMap(0) | BitBoard.getFileMap(7)
+            | BitBoard.getRankMap(0) | BitBoard.getRankMap(7);
 	
 	static {
         final List<PieceMoveGenerator> list = new LinkedList<>();
@@ -56,6 +57,111 @@ public class MoveGeneratorImpl implements MoveGenerator {
         context = new MoveGeneratorContext(bitBoard);
         drawnByRule = bitBoard.isDrawnByRule();
 	}
+
+    public static SquareCounts calculateSquareCounting(BitBoard bitBoard, byte color) {
+        SquareCounts squareCounts = new SquareCounts();
+	    calculateSquareCounting(bitBoard, color, squareCounts, 1);
+	    calculateSquareCounting(bitBoard, color == Piece.WHITE ? Piece.BLACK: Piece.WHITE, squareCounts, -1);
+	    return squareCounts;
+    }
+
+    private static void calculateSquareCounting(BitBoard bitBoard, byte color, SquareCounts squareCounts, int sign) {
+        long[] pawnAttacks = color == Piece.WHITE ? PawnCaptureGenerator.WHITE_ATTACK : PawnCaptureGenerator.BLACK_ATTACK;
+	    for(long p: BitIterable.of(bitBoard.getBitmapPawns(color))) {
+	        squareCounts.addCounts(pawnAttacks[Long.numberOfTrailingZeros(p)], sign);
+        }
+
+        for(long s: BitIterable.of(bitBoard.getBitmapKnights(color))) {
+            squareCounts.addCounts(KnightMoveGenerator.KNIGHT_MOVES[Long.numberOfTrailingZeros(s)], sign);
+        }
+
+        squareCounts.addCounts(KingMoveGenerator.KING_MOVES[Long.numberOfTrailingZeros(bitBoard.getBitmapKings(color))], sign);
+
+        for(long s: BitIterable.of(bitBoard.getBitmapBishops(color)|bitBoard.getBitmapQueens(color))) {
+            int pos = Long.numberOfTrailingZeros(s);
+            for(long enemy: BitIterable.of(Bitmaps.diag2Map[pos] & (bitBoard.getAllPieces() | EDGES))) {
+                long between = Bitmaps.SLIDE_MOVES[pos][Long.numberOfTrailingZeros(enemy)];
+                if(Long.bitCount(between & bitBoard.getAllPieces()) == 0) {
+                    squareCounts.addCounts(between|enemy, sign);
+                }
+            }
+        }
+
+        for(long s: BitIterable.of(bitBoard.getBitmapRooks(color)|bitBoard.getBitmapQueens(color))) {
+            int pos = Long.numberOfTrailingZeros(s);
+            for(long enemy: BitIterable.of(Bitmaps.cross2Map[pos] & (bitBoard.getAllPieces() | EDGES))) {
+                long between = Bitmaps.SLIDE_MOVES[pos][Long.numberOfTrailingZeros(enemy)];
+                if(Long.bitCount(between & bitBoard.getAllPieces()) == 0) {
+                    squareCounts.addCounts(between|enemy, sign);
+                }
+            }
+        }
+    }
+
+    public static class SquareCounts {
+	    private int[] counts = new int[64];
+
+	    public void addCounts(long bitmap, int sign) {
+	        for(long l: BitIterable.of(bitmap)) {
+	            int key = Long.numberOfTrailingZeros(l);
+	            counts[key] += sign;
+            }
+        }
+
+        public long getPositiveSquares() {
+	        long bitmap = 0;
+	        for(int i = 0; i < 64; i++) {
+	            if(counts[i] > 0) {
+	                bitmap |= 1L<<i;
+                }
+            }
+            return bitmap;
+        }
+
+        public long getNegativeSquares() {
+            long bitmap = 0;
+            for(int i = 0; i < 64; i++) {
+                if(counts[i] < 0) {
+                    bitmap |= 1L<<i;
+                }
+            }
+            return bitmap;
+        }
+    }
+
+	public static long calculateAllAttackedSquares(BitBoard bitBoard, byte color) {
+	    long myPawns = bitBoard.getBitmapPawns(color);
+        long attacked = color == Piece.WHITE
+                ? (myPawns & ~BitBoard.getFileMap(0)) << 7 | (myPawns & ~BitBoard.getFileMap(7)) << 9
+                : (myPawns & ~BitBoard.getFileMap(0)) >>> 9 | (myPawns & ~BitBoard.getFileMap(7)) >> 7;
+        for(long s: BitIterable.of(bitBoard.getBitmapKnights(color))) {
+            attacked |= KnightMoveGenerator.KNIGHT_MOVES[Long.numberOfTrailingZeros(s)];
+        }
+
+        attacked |= KingMoveGenerator.KING_MOVES[Long.numberOfTrailingZeros(bitBoard.getBitmapKings(color))];
+
+        for(long s: BitIterable.of(bitBoard.getBitmapBishops(color)|bitBoard.getBitmapQueens(color))) {
+            int pos = Long.numberOfTrailingZeros(s);
+            for(long enemy: BitIterable.of(Bitmaps.diag2Map[pos] & (bitBoard.getAllPieces() | EDGES))) {
+                long between = Bitmaps.SLIDE_MOVES[pos][Long.numberOfTrailingZeros(enemy)];
+                if(Long.bitCount(between & bitBoard.getAllPieces()) == 0) {
+                    attacked |= between|enemy;
+                }
+            }
+        }
+
+        for(long s: BitIterable.of(bitBoard.getBitmapRooks(color)|bitBoard.getBitmapQueens(color))) {
+            int pos = Long.numberOfTrailingZeros(s);
+            for(long enemy: BitIterable.of(Bitmaps.cross2Map[pos] & (bitBoard.getAllPieces() | EDGES))) {
+                long between = Bitmaps.SLIDE_MOVES[pos][Long.numberOfTrailingZeros(enemy)];
+                if(Long.bitCount(between & bitBoard.getAllPieces()) == 0) {
+                    attacked |= between|enemy;
+                }
+            }
+        }
+
+        return attacked;
+    }
 
     /**
      * <p>Potential pins is a quick way to determine which moves need to be checked for discovered checks.

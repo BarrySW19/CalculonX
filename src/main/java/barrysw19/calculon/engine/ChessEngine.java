@@ -41,7 +41,7 @@ public class ChessEngine {
     private final static Logger LOG = LoggerFactory.getLogger(ChessEngine.class);
     // As we can't have -MIN_VALUE being used...
     private final static int BIG_VALUE = 9_999_999;
-    private final static int PRUNE_MARGIN = 1000; // Drop moves this much worse than best move.
+    private final static int PRUNE_MARGIN = 2000; // Drop moves this much worse than best move.
 
     private static final ExecutorService executorService = Executors.newFixedThreadPool(2);
 

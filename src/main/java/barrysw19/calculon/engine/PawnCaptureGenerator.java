@@ -28,6 +28,28 @@ import static java.util.stream.Collectors.toList;
 class PawnCaptureGenerator implements PieceMoveGenerator {
     private static final int[] PROMOTE_PIECES = { Piece.QUEEN, Piece.ROOK, Piece.BISHOP, Piece.KNIGHT };
 
+    public static long[] WHITE_ATTACK = new long[64];
+    public static long[] BLACK_ATTACK = new long[64];
+
+    static {
+        for(int r = 0; r < 8; r++) {
+            for(int f = 0; f < 8; f++) {
+                long wAttacked = 0, bAttacked = 0;
+                long position = (1L << (r << 3)) << f;
+                if (f < 7) {
+                    wAttacked |= position<<9;
+                    bAttacked |= position>>>7;
+                }
+                if (f > 0) {
+                    wAttacked |= position<<7;
+                    bAttacked |= position>>>9;
+                }
+                WHITE_ATTACK[r * 8 + f] = wAttacked;
+                BLACK_ATTACK[r * 8 + f] = bAttacked;
+            }
+        }
+    }
+
 	@Override
     public Iterator<BitBoardMove> iterator(final MoveGeneratorImpl.MoveGeneratorContext context) {
         byte player = context.getBitBoard().getPlayer();

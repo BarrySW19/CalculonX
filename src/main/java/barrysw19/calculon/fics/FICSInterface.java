@@ -20,6 +20,8 @@ package barrysw19.calculon.fics;
 import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.engine.ChessEngine;
 import barrysw19.calculon.engine.ClockStatus;
+import barrysw19.calculon.gui.AnalyseWindow;
+import barrysw19.calculon.gui.GuiBoard;
 import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
@@ -30,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -61,6 +64,8 @@ public class FICSInterface {
 	private boolean blockOn = false;
 	private int blockCount = 1;
 	private Map<Byte, ClockStatus> clocks = new HashMap<>();
+
+	private static GuiBoard guiBoard = new GuiBoard(75);
 	
 	public static void main(String[] args) throws Exception {
 		
@@ -69,7 +74,12 @@ public class FICSInterface {
 			LOG.error("password must be specified.");
 			System.exit(-1);
 		}
-		
+
+		JFrame jFrame = new JFrame("Calculon");
+		jFrame.getContentPane().add(guiBoard);
+		jFrame.pack();
+		jFrame.setVisible(true);
+
 		while(!shutdown) {
 			try {
 				new FICSInterface().connect();
@@ -476,7 +486,8 @@ public class FICSInterface {
 				LOG.warn("Out of sync board detected - resetting!");
 				currentBoard = style12.getBoard();
 			}
-			
+
+            guiBoard.setBoard(currentBoard);
 			if(currentBoard.getRepeatedCount() >= 3) {
 				LOG.info("Claiming draw by 3-fold repitition (opp move)");
 				send("draw");
@@ -486,6 +497,7 @@ public class FICSInterface {
 			String bookMove = openingBook.getBookMove(currentBoard);
 			if(bookMove != null) {
 				PGNUtils.applyMove(currentBoard, bookMove);
+                guiBoard.setBoard(currentBoard);
 				send(bookMove);
 				LOG.debug("Using book move: " + bookMove);
 				return;
@@ -511,6 +523,7 @@ public class FICSInterface {
                         LOG.info("Moving: " + PGNUtils.translateMove(myBoard, bestMove));
                         if(currentBoard != null) {
                             PGNUtils.applyMove(currentBoard, PGNUtils.translateMove(myBoard, bestMove));
+                            guiBoard.setBoard(currentBoard);
                         }
                         send(bestMove.toLowerCase());
                         if(currentBoard.getRepeatedCount() >= 3) {

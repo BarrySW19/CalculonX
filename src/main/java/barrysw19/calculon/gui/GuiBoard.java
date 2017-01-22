@@ -1,18 +1,24 @@
 package barrysw19.calculon.gui;
 
 import barrysw19.calculon.engine.BitBoard;
+import barrysw19.calculon.engine.MoveGeneratorImpl;
+import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.util.BitIterable;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class GuiBoard extends JPanel {
-    private Color cDark = new Color(255, 206, 158);
-    private Color cLight = new Color(209, 139, 71);
+//    private Color cDark = new Color(255, 206, 158);
+//    private Color cLight = new Color(209, 139, 71);
+    private Color cDark = new Color(128, 128, 128);
+    private Color cLight = new Color(224, 224, 224);
     private int dimension;
     private GuiComponents guiComponents;
     private BitBoard board = new BitBoard().initialise();
     private boolean reversed = false;
+
+    private boolean highlightAttacks = true;
 
     public GuiBoard(int dimension) {
         this.dimension = dimension;
@@ -42,10 +48,28 @@ public class GuiBoard extends JPanel {
             }
             g2d.drawImage(guiComponents.getImage(piece), coords[0] * dimension, (7 - coords[1]) * dimension, this);
         }
+
+        if(highlightAttacks) {
+            g2d.setColor(new Color(255, 0, 0, 96));
+            MoveGeneratorImpl.SquareCounts squareCounts = MoveGeneratorImpl.calculateSquareCounting(board, Piece.WHITE);
+            for(long pos: BitIterable.of(squareCounts.getPositiveSquares())) {
+                int square = Long.numberOfTrailingZeros(pos);
+                int y = 7 - (square>>>3);
+                g2d.fillRect((square&0x07) * dimension, y * dimension, dimension, dimension);
+            }
+
+            g2d.setColor(new Color(0, 255, 0, 96));
+            for(long pos: BitIterable.of(squareCounts.getNegativeSquares())) {
+                int square = Long.numberOfTrailingZeros(pos);
+                int y = 7 - (square>>>3);
+                g2d.fillRect((square&0x07) * dimension, y * dimension, dimension, dimension);
+            }
+        }
     }
 
     public void setBoard(BitBoard board) {
         this.board = board;
+        repaint();
     }
 
     public boolean isReversed() {

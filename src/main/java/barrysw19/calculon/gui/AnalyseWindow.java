@@ -1,5 +1,7 @@
-package barrysw19.calculon.engine;
+package barrysw19.calculon.gui;
 
+import barrysw19.calculon.engine.BitBoard;
+import barrysw19.calculon.engine.SearchContext;
 import barrysw19.calculon.gui.GuiBoard;
 
 import javax.swing.*;
