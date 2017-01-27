@@ -18,7 +18,6 @@ public class PassedPawnScorerTest {
         BitBoard board = FENUtils.getBoard(FEN);
         assertEquals(0b00000000_00000000_00000000_00001000_00000000_00000000_00000000_00000000L, PassedPawnScorer.getPassedPawns(board, Piece.WHITE));
         assertEquals(0b00000000_00000001_00000010_00000000_00000000_00000000_00000000_00000000L, PassedPawnScorer.getPassedPawns(board, Piece.BLACK));
-        System.out.println(GameScorer.getDefaultScorer().score(board));
 
         int score = new PassedPawnScorer().scorePosition(board, null);
         assertTrue(score > 0); // White advantage

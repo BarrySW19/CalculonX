@@ -29,15 +29,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
 
 public class PGNUtils {
     private static final Logger LOG = LoggerFactory.getLogger(PGNUtils.class);
+    private static final String REGEX_MOVE = "([RNBQK]?[1-8a-h]?x?[a-h][1-8][+#]?)|(O[-O]{1,2})";
+    private static final String PGN_HEADER = "\\[(.*) (.*)\\]\\w+";
 
-	private PGNUtils() {
-	}
+	private PGNUtils() { }
 
 	public static void applyMove(BitBoard bitBoard, String move) {
 		Optional<String> algMove = Optional.ofNullable(PGNUtils.toPgnMoveMap(bitBoard).get(move));
@@ -58,16 +61,20 @@ public class PGNUtils {
     }
 
     public static void applyMoves(BitBoard bitBoard, String... moves) {
-		for(String s: moves) {
-			applyMove(bitBoard, s);
-		}
-	}
+        applyMoves(bitBoard, Arrays.asList(moves));
+    }
 
-	public static Set<String> getAllMoves(final BitBoard bitBoard) {
+    public static void applyMoves(BitBoard bitBoard, List<String> moves) {
+        for(String s: moves) {
+            applyMove(bitBoard, s);
+        }
+    }
+
+    public static Set<String> getAllMoves(final BitBoard bitBoard) {
         return new MoveGeneratorImpl(bitBoard).getAllRemainingMoves().stream()
                 .map(BitBoardMove::getAlgebraic).map(m -> PGNUtils.translateMove(bitBoard, m)).collect(toSet());
     }
-	
+
 	public static Map<String, String> toPgnMoveMap(BitBoard bitBoard) {
 		List<BitBoardMove> allMoves = new MoveGeneratorImpl(bitBoard).getAllRemainingMoves();
 		Map<String, String> rv = new HashMap<>();
@@ -222,4 +229,18 @@ public class PGNUtils {
 		bitBoard.unmakeMove();
 		return move.toString();
 	}
+
+	public static List<String> splitNotation(String gameDetail) {
+        Matcher matcher = Pattern.compile(REGEX_MOVE).matcher(gameDetail);
+        List<String> moves = Lists.newArrayList();
+        while(matcher.find()) {
+            moves.add(matcher.group(0));
+        }
+        return moves;
+    }
+
+    public static class Game {
+        private Map<String, String> headers = new HashMap<>();
+        private List<String> moves = new ArrayList<>();
+    }
 }

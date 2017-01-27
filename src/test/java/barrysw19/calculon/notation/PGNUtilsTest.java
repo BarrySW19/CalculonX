@@ -17,13 +17,21 @@
  */
 package barrysw19.calculon.notation;
 
+import barrysw19.calculon.analyzer.GameScorer;
+import barrysw19.calculon.analyzer.MaterialScorer;
 import barrysw19.calculon.engine.BitBoard;
+import barrysw19.calculon.engine.ChessEngine;
+import com.google.common.collect.Sets;
 import org.junit.Test;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class NotationTest {
+public class PGNUtilsTest {
 
     @Test
 	public void testPgnMoves() {
@@ -61,4 +69,26 @@ public class NotationTest {
 		FENUtils.loadPosition("r3kbnr/ppp1qppp/n3p3/8/b3P3/2NK1N2/PPPP1PPP/R1BQ1B1R b kq - 0 7", bb);
 		assertTrue(PGNUtils.toPgnMoveMap(bb).containsKey("O-O-O+"));
 	}
+
+	@Test
+	public void testAllMoveGeneration() {
+        Set<String> moves = PGNUtils.getAllMoves(new BitBoard().initialise());
+		assertEquals(Sets.newHashSet("Na3", "Nc3", "Nf3", "Nh3", "a3", "a4", "b3", "b4", "c3", "c4", "d3", "d4", "e3", "e4", "f3", "f4", "g3", "g4", "h3", "h4"), moves);
+	}
+
+	@Test
+    public void testLoadMoves() {
+        System.out.println(new Date());
+        final String moves = "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 e6 6. Be3 Be7 7. Bb5+ Bd7\n" +
+                "8. Be2 Nc6 9. O-O O-O 10. Ndb5 Qb8 11. Bf4 e5 12. Bg5 Be6 13. Qd3 a6 14. Bxf6\n" +
+                "gxf6 15. Na3 b5 16. Nd5 Qa7 17. Qf3 Bxd5 18. exd5 Nd4 19. Qg4+ Kh8 20. Bd3\n" +
+                "Rg8 21. Qh3 Rg7 22. c3 b4 23. cxb4 Rag8 24. Kh1 Qb8 25. b5 axb5 26. b4 Qa7\n" +
+                "27. Nxb5 Nxb5 28. Bxb5 Qd4 29. Rad1 Qxb4 30. Bd3 e4 31. Be2 Rxg2";
+        List<String> results = PGNUtils.splitNotation(moves);
+        BitBoard bitBoard = new BitBoard().initialise();
+        PGNUtils.applyMoves(bitBoard, results);
+        ChessEngine chessEngine = new ChessEngine(30);
+        GameScorer gameScorer = new GameScorer().addScorer(new MaterialScorer());
+        chessEngine.getScoredMoves(bitBoard).forEach(sc -> System.out.println(sc + " " + PGNUtils.translateMove(bitBoard, sc.getAlgebraicMove())) );
+    }
 }
