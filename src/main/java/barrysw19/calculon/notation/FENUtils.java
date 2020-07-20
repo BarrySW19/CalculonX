@@ -1,4 +1,4 @@
-/**
+/*
  * Calculon - A Java chess-engine.
  *
  * Copyright (C) 2008-2009 Barry Smith
@@ -20,46 +20,30 @@ package barrysw19.calculon.notation;
 import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.engine.EngineUtils;
 import barrysw19.calculon.model.Piece;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class FENUtils {
 	private static final String FILES = "abcdefgh";
 
 	public static String generate(BitBoard bitBoard) {
-		StringBuilder fen = new StringBuilder();
-		fen.append(generatePosition(bitBoard));
-		
-		fen.append(" ").append(bitBoard.getPlayer() == Piece.WHITE ? "w" : "b");
-		fen.append(" ").append(generateCastling(bitBoard));
-		fen.append(" ").append(generateEnPassant(bitBoard));
-		fen.append(" ").append(bitBoard.getHalfMoveCount());
-		fen.append(" ").append(bitBoard.getMoveNumber());
-		
-		return fen.toString();
+		return generateWithoutMoveCounts(bitBoard) + " " + bitBoard.getHalfMoveCount() +
+				" " + bitBoard.getMoveNumber();
 	}
 	
 	public static String generateWithoutMoveCounts(BitBoard bitBoard) {
-		StringBuilder fen = new StringBuilder();
-		fen.append(generatePosition(bitBoard));
-		
-		fen.append(" ").append(bitBoard.getPlayer() == Piece.WHITE ? "w" : "b");
-		fen.append(" ").append(generateCastling(bitBoard));
-		fen.append(" ").append(generateEnPassant(bitBoard));
-		
-		return fen.toString();
+		return generatePosition(bitBoard) +
+				" " + (bitBoard.getPlayer() == Piece.WHITE ? "w" : "b") +
+				" " + generateCastling(bitBoard) +
+				" " + generateEnPassant(bitBoard);
 	}
 	
 	public static String generateEnPassant(BitBoard board) {
-
 		if( ! board.isEnPassant()) { 
 			return "-";
 		}
-		
-		StringBuilder fen = new StringBuilder();
-		fen.append(Character.toLowerCase(EngineUtils.FILES.charAt(board.getEnPassantFile())));
-		fen.append(EngineUtils.RANKS.charAt(board.getEnPassantRank()));
-		
-		return fen.toString();
+
+		return String.valueOf(Character.toLowerCase(EngineUtils.FILES.charAt(board.getEnPassantFile()))) +
+				EngineUtils.RANKS.charAt(board.getEnPassantRank());
 	}
 	
 	public static String generateCastling(BitBoard board) {

@@ -26,7 +26,7 @@ import barrysw19.calculon.notation.PGNUtils;
 import barrysw19.calculon.notation.Style12;
 import barrysw19.calculon.opening.OpeningBook;
 import org.apache.commons.digester.Digester;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ public class FICSInterface {
 
 	private Socket connection;
 	private Thread moveThread = null;
-	private List<ConnectionListener> listeners = new ArrayList<>();
+	private final List<ConnectionListener> listeners = new ArrayList<>();
 	private PrintStream out;
 	private String opponent = null;
 	private boolean rated = false;
@@ -55,14 +55,14 @@ public class FICSInterface {
 	private boolean playingWhite = true;
 	private boolean accept = true;
 	private boolean alive = true;
-	private OpeningBook openingBook;
+	private final OpeningBook openingBook;
 //	private GameScorer currentScorer;
 	private BitBoard currentBoard;
 	private boolean blockOn = false;
 	private int blockCount = 1;
-	private Map<Byte, ClockStatus> clocks = new HashMap<>();
+	private final Map<Byte, ClockStatus> clocks = new HashMap<>();
 	
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 		
 		if(System.getProperty("calculon.password") == null)
 		{
@@ -221,7 +221,7 @@ public class FICSInterface {
 
 	private synchronized void send(String s) {
 		if(blockOn) {
-			s = (String.valueOf(blockCount++) + " " + s);
+			s = (blockCount++ + " " + s);
 			if(blockCount > 9) {
 				blockCount = 1;
 			}
@@ -248,13 +248,13 @@ public class FICSInterface {
 		void message(String s);
 	}
 
-	private class DebugListener implements ConnectionListener {
+	private static class DebugListener implements ConnectionListener {
 		public void message(String s) {
 			LOG.debug("<<< " + s);
 		}
 	}
 
-	private class ReseekListener implements ConnectionListener {
+	private static class ReseekListener implements ConnectionListener {
 		public void message(String s) {
 		}
 	}
@@ -372,7 +372,7 @@ public class FICSInterface {
 	}
 	
 	private class GameEndedListener implements ConnectionListener {
-		private String[] PATTERNS = new String[] {
+		private final String[] PATTERNS = new String[] {
 				" resigns}",
 				" checkmated}",
 				" forfeits on time}",
@@ -529,8 +529,8 @@ public class FICSInterface {
 		}
 	}
 	
-	private class BlockListener implements ConnectionListener {
-		private StringBuffer currentBlock = new StringBuffer();
+	private static class BlockListener implements ConnectionListener {
+		private final StringBuffer currentBlock = new StringBuffer();
 		private boolean inBlock = false;
 		
 		@Override
@@ -555,7 +555,7 @@ public class FICSInterface {
 	}
 	
 	@SuppressWarnings("unused")
-	private class ResponseBlock {
+	private static class ResponseBlock {
 		private int blockId;
 		private int responseCode;
 		private String data;

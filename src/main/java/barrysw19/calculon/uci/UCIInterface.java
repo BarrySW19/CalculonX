@@ -33,8 +33,7 @@ import barrysw19.calculon.engine.ChessEngine;
 import barrysw19.calculon.notation.PGNUtils;
 import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.notation.FENUtils;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class UCIInterface {
 	private static Logger log = Logger.getLogger(UCIInterface.class.getName());

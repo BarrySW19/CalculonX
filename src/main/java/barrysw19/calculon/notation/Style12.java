@@ -19,7 +19,7 @@ package barrysw19.calculon.notation;
 
 import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.model.Piece;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;

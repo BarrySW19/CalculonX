@@ -85,8 +85,10 @@ public class OpeningBook {
 	}
 	
 	public static class MoveList {
+		@JsonSerialize
 		private String position;
-		private Map<String, Integer> moves = new HashMap<String, Integer>();
+		@JsonSerialize
+		private final Map<String, Integer> moves = new HashMap<String, Integer>();
 		
 		public void setPosition(String position) {
 			this.position = position;

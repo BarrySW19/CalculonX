@@ -1,4 +1,4 @@
-/**
+/*
  * Calculon - A Java chess-engine.
  * <p/>
  * Copyright (C) 2008-2013 Barry Smith
@@ -27,7 +27,7 @@ import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.Style12;
 import barrysw19.calculon.opening.OpeningBook;
 import org.apache.commons.digester.Digester;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,21 +45,21 @@ public class ICCInterface {
 
     private Socket connection;
     private Thread moveThread = null;
-    private List<ConnectionListener> listeners = new ArrayList<>();
-    private List<BlockHandler> blockHandlers = new ArrayList<>();
+    private final List<ConnectionListener> listeners = new ArrayList<>();
+    private final List<BlockHandler> blockHandlers = new ArrayList<>();
     private PrintStream out;
     private String opponent = null;
     private boolean rated = true;
     private boolean accept = true;
     private boolean alive = true;
     private BitBoard currentBoard;
-    private OpeningBook openingBook;
-    private Map<Byte, ClockStatus> clocks = new HashMap<>();
-    private Lv1BlockHandler lv1BlockHandler = new Lv1BlockHandler(this);
+    private final OpeningBook openingBook;
+    private final Map<Byte, ClockStatus> clocks = new HashMap<>();
+    private final Lv1BlockHandler lv1BlockHandler = new Lv1BlockHandler(this);
 
     private volatile int gameNumber = -1;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         if (System.getProperty("calculon.password") == null) {
             LOG.error("password must be specified.");
             System.exit(-1);
@@ -195,7 +195,7 @@ public class ICCInterface {
 
     private void receiveLevel2(DgCommand... dgCommands) {
         for (DgCommand dgCommand : dgCommands) {
-            send("set-2 " + String.valueOf(dgCommand.getCommandNumber()) + " 1");
+            send("set-2 " + dgCommand.getCommandNumber() + " 1");
         }
     }
 
@@ -293,13 +293,13 @@ public class ICCInterface {
         boolean accept(ResponseBlockLv2 responseBlock);
     }
 
-    private class DebugListener implements ConnectionListener {
+    private static class DebugListener implements ConnectionListener {
         public void message(String s) {
             LOG.debug("<<< {}", s);
         }
     }
 
-    private class ReseekListener implements ConnectionListener {
+    private static class ReseekListener implements ConnectionListener {
         public void message(String s) {
         }
     }
@@ -552,7 +552,7 @@ public class ICCInterface {
     }
 
     private class BlockLv2Listener implements ConnectionListener {
-        private StringBuffer currentBlock = new StringBuffer();
+        private final StringBuffer currentBlock = new StringBuffer();
 
         public void message(String s) {
             for (int i = 0; i < s.length(); i++) {
