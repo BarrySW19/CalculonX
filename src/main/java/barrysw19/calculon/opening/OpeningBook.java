@@ -17,20 +17,20 @@
  */
 package barrysw19.calculon.opening;
 
+import barrysw19.calculon.engine.BitBoard;
+import barrysw19.calculon.notation.FENUtils;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.apache.commons.digester3.Digester;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import barrysw19.calculon.engine.BitBoard;
-import barrysw19.calculon.notation.FENUtils;
-
-import org.apache.commons.digester.Digester;
-
 public class OpeningBook {
-	private static Logger log = Logger.getLogger(OpeningBook.class.getName());
+	private static final Logger log = Logger.getLogger(OpeningBook.class.getName());
 	private static OpeningBook defaultBook;
 
-	private Map<String, MoveList> book = new HashMap<String, MoveList>();
+	private final Map<String, MoveList> book = new HashMap<String, MoveList>();
 	
 	public static void setUseOpeningBook(boolean useOpeningBook) {
 		if(useOpeningBook) {
@@ -61,7 +61,7 @@ public class OpeningBook {
 
 		try {
 			log.fine("Creating opening book");
-			defaultBook = (OpeningBook) digester.parse(OpeningBook.class.getResourceAsStream("/calculon.xml"));
+			defaultBook = digester.parse(OpeningBook.class.getResourceAsStream("/calculon.xml"));
 			return defaultBook;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -88,7 +88,7 @@ public class OpeningBook {
 		@JsonSerialize
 		private String position;
 		@JsonSerialize
-		private final Map<String, Integer> moves = new HashMap<String, Integer>();
+		private final Map<String, Integer> moves = new HashMap<>();
 		
 		public void setPosition(String position) {
 			this.position = position;

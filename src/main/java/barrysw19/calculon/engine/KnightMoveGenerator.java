@@ -128,7 +128,6 @@ public class KnightMoveGenerator implements PieceMoveGenerator {
         private Iterator<Long> moves;
 
         private final boolean threatsOnly;
-        private boolean possibleDiscovery;
 
         KnightMoveIterator(final MoveGeneratorImpl.MoveGeneratorContext context, final long piecesMap, final boolean threatsOnly) {
             this.context = context;
@@ -146,15 +145,16 @@ public class KnightMoveGenerator implements PieceMoveGenerator {
 
         private void nextPiece() {
             currentPiece = pieces.next();
-            possibleDiscovery = (currentPiece & context.getPotentialDiscoveries()) != 0;
+            boolean possibleDiscovery = (currentPiece & context.getPotentialDiscoveries()) != 0;
             safeFromCheck = ((currentPiece & potentialPins) == 0) & !alreadyInCheck;
 
             long allMoves = KNIGHT_MOVES[Long.numberOfTrailingZeros(currentPiece)] & ~bitBoard.getBitmapColor();
             if(!possibleDiscovery && threatsOnly) {
                 // Discovered checks are not possible, so just try captures and checks.
                 long threatMoves = allMoves & bitBoard.getBitmapOppColor(); // Captures
+                final long oppKingMap = bitBoard.getBitmapOppColor() & bitBoard.getBitmapKings();
                 for(long otherMove: BitIterable.of(allMoves & ~threatMoves)) { // Checks
-                    if((KNIGHT_MOVES[Long.numberOfTrailingZeros(otherMove)] & bitBoard.getBitmapOppColor() & bitBoard.getBitmapKings()) != 0) {
+                    if((KNIGHT_MOVES[Long.numberOfTrailingZeros(otherMove)] & oppKingMap) != 0) {
                         threatMoves |= otherMove;
                     }
                 }

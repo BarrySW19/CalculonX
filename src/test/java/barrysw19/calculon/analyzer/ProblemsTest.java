@@ -10,7 +10,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 // Some chess problems which the engine should easily solve.
-@Ignore // too slow
+//@Ignore // too slow
 public class ProblemsTest {
 
     @Test
@@ -54,7 +54,7 @@ public class ProblemsTest {
         runTest("2r3k1/5pp1/p1n3q1/1pb1rN2/5BP1/2P2Q2/1P1RRK2/8 w - - 3 1", "Kf1", "Rxf5");
     }
 
-    @Test @Ignore("slow")
+    @Test //@Ignore("slow")
     public void testChessTempo003() {
         // The next position after Rxd5 Rxd5
         runTest("2r3k1/p3qppp/2p5/Q2r4/1P2p3/4P3/P3BPPP/2R3K1 w - - 0 3", "Qxd5");

@@ -25,7 +25,7 @@ import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
 import barrysw19.calculon.notation.Style12;
 import barrysw19.calculon.opening.OpeningBook;
-import org.apache.commons.digester.Digester;
+import org.apache.commons.digester3.Digester;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
