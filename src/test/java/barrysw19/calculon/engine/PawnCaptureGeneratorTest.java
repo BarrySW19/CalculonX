@@ -2,11 +2,11 @@ package barrysw19.calculon.engine;
 
 import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PawnCaptureGeneratorTest {
 

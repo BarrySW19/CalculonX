@@ -20,13 +20,13 @@ package barrysw19.calculon.engine;
 import barrysw19.calculon.engine.BitBoard.BitBoardMove;
 import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BitBoardTest {
 
@@ -84,31 +84,31 @@ public class BitBoardTest {
     @Test
 	public void knightCheck() {
 		BitBoard bitBoard = FENUtils.getBoard("7k/8/8/8/8/8/5n2/7K w - - 0 4");
-		assertEquals(true, CheckDetector.isPlayerToMoveInCheck(bitBoard));
+		assertTrue(CheckDetector.isPlayerToMoveInCheck(bitBoard));
 
 		bitBoard = FENUtils.getBoard("7k/8/n7/8/8/6n1/8/7K w - - 0 4");
-		assertEquals(true, CheckDetector.isPlayerToMoveInCheck(bitBoard));
+		assertTrue(CheckDetector.isPlayerToMoveInCheck(bitBoard));
 
 		bitBoard = FENUtils.getBoard("7k/8/n7/8/8/6n1/8/7K b - - 0 4");
-		assertEquals(false, CheckDetector.isPlayerToMoveInCheck(bitBoard));
+		assertFalse(CheckDetector.isPlayerToMoveInCheck(bitBoard));
 
 		bitBoard = FENUtils.getBoard("7k/8/n7/8/8/5n2/8/7K w - - 0 4");
-		assertEquals(false, CheckDetector.isPlayerToMoveInCheck(bitBoard));
+		assertFalse(CheckDetector.isPlayerToMoveInCheck(bitBoard));
 	}
 	
     @Test
 	public void rookCheck() {
 		BitBoard bitBoard = FENUtils.getBoard("7k/8/8/8/8/8/8/r6K w - - 0 4");
-		assertEquals(true, CheckDetector.isPlayerToMoveInCheck(bitBoard));
+		assertTrue(CheckDetector.isPlayerToMoveInCheck(bitBoard));
 	}
 
     @Test
 	public void bishopCheck() {
 		BitBoard board = FENUtils.getBoard("b6k/8/8/8/8/8/8/7K w - - 0 4");
-		assertEquals(true, CheckDetector.isPlayerToMoveInCheck(board));
+		assertTrue(CheckDetector.isPlayerToMoveInCheck(board));
 
 		board = FENUtils.getBoard("B6k/8/8/8/8/8/8/7K w - - 0 4");
-		assertEquals(false, CheckDetector.isPlayerToMoveInCheck(board));
+		assertFalse(CheckDetector.isPlayerToMoveInCheck(board));
 	}
 	
     @Test
@@ -151,11 +151,10 @@ public class BitBoardTest {
 		assertEquals(2, board.getEnPassantRank());
 	}
 
-	static List<BitBoard.BitBoardMove> generateMoves(PieceMoveGenerator generator, BitBoard bitBoard, List<BitBoard.BitBoardMove> moves)
+	static void generateMoves(PieceMoveGenerator generator, BitBoard bitBoard, List<BitBoardMove> moves)
 	{
 		for(Iterator<BitBoardMove> iter = generator.iterator(new MoveGeneratorImpl.MoveGeneratorContext(bitBoard)); iter.hasNext(); ) {
 			moves.add(iter.next());
 		}
-		return moves;
 	}
 }

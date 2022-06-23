@@ -4,14 +4,14 @@ import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toSet;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class KnightMoveGeneratorTest {
 

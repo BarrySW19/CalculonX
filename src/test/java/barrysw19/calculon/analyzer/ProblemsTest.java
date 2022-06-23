@@ -4,10 +4,9 @@ import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.engine.ChessEngine;
 import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 // Some chess problems which the engine should easily solve.
 //@Ignore // too slow

@@ -17,7 +17,7 @@
  */
 package barrysw19.calculon.analyzer;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
 import java.util.Arrays;

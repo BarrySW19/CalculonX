@@ -25,18 +25,18 @@ import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class QuiescenceTest {
     private GameScorer gameScorer;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         gameScorer = new GameScorer();
         gameScorer.addScorer(new MaterialScorer());

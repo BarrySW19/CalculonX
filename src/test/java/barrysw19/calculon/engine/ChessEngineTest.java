@@ -1,19 +1,20 @@
 package barrysw19.calculon.engine;
 
 import barrysw19.calculon.notation.FENUtils;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Ignore // too slow
+@Disabled // too slow
 public class ChessEngineTest {
 
-    @Test @Ignore("need to find out why this evaluation is wrong")
+    @Test
+    @Disabled("need to find out why this evaluation is wrong")
     public void testCorrectCapture() {
         // Calculon 0.5.11 makes the bad move Nxb2 here - best seems to be Nxe3
         BitBoard board = FENUtils.getBoard("r3kb1r/ppp1pppp/2n5/4P3/3P2B1/4BN2/PP3PPP/R2nK2R b KQkq - 0 11");
@@ -26,7 +27,8 @@ public class ChessEngineTest {
         assertTrue(ctx1.getScore() < ctx2.getScore());
     }
 
-    @Test @Ignore("Need to make engine simplify when advantageous")
+    @Test
+    @Disabled("Need to make engine simplify when advantageous")
     public void testSimplify() {
         BitBoard board = FENUtils.getBoard("8/R1R2pk1/5q1p/1p6/8/5PP1/PP3PK1/8 w - - 0 32");
         ChessEngine chessEngine = new ChessEngine(600);

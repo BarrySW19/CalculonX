@@ -3,10 +3,10 @@ package barrysw19.calculon.analyzer;
 import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.notation.FENUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PassedPawnScorerTest {
     // Spassky-Petrosian - White's passed pawn is superior

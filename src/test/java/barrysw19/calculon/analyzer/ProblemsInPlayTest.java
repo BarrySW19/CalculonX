@@ -4,11 +4,12 @@ import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.engine.ChessEngine;
 import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-@Ignore("too slow for Travis build")
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+//@Disabled("too slow for Travis build")
 public class ProblemsInPlayTest {
 
     /**
@@ -25,7 +26,8 @@ public class ProblemsInPlayTest {
         runTest("3k4/R7/p1BB1N2/P7/7P/8/KP6/8 w - - 0 1", "Ra8#");
     }
 
-    @Test @Ignore("fix by improving engine")
+    @Test
+    @Disabled("fix by improving engine")
     public void testBadMove1() {
         runTest("r2qkb1r/1Q3ppp/p4n2/2p1p3/3nP3/N7/PPP2P1P/R1B1KB1R b kq - 0 15", "Rb8"); // Qa5+ is bad
     }
@@ -40,6 +42,6 @@ public class ProblemsInPlayTest {
         engine.setQDepth(7);
         BitBoard board = FENUtils.getBoard(fen);
         String move = engine.getPreferredMove(board);
-        Assert.assertEquals(pgn, PGNUtils.translateMove(board, move));
+        assertEquals(pgn, PGNUtils.translateMove(board, move));
     }
 }

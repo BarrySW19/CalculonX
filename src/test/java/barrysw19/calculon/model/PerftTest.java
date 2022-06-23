@@ -21,7 +21,7 @@ import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.engine.BitBoard.BitBoardMove;
 import barrysw19.calculon.engine.MoveGeneratorImpl;
 import barrysw19.calculon.notation.FENUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ import java.util.stream.LongStream;
 import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * These tests verify the move generation software. The number of possible moves at various depths
@@ -43,7 +43,7 @@ import static org.junit.Assert.assertEquals;
  * with the 'perft' command.
  */
 public class PerftTest {
-    private static Logger LOG = LoggerFactory.getLogger(PerftTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PerftTest.class);
 
     private static final long MAX_COUNT = 3_000_000;
 
@@ -124,7 +124,7 @@ public class PerftTest {
         BigDecimal execTime = new BigDecimal(System.currentTimeMillis());
         executeBoard(FENUtils.getBoard(config.position), useCounts);
         execTime = new BigDecimal(System.currentTimeMillis()).subtract(execTime).scaleByPowerOfTen(-3);
-        LOG.info(String.format("Test took %s seconds.", execTime.toString()));
+        LOG.info(String.format("Test took %s seconds.", execTime));
     }
 
     private void executeBoard(BitBoard board, List<Long> expect) {
@@ -157,19 +157,12 @@ public class PerftTest {
         return count;
     }
 
-    private static class PerftTestConfig {
-        private String position;
-        private long[] expectedCounts;
-
-        private PerftTestConfig(String position, long... expectedCounts) {
-            this.position = position;
-            this.expectedCounts = expectedCounts;
-        }
+    private record PerftTestConfig(String position, long... expectedCounts) {
     }
 
     private static class CalcSpliterator implements Spliterator.OfLong {
+        private final BitBoard bitBoard;
         private int depth;
-        private BitBoard bitBoard;
         private List<BitBoardMove> moves;
         private boolean todo = true;
 

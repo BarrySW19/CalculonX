@@ -1,14 +1,12 @@
 package barrysw19.calculon.util;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.PrimitiveIterator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BitIteratorTest {
 
@@ -36,15 +34,18 @@ public class BitIteratorTest {
         assertEquals(0x8000000000000000L, iterator.next().longValue());
     }
 
-    @Test(expected = NoSuchElementException.class)
+    @Test
     public void testZero() {
-        BitIterable bitIterable = BitIterable.of(0x1);
-        Iterator<Long> iterator = bitIterable.iterator();
-        assertTrue(iterator.hasNext());
+        assertThrows(NoSuchElementException.class,
+                () -> {
+                    BitIterable bitIterable = BitIterable.of(0x1);
+                    Iterator<Long> iterator = bitIterable.iterator();
+                    assertTrue(iterator.hasNext());
 
-        assertEquals(1L, iterator.next().longValue());
-        assertFalse(iterator.hasNext());
-        iterator.next();
+                    assertEquals(1L, iterator.next().longValue());
+                    assertFalse(iterator.hasNext());
+                    iterator.next();
+                });
     }
 
     @Test

@@ -3,7 +3,7 @@ package barrysw19.calculon.analyzer;
 import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.notation.FENUtils;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Calculon - A Java chess-engine.

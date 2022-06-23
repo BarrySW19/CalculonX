@@ -4,21 +4,22 @@ import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.engine.ChessEngine;
 import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Check the engine can force mate in K+Q v K and K+R v K endgames.
  */
-@Ignore // Too slow for normal builds
+@Disabled // Too slow for normal builds
 public class ForcedMateTest {
     private static final Logger LOG = LoggerFactory.getLogger(ForcedMateTest.class);
 
-    @Test @Ignore
+    @Test
+    @Disabled
     public void playKingQueenPawnVsKingEndgame() {
         expectForcedMateFromPosition("Q7/8/8/8/3k4/8/P7/7K w - - 0 0", 50);
     }

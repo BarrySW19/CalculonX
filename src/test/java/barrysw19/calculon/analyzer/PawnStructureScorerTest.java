@@ -17,7 +17,7 @@
  */
 package barrysw19.calculon.analyzer;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class PawnStructureScorerTest extends AbstractAnalyserTest {
 
