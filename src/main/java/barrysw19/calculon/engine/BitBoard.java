@@ -1,28 +1,32 @@
-/**
- * Calculon - A Java chess-engine.
- *
- * Copyright (C) 2008-2010 Barry Smith
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
- * implied. See the License for the specific language governing
- * permissions and limitations under the License.
+/*
+  Calculon - A Java chess-engine.
+
+  Copyright (C) 2008-2010 Barry Smith
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+  implied. See the License for the specific language governing
+  permissions and limitations under the License.
  */
 package barrysw19.calculon.engine;
 
 import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.model.Result;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Stack;
 
 
+@SuppressWarnings("UnusedReturnValue")
 public class BitBoard {
 	public static final long FINAL_RANKS = 255L<<56 | 255L;
 	
@@ -46,7 +50,7 @@ public class BitBoard {
 
     private final static int IDX_FLAGS  = 7;
     private static final long PLAYER_MASK = 0x100;
-	private long bitmaps[] = new long[9];
+	private long[] bitmaps = new long[9];
 
 	private short moveCount;
     //private short halfMoveCount;
@@ -54,9 +58,9 @@ public class BitBoard {
     private Stack<ReverseMove> reverseMoves = new Stack<>();
 
     private static class ReverseMove {
-        private long[] reverseBitmaps = new long[9];
-        private short reverseHalfMove;
-        private BitBoardMove reverseMove;
+        private final long[] reverseBitmaps = new long[9];
+        private final BitBoardMove reverseMove;
+		private short reverseHalfMove;
 
         private ReverseMove(int reverseHalfMove, BitBoardMove reverseMove) {
             this.reverseHalfMove = (short) reverseHalfMove;
@@ -94,9 +98,7 @@ public class BitBoard {
 	 * @return The BitBoard itself.
 	 */
 	public BitBoard clear() {
-		for(int i = 0; i < bitmaps.length; i++) {
-			bitmaps[i] = 0;
-		}
+		Arrays.fill(bitmaps, 0);
 		invalidateHistory();
 		
 		return this;
@@ -147,7 +149,7 @@ public class BitBoard {
         bitmaps[IDX_FLAGS] &= ~EN_PASSANT_MASK;
 		if(file != -1) {
             bitmaps[IDX_FLAGS] |= IS_EN_PASSANT;
-            bitmaps[IDX_FLAGS] |= (file<<5);
+            bitmaps[IDX_FLAGS] |= ((long) file <<5);
 		}
 		return this;
 	}
@@ -160,11 +162,9 @@ public class BitBoard {
 	public BitBoard initialise() {
 		bitmaps = new long[9];
 		bitmaps[Piece.WHITE] = 0xFFFFL;
-        //noinspection NumericOverflow
-        bitmaps[Piece.BLACK] = 0xFFFFL<<48;
+		bitmaps[Piece.BLACK] = 0xFFFFL<<48;
 		bitmaps[Piece.PAWN] = 0xFFL<<48 | 0xFFL<<8;
-        //noinspection NumericOverflow
-        bitmaps[Piece.ROOK] = 0x81L<<56 | 0x81L;
+		bitmaps[Piece.ROOK] = 0x81L<<56 | 0x81L;
 		bitmaps[Piece.KNIGHT] = 0x42L<<56 | 0x42L;
 		bitmaps[Piece.BISHOP] = 0x24L<<56 | 0x24L;
 		bitmaps[Piece.QUEEN] = 0x08L<<56 | 0x08L;
@@ -223,23 +223,19 @@ public class BitBoard {
 	}
 
 	public String toString() {
-		StringBuilder buf = new StringBuilder();
-
-		buf.append("white   ").append(toPrettyString(bitmaps[MAP_WHITE])).append("\n");
-		buf.append("black   ").append(toPrettyString(bitmaps[MAP_BLACK])).append("\n");
-
-		buf.append("pawns   ").append(toPrettyString(bitmaps[MAP_PAWNS])).append("\n");
-		buf.append("rooks   ").append(toPrettyString(bitmaps[MAP_ROOKS])).append("\n");
-		buf.append("knights ").append(toPrettyString(bitmaps[MAP_KNIGHTS])).append("\n");
-		buf.append("bishops ").append(toPrettyString(bitmaps[MAP_BISHOPS])).append("\n");
-		buf.append("queens  ").append(toPrettyString(bitmaps[MAP_QUEENS])).append("\n");
-		buf.append("kings   ").append(toPrettyString(bitmaps[MAP_KINGS])).append("\n");
-		buf.append("flags   ").append(Integer.toBinaryString((int) (bitmaps[IDX_FLAGS] & 0xFF)))
-                .append(", player = ").append(getPlayer());
-		
-		return buf.toString();
+		return "white   " + toPrettyString(bitmaps[MAP_WHITE]) + "\n" +
+				"black   " + toPrettyString(bitmaps[MAP_BLACK]) + "\n" +
+				"pawns   " + toPrettyString(bitmaps[MAP_PAWNS]) + "\n" +
+				"rooks   " + toPrettyString(bitmaps[MAP_ROOKS]) + "\n" +
+				"knights " + toPrettyString(bitmaps[MAP_KNIGHTS]) + "\n" +
+				"bishops " + toPrettyString(bitmaps[MAP_BISHOPS]) + "\n" +
+				"queens  " + toPrettyString(bitmaps[MAP_QUEENS]) + "\n" +
+				"kings   " + toPrettyString(bitmaps[MAP_KINGS]) + "\n" +
+				"flags   " + Integer.toBinaryString((int) (bitmaps[IDX_FLAGS] & 0xFF)) +
+				", player = " + getPlayer();
 	}
 
+	@SuppressWarnings("unused")
 	public static String printBits(long v) {
         long bit = 1L<<63;
         StringBuilder sb = new StringBuilder();
@@ -249,15 +245,16 @@ public class BitBoard {
                 sb.insert(0, (v & bit) == 0 ? ". " : "X ");
                 bit = bit>>>1;
             }
-            sb2.append(sb.toString()).append("\n");
+            sb2.append(sb).append("\n");
             sb.setLength(0);
         }
-        System.out.println(sb2.toString());
+        System.out.println(sb2);
         System.out.println();
         return sb2.toString();
     }
 
-    public String printBoard() {
+    @SuppressWarnings("unused")
+	public String printBoard() {
         long bit = 1L<<63;
         StringBuilder sb = new StringBuilder();
         StringBuilder sb2 = new StringBuilder();
@@ -274,10 +271,10 @@ public class BitBoard {
 
                 bit = bit>>>1;
             }
-            sb2.append(sb.toString()).append("\n");
+            sb2.append(sb).append("\n");
             sb.setLength(0);
         }
-        System.out.println(sb2.toString());
+        System.out.println(sb2);
         System.out.println();
         return sb2.toString();
     }
@@ -437,27 +434,27 @@ public class BitBoard {
 	}
 	
 	private void castle(BitBoardMove move) {
-		switch(move.castleDir) {
-		case CASTLE_WKS:
-			bitmaps[MAP_WHITE] ^= 0xF0L;
-			bitmaps[MAP_KINGS] ^= 0x50L;
-			bitmaps[MAP_ROOKS] ^= 0xA0L;
-			break;
-		case CASTLE_WQS:
-			bitmaps[MAP_WHITE] ^= 0x1DL;
-			bitmaps[MAP_KINGS] ^= 0x14L;
-			bitmaps[MAP_ROOKS] ^= 0x09L;
-			break;
-		case CASTLE_BKS:
-			bitmaps[MAP_BLACK] ^= -1152921504606846976L;
-			bitmaps[MAP_KINGS] ^= 5764607523034234880L;
-			bitmaps[MAP_ROOKS] ^= -6917529027641081856L;
-			break;
-		case CASTLE_BQS:
-			bitmaps[MAP_BLACK] ^= 2089670227099910144L;
-			bitmaps[MAP_KINGS] ^= 1441151880758558720L;
-			bitmaps[MAP_ROOKS] ^= 648518346341351424L;
-			break;
+		switch (move.castleDir) {
+			case CASTLE_WKS -> {
+				bitmaps[MAP_WHITE] ^= 0xF0L;
+				bitmaps[MAP_KINGS] ^= 0x50L;
+				bitmaps[MAP_ROOKS] ^= 0xA0L;
+			}
+			case CASTLE_WQS -> {
+				bitmaps[MAP_WHITE] ^= 0x1DL;
+				bitmaps[MAP_KINGS] ^= 0x14L;
+				bitmaps[MAP_ROOKS] ^= 0x09L;
+			}
+			case CASTLE_BKS -> {
+				bitmaps[MAP_BLACK] ^= -1152921504606846976L;
+				bitmaps[MAP_KINGS] ^= 5764607523034234880L;
+				bitmaps[MAP_ROOKS] ^= -6917529027641081856L;
+			}
+			case CASTLE_BQS -> {
+				bitmaps[MAP_BLACK] ^= 2089670227099910144L;
+				bitmaps[MAP_KINGS] ^= 1441151880758558720L;
+				bitmaps[MAP_ROOKS] ^= 648518346341351424L;
+			}
 		}
         bitmaps[IDX_FLAGS] &= ~move.castleOff;
 	}
@@ -510,7 +507,7 @@ public class BitBoard {
         System.arraycopy(reverseMove.reverseBitmaps, 0, bitmaps, 0, bitmaps.length);
 	}
 
-    private static byte[] SPACES = { 0, 7, 8, 15 };
+    private static final byte[] SPACES = { 0, 7, 8, 15 };
 
     public BitSet getCacheId() {
         byte[] baseData = new byte[65];
@@ -612,6 +609,7 @@ public class BitBoard {
 		return Result.RES_NO_RESULT;
 	}
 
+	@SuppressWarnings("unused")
 	public BitBoardMove getLastMove() {
         return reverseMoves.isEmpty() ? null : reverseMoves.peek().reverseMove;
     }
@@ -749,13 +747,13 @@ public class BitBoard {
 		}
 		
 		if(piece == Piece.PAWN && (to & FINAL_RANKS) != 0) {
-			byte promoTo = 0;
-			switch(move.charAt(move.length()-1)) {
-				case 'Q': promoTo = Piece.QUEEN; break;
-				case 'R': promoTo = Piece.ROOK; break;
-				case 'N': promoTo = Piece.KNIGHT; break;
-				case 'B': promoTo = Piece.BISHOP; break;
-			}
+			byte promoTo = switch (move.charAt(move.length() - 1)) {
+				case 'Q' -> Piece.QUEEN;
+				case 'R' -> Piece.ROOK;
+				case 'N' -> Piece.KNIGHT;
+				case 'B' -> Piece.BISHOP;
+				default -> (byte) 0;
+			};
 			if(pieceCap != 0) {
 				return BitBoard.generateCaptureAndPromote(from, to, player, pieceCap, promoTo);
 			} else {
@@ -846,11 +844,11 @@ public class BitBoard {
 			}
 			String move = EngineUtils.toCoord(fromSquare) + EngineUtils.toCoord(toSquare);
 			if(promotion) {
-				switch(promoteTo) {
-					case Piece.QUEEN: 	move = move + "=Q"; break;
-					case Piece.ROOK: 	move = move + "=R"; break;
-					case Piece.BISHOP: 	move = move + "=B"; break;
-					case Piece.KNIGHT: 	move = move + "=N"; break;
+				switch (promoteTo) {
+					case Piece.QUEEN -> move = move + "=Q";
+					case Piece.ROOK -> move = move + "=R";
+					case Piece.BISHOP -> move = move + "=B";
+					case Piece.KNIGHT -> move = move + "=N";
 				}
 			}
 			return move;
@@ -860,7 +858,8 @@ public class BitBoard {
             return capture;
         }
 
-        public boolean isPromotion() {
+        @SuppressWarnings("unused")
+		public boolean isPromotion() {
             return promotion;
         }
 
