@@ -75,6 +75,11 @@ public class ChessEngine {
         return this;
     }
 
+    public ChessEngine setGameScorer(GameScorer gameScorer) {
+        this.gameScorer = gameScorer;
+        return this;
+    }
+
     /**
      * Mostly for testing purposes - allows mocked/test move generation. Could also be used to set
      * different generators for speed or quiescence.
@@ -374,8 +379,9 @@ public class ChessEngine {
 		return selectedMove;
 	}
 
-    public void setTargetTime(int max) {
+    public ChessEngine setTargetTime(int max) {
         this.targetTime = max;
+        return this;
     }
 
     public interface MoveGeneratorFactory {

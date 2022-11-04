@@ -59,8 +59,9 @@ public class GameScorer {
 		return instance;
 	}
 	
-	public void addScorer(PositionScorer scorer) {
+	public GameScorer addScorer(PositionScorer scorer) {
 		scorers.add(scorer);
+		return this;
 	}
 
     /**
