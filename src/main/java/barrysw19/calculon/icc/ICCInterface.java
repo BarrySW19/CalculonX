@@ -35,6 +35,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.*;
 
+@SuppressWarnings("BusyWait")
 public class ICCInterface {
     private static final Logger LOG = LoggerFactory.getLogger(ICCInterface.class);
 
@@ -51,7 +52,7 @@ public class ICCInterface {
     private String opponent = null;
     private boolean rated = true;
     private boolean accept = true;
-    private boolean alive = true;
+    private volatile boolean alive = true;
     private BitBoard currentBoard;
     private final OpeningBook openingBook;
     private final Map<Byte, ClockStatus> clocks = new HashMap<>();
@@ -96,7 +97,7 @@ public class ICCInterface {
         digester.addSetNext("calculon/icc/default-seeks/seek", "addSeekAd");
 
         try {
-            iccConfig = (ICCSConfig) digester.parse(ClassLoader.getSystemResourceAsStream("calculon.xml"));
+            iccConfig = digester.parse(ClassLoader.getSystemResourceAsStream("calculon.xml"));
         } catch (Exception e) {
             LOG.warn("Config reading failed", e);
             throw new RuntimeException(e);
@@ -634,6 +635,7 @@ public class ICCInterface {
         }
     }
 
+    @SuppressWarnings("BusyWait")
     private class GameEndedHandler implements BlockHandler {
 
         @Override
