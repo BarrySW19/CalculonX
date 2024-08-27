@@ -18,7 +18,7 @@
 package barrysw19.calculon.analyzer;
 
 import barrysw19.calculon.engine.BitBoard;
-import barrysw19.calculon.engine.KingMoveGenerator;
+import barrysw19.calculon.engine.Bitmaps;
 import barrysw19.calculon.model.Piece;
 
 public class KingSafetyScorer implements PositionScorer {
@@ -41,7 +41,7 @@ public class KingSafetyScorer implements PositionScorer {
             return 0; // Only score safety if the king is on the back rank.
         }
 
-		long inFront = KingMoveGenerator.KING_MOVES[mapIdx]
+		long inFront = Bitmaps.KING_MOVES[mapIdx]
 		           & BitBoard.getRankMap(kingRank + (color == Piece.WHITE ? 1 : -1)) & bitBoard.getBitmapColor(color);
 		score += 70 * (Long.bitCount(inFront & bitBoard.getBitmapPawns()));
 		score += 40 * (Long.bitCount(inFront & ~bitBoard.getBitmapPawns()));

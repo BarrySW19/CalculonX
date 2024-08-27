@@ -129,8 +129,10 @@ public class FENUtils {
 	}
 	
 	public static BitBoard loadPosition(String string, BitBoard board) {
+		final String fen = "startpos".equals(string)
+				? "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" : string;
 		board.clear();
-		String[] fields = StringUtils.split(string);
+		String[] fields = StringUtils.split(fen);
 		String[] ranks = StringUtils.split(fields[0], '/');
 		
 		for(int rank = 7; rank >= 0; rank--) {

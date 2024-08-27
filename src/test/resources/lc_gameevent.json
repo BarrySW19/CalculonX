@@ -1,0 +1,43 @@
+{
+  "id": "4dcsyEmK",
+  "variant": {
+    "key": "standard",
+    "name": "Standard",
+    "short": "Std"
+  },
+  "speed": "blitz",
+  "perf": {
+    "name": "Blitz"
+  },
+  "rated": false,
+  "createdAt": 1724693318531,
+  "white": {
+    "id": "rockwomble",
+    "name": "RockWomble",
+    "title": null,
+    "rating": 1500,
+    "provisional": true
+  },
+  "black": {
+    "id": "calculonx",
+    "name": "CalculonX",
+    "title": "BOT",
+    "rating": 2000,
+    "provisional": true
+  },
+  "initialFen": "startpos",
+  "clock": {
+    "initial": 60000,
+    "increment": 3000
+  },
+  "type": "gameFull",
+  "state": {
+    "type": "gameState",
+    "moves": "",
+    "wtime": 60000,
+    "btime": 60000,
+    "winc": 3000,
+    "binc": 3000,
+    "status": "started"
+  }
+}

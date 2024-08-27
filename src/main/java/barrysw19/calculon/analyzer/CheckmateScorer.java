@@ -2,7 +2,6 @@ package barrysw19.calculon.analyzer;
 
 import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.engine.Bitmaps;
-import barrysw19.calculon.engine.KingMoveGenerator;
 import barrysw19.calculon.model.Piece;
 import barrysw19.calculon.util.BitIterable;
 
@@ -58,7 +57,7 @@ public class CheckmateScorer implements PositionScorer {
         int dist = calcDist(enemyKingPos, myPieces & bitBoard.getBitmapKings());
         score += (28 - dist) * 10;
 
-        long oppMoves = KingMoveGenerator.KING_MOVES[Long.numberOfTrailingZeros(enemyKingPos)];
+        long oppMoves = Bitmaps.KING_MOVES[Long.numberOfTrailingZeros(enemyKingPos)];
 
         final long myQueens = (myPieces & bitBoard.getBitmapQueens());
         for(long queen: BitIterable.of(myQueens)) {

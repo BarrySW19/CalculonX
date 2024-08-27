@@ -1,4 +1,4 @@
-package barrysw19.calculon.icc;
+package barrysw19.calculon.site.icc;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,12 +9,12 @@ import java.util.List;
 public class Lv1BlockHandler {
     private static final Logger LOG = LoggerFactory.getLogger(Lv1BlockHandler.class);
 
-    private StringBuilder builder = new StringBuilder();
+    private final StringBuilder builder = new StringBuilder();
     private boolean inBlock = false;
     private char prevChar = 0;
-    private ICCInterface iccInterface;
+    private final ICCInterface iccInterface;
 
-    private List<Lv1Listener> listeners = new ArrayList<>();
+    private final List<Lv1Listener> listeners = new ArrayList<>();
 
     public Lv1BlockHandler(ICCInterface iccInterface) {
         this.iccInterface = iccInterface;

@@ -1,0 +1,10 @@
+{
+  "rated": false,
+  "clock": {
+    "limit": 180,
+    "increment": 3
+  },
+  "color": "random",
+  "variant": "standard",
+  "keepAliveStream": true
+}
