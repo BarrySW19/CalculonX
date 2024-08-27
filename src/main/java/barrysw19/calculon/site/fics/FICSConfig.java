@@ -15,30 +15,21 @@
  * implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package barrysw19.calculon.icc;
+package barrysw19.calculon.site.fics;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ICCSConfig {
+public class FICSConfig {
 	
 	private String operatorName;
 	private String loginName;
 	private int acceptMin, acceptMax;
 	private int maxRematches;
 	private boolean reseek;
-    private String formula;
 	private List<Seek> seekAds = new ArrayList<Seek>();
-
-    public String getFormula() {
-        return formula;
-    }
-
-    public void setFormula(String formula) {
-        this.formula = formula;
-    }
-
-    public String getOperatorName() {
+	
+	public String getOperatorName() {
 		return operatorName;
 	}
 	public void setOperatorName(String operatorName) {
@@ -96,9 +87,6 @@ public class ICCSConfig {
 		}
 		public void setIncrement(int increment) {
 			this.increment = increment;
-		}
-		public String getCommand() {
-			return ("seek " + getInitialTime() + " " + getIncrement() + " formula");
 		}
 		/**
 		 * Constructs a <code>String</code> with all attributes

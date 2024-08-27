@@ -1,0 +1,9 @@
+{
+  "type": "gameState",
+  "moves": "e2e4",
+  "wtime": 60000,
+  "btime": 60000,
+  "winc": 3000,
+  "binc": 3000,
+  "status": "started"
+}

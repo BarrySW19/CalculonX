@@ -1,4 +1,4 @@
-package barrysw19.calculon.icc;
+package barrysw19.calculon.site.icc;
 
 public enum DgCommand {
     DG_WHO_AM_I(0),

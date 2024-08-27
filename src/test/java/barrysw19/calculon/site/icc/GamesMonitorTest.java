@@ -1,4 +1,4 @@
-package barrysw19.calculon.icc;
+package barrysw19.calculon.site.icc;
 
 import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.notation.FENUtils;
@@ -14,18 +14,19 @@ import java.util.regex.Pattern;
 
 public class GamesMonitorTest {
 
-    private static String data = "155 *\n" +
-            "1263 2876 tuechdisaigon(C)     2903 paj(C)                sr 60  15       B: 16\n" +
-            "561 2916 Data(C)              2813 Anesthesia(C)         sr 15   0       W: 15\n" +
-            "1729 1509 mineral              1275 SlowFlo(C)            sr 30  30       W: 28\n" +
-            "702 1346 abi                  1437 marath                sr 20   0       B:  4\n" +
-            "477 1418 babapooja            1344 clevercat13           sr 35  10       W: 17\n" +
-            "1543 1265 sten                 1419 knightstorm           sr 15   0       B: 25\n" +
-            "493 1238 SeniorCitizen        1341 guyd52                sr 45  45       B: 43\n" +
-            "185 1370 Osmin                1202 jacquim               sr 15  12       B: 15\n" +
-            "780 1257 e4d4                 1295 jm0000006             sr 15  15       W: 44\n" +
-            "          47 games displayed (of 504).\n" +
-            "";
+    private static final String data = """
+            155 *
+            1263 2876 tuechdisaigon(C)     2903 paj(C)                sr 60  15       B: 16
+            561 2916 Data(C)              2813 Anesthesia(C)         sr 15   0       W: 15
+            1729 1509 mineral              1275 SlowFlo(C)            sr 30  30       W: 28
+            702 1346 abi                  1437 marath                sr 20   0       B:  4
+            477 1418 babapooja            1344 clevercat13           sr 35  10       W: 17
+            1543 1265 sten                 1419 knightstorm           sr 15   0       B: 25
+            493 1238 SeniorCitizen        1341 guyd52                sr 45  45       B: 43
+            185 1370 Osmin                1202 jacquim               sr 15  12       B: 15
+            780 1257 e4d4                 1295 jm0000006             sr 15  15       W: 44
+                      47 games displayed (of 504).
+            """;
     public static final Pattern GAME_PATTERN = Pattern.compile(
             "(\\d+)\\s+(\\d+)\\s+(\\S+)\\s+(\\d+)\\s+(\\S+)\\s+[bs]r\\s+\\d+\\s+\\d+\\s+[WB]:\\s+(\\d+)");
 

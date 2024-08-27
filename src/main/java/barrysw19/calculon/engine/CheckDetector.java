@@ -82,7 +82,7 @@ public class CheckDetector {
 	        	return true;
 	        }
 	        
-	        long kingMoves = KingMoveGenerator.KING_MOVES[kingIdx];
+	        long kingMoves = Bitmaps.KING_MOVES[kingIdx];
 	        if((kingMoves & bitBoard.getBitmapKings() & allEnemyPieces) != 0) {
 	        	return true;
 	        }

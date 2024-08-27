@@ -57,7 +57,7 @@ public class BitBoard {
 //	private BitBoardMove lastMove;
     private Stack<ReverseMove> reverseMoves = new Stack<>();
 
-    private static class ReverseMove {
+	private static class ReverseMove {
         private final long[] reverseBitmaps = new long[9];
         private final BitBoardMove reverseMove;
 		private short reverseHalfMove;
@@ -172,11 +172,15 @@ public class BitBoard {
         bitmaps[IDX_FLAGS] = CASTLE_MASK;
 		moveCount = 0;
 		reverseMoves.clear();
-		
-//		System.out.println(toPrettyString(bitmaps[Piece.BLACK]));
+
 		return this;
 	}
-	
+
+	public BitBoard makeMoves(final String moves) {
+		Arrays.stream(moves.toUpperCase().split(" ")).forEach(m -> makeMove(getMove(m)));
+		return this;
+	}
+
 	public boolean isEnPassant() {
 		return (bitmaps[IDX_FLAGS] & IS_EN_PASSANT) != 0;
 	}

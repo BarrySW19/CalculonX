@@ -1,11 +1,13 @@
-package barrysw19.calculon.icc;
+package barrysw19.calculon.site.icc;
 
 import barrysw19.calculon.model.Piece;
 
 public class Lv2MyGameStarted {
     private ResponseBlockLv2 lv2Block;
-    private int whiteInitial, blackInitial;
-    private int whiteIncrement, blackIncrement;
+    private final int whiteInitial;
+    private final int blackInitial;
+    private final int whiteIncrement;
+    private final int blackIncrement;
 
     public Lv2MyGameStarted(ResponseBlockLv2 lv2Block) {
         this.lv2Block = lv2Block;

@@ -1,4 +1,4 @@
-package barrysw19.calculon.icc;
+package barrysw19.calculon.site.icc;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,11 +1,11 @@
-package barrysw19.calculon.icc;
+package barrysw19.calculon.site.icc;
 
 import barrysw19.calculon.model.Piece;
 
 public class Lv2TimeUpdate {
-    private ResponseBlockLv2 blockLv2;
-    private byte color;
-    private long msec;
+    private final ResponseBlockLv2 blockLv2;
+    private final byte color;
+    private final long msec;
 
     public Lv2TimeUpdate(ResponseBlockLv2 blockLv2) {
         this.blockLv2 = blockLv2;

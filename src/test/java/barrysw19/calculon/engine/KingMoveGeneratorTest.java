@@ -8,10 +8,22 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class KingMoveGeneratorTest {
+
+    @Test
+    public void testKingMovesFromCornerSquare() {
+        // Created with GitHub CoPilot
+        final BitBoard bitBoard = FENUtils.getBoard("k7/8/8/8/8/8/8/K7 w - - 0 1");
+        final List<BitBoard.BitBoardMove> getMoves = Lists.newArrayList(
+                new KingMoveGenerator().iterator(new MoveGeneratorImpl.MoveGeneratorContext(bitBoard)));
+
+        final Set<String> moves = PGNUtils.convertMovesToPgn(bitBoard, getMoves);
+        assertEquals(Sets.newHashSet("Ka2", "Kb2", "Kb1"), moves);
+    }
 
     @Test
     public void testNormalMoveGeneration() {

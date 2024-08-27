@@ -1,0 +1,49 @@
+{
+  "type": "challenge",
+  "challenge": {
+    "id": "LtvOfKCJ",
+    "url": "https://lichess.org/LtvOfKCJ",
+    "status": "created",
+    "challenger": {
+      "id": "rockwomble",
+      "name": "RockWomble",
+      "rating": 1500,
+      "title": null,
+      "provisional": true,
+      "online": true,
+      "lag": 4
+    },
+    "destUser": {
+      "id": "calculonx",
+      "name": "CalculonX",
+      "rating": 2000,
+      "title": "BOT",
+      "provisional": true,
+      "online": true,
+      "lag": 4
+    },
+    "variant": {
+      "key": "standard",
+      "name": "Standard",
+      "short": "Std"
+    },
+    "rated": false,
+    "speed": "blitz",
+    "timeControl": {
+      "type": "clock",
+      "limit": 300,
+      "increment": 3,
+      "show": "5+3"
+    },
+    "color": "random",
+    "finalColor": "black",
+    "perf": {
+      "icon": "",
+      "name": "Blitz"
+    }
+  },
+  "compat": {
+    "bot": true,
+    "board": true
+  }
+}
