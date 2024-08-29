@@ -19,4 +19,16 @@ public class Event {
     private Game game;
     @JsonProperty
     private String moves;
+    @JsonProperty
+    private Integer wtime;
+    @JsonProperty
+    private Integer winc;
+    @JsonProperty
+    private Integer btime;
+    @JsonProperty
+    private Integer binc;
+    @JsonProperty
+    private String status;
+    @JsonProperty
+    private String winner;
 }
