@@ -13,17 +13,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,6 +37,7 @@ public class LichessInterface {
 
     private final ExecutorService executors = Executors.newCachedThreadPool();
     private final ScheduledExecutorService cronExecutor = Executors.newScheduledThreadPool(5);
+    private final AtomicBoolean active = new AtomicBoolean(true);
 
     private final ConcurrentHashMap<String, Event> gamesInProgress = new ConcurrentHashMap<>();
     private HttpClient httpClient;
@@ -52,18 +53,47 @@ public class LichessInterface {
         oauthToken = Resources.toString(Resources.getResource("oauth.txt"), StandardCharsets.UTF_8);
         httpClient = HttpClient.newHttpClient();
 
-        cronExecutor.scheduleAtFixedRate(this::issueChallenges, 5, 60, TimeUnit.SECONDS);
+        cronExecutor.scheduleAtFixedRate(this::issueChallenges, 5, 600, TimeUnit.SECONDS);
+        executors.submit(this::commandPrompt);
+
         final HttpRequest httpRequest = requestBuilder(URI.create(URI_ROOT + "/stream/event")).build();
-        final HttpResponse<Stream<String>> response =
-                httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofLines());
-        try(final Stream<String> lines = response.body()) {
-            lines.forEach(this::handleEvent);
+        processStream(httpRequest, this::handleEvent);
+    }
+
+    private void processStream(final HttpRequest request, Consumer<String> action)
+            throws IOException, InterruptedException
+    {
+        while (true) {
+            final HttpResponse<Stream<String>> response =
+                    httpClient.send(request, HttpResponse.BodyHandlers.ofLines());
+            try(final Stream<String> lines = response.body()) {
+                lines.forEach(action);
+                return;
+            } catch (final UncheckedIOException x) {
+                LOG.warn("Exception in stream - restarting: {}", x.getMessage());
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    private void commandPrompt() {
+        final Scanner scanner = new Scanner(System.in);
+        while (scanner.hasNextLine()) {
+            final String nextLine = scanner.nextLine();
+            if("quit".equals(nextLine)) {
+                LOG.info("Shutting down");
+                active.set(false);
+            }
         }
     }
 
     private void issueChallenges() {
         LOG.info("Ongoing: {}", gamesInProgress.size());
-        if(gamesInProgress.size() >= 2) {
+        if(!active.get() || gamesInProgress.size() >= 2) {
             return;
         }
 
@@ -215,9 +245,13 @@ public class LichessInterface {
             return;
         }
 
-        if ((event.getChallenge().getRated() && !"BOT".equals(event.getChallenge().getChallenger().getTitle())) ||
-                !"standard".equals(event.getChallenge().getVariant().getKey())) {
-//                || !"rockwomble".equals(event.getChallenge().getChallenger().getId())) {
+//        if ((event.getChallenge().getRated() && !"BOT".equals(event.getChallenge().getChallenger().getTitle()))
+//                || !"standard".equals(event.getChallenge().getVariant().getKey())
+        final TimeControl timeControl = event.getChallenge().getTimeControl();
+        final int estTime = timeControl.getLimit() + (40 * timeControl.getIncrement());
+        if(!"standard".equals(event.getChallenge().getVariant().getKey()) || !active.get()
+            || estTime < 60 || estTime > 600)
+        {
             responseType = "/decline";
         } else {
             responseType = "/accept";
