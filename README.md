@@ -1,6 +1,4 @@
 CalculonX
 =========
 
-Calculon-X Chess Software - see playing history at http://www.chessclub.com/finger/CalculonX
-
-[![Build Status](https://travis-ci.org/BarrySW19/CalculonX.png?branch=master)](https://travis-ci.org/BarrySW19/CalculonX)
+Calculon-X Chess Software - a working chess engine written in Java. This is a fairly basic engine which mostly relies on the alpha-beta version of the minimax algorithm without any of the usual enhancements used in stronger chess engines.
