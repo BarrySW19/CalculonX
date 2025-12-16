@@ -1,14 +1,14 @@
 /**
  * Calculon - A Java chess-engine.
- *
+ * <p>
  * Copyright (C) 2008-2009 Barry Smith
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
@@ -33,19 +33,21 @@ import barrysw19.calculon.engine.ChessEngine;
 import barrysw19.calculon.notation.PGNUtils;
 import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.notation.FENUtils;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 public class UCIInterface {
-	private static Logger log = Logger.getLogger(UCIInterface.class.getName());
+	@Getter
+    private static Logger log = Logger.getLogger(UCIInterface.class.getName());
 	
-	private Map<String, Command> commands = new HashMap<String, Command>();
-	private PrintStream out;
+	private final Map<String, Command> commands = new HashMap<>();
+	private final PrintStream out;
 	private volatile boolean terminate = false;
 //	private boolean debug = false;
 	
-	private BitBoard board = new BitBoard();
+	private final BitBoard board = new BitBoard();
 	
-	public static void main(String[] args) {
+	static void main(String[] args) {
 		UCIInterface uciInterface = new UCIInterface();
 		
 		try {
@@ -60,13 +62,13 @@ public class UCIInterface {
 		commands.put("uci", 		new CommandUCI());
 		commands.put("isready", 	new CommandIsReady());
 		commands.put("debug", 		new CommandDebug());
-		commands.put("setoption", 	new CommandSetOption());
-		commands.put("register", 	new CommandRegister());
-		commands.put("ucinewgame", 	new CommandUciNewGame());
+		commands.put("setoption", new CommandSetOption());
+		commands.put("register", new CommandRegister());
+		commands.put("ucinewgame", new CommandUciNewGame());
 		commands.put("position", 	new CommandPosition());
 		commands.put("go", 			new CommandGo());
-		commands.put("stop", 		new CommandStop());
-		commands.put("ponderhit", 	new CommandPonderhit());
+		commands.put("stop", new CommandStop());
+		commands.put("ponderhit", new CommandPonderhit());
 		commands.put("quit", 		new CommandQuit());
 	}
 
@@ -75,17 +77,17 @@ public class UCIInterface {
 		String command;
 		while((command = input.readLine()) != null) {
 			log.fine("UCI(in): '" + command + "'");
-			List<String> splitCommand = new ArrayList<String>(Arrays.asList(StringUtils.split(command)));
-			if(splitCommand.size() == 0) {
+			List<String> splitCommand = new ArrayList<>(Arrays.asList(StringUtils.split(command)));
+			if(splitCommand.isEmpty()) {
 				log.warning("Empty command received from interface");
 				continue;
 			}
-			Command exec = commands.get(splitCommand.get(0));
+			Command exec = commands.get(splitCommand.getFirst());
 			if(exec == null) {
 				log.warning("Unknown/unsupported command: " + command);
 				continue;
 			}
-			splitCommand.remove(0);
+			splitCommand.removeFirst();
 			exec.execute(splitCommand);
 			if(terminate) {
 				break;
@@ -105,12 +107,8 @@ public class UCIInterface {
 	public void setDebug(boolean debug) {
 //		this.debug = debug;
 	}
-	
-	public static Logger getLog() {
-		return log;
-	}
-	
-	// ------------------------------------- Commands ---------------------------
+
+    // ------------------------------------- Commands ---------------------------
 
 	private class CommandGo implements Command {
 
@@ -131,21 +129,21 @@ public class UCIInterface {
 		}
 	}
 
-	private class CommandUciNewGame implements Command {
+	private static class CommandUciNewGame implements Command {
 
 		public void execute(List<String> args) {
 			// Not implemented
 		}
 	}
 
-	private class CommandStop implements Command {
+	private static class CommandStop implements Command {
 
 		public void execute(List<String> args) {
 			// Not implemented
 		}
 	}
 
-	private class CommandRegister implements Command {
+	private static class CommandRegister implements Command {
 
 		public void execute(List<String> args) {
 			// Not required
@@ -155,50 +153,48 @@ public class UCIInterface {
 	private class CommandPosition implements Command {
 
 		public void execute(List<String> args) {
-			if(args.size() < 1) {
+			if(args.isEmpty()) {
 				UCIInterface.log.info("Bad 'position' command");
 				return;
 			}
 			
 			if("startpos".equals(args.get(0))) {
 				UCIInterface.this.board.initialise();
-				args.remove(0);
+				args.removeFirst();
 			} else if("fen".equals(args.get(0))) {
-				String fen = new StringBuilder()
-					.append(args.get(1)).append(" ")
-					.append(args.get(2)).append(" ")
-					.append(args.get(3)).append(" ")
-					.append(args.get(4)).append(" ")
-					.append(args.get(5)).append(" ")
-					.append(args.get(6))
-					.toString();
+				String fen = args.get(1) + " " +
+                        args.get(2) + " " +
+                        args.get(3) + " " +
+                        args.get(4) + " " +
+                        args.get(5) + " " +
+                        args.get(6);
 				
 				FENUtils.loadPosition(fen, UCIInterface.this.board);
-				args.remove(0);
-				args.remove(0);
-				args.remove(0);
-				args.remove(0);
-				args.remove(0);
-				args.remove(0);
-				args.remove(0);
+				args.removeFirst();
+				args.removeFirst();
+				args.removeFirst();
+				args.removeFirst();
+				args.removeFirst();
+				args.removeFirst();
+				args.removeFirst();
 			}
-			if(args.size() == 0) {
+			if(args.isEmpty()) {
 				return;
 			}
 			if("moves".equals(args.get(0))) {
-				args.remove(0);
-				while(args.size() > 0) {
-					if( ! "...".equals(args.get(0))) {
-						board.makeMove(board.getMove(args.get(0).toUpperCase()));
+				args.removeFirst();
+				while(!args.isEmpty()) {
+					if( ! "...".equals(args.getFirst())) {
+						board.makeMove(board.getMove(args.getFirst().toUpperCase()));
 					}
-					args.remove(0);
+					args.removeFirst();
 				}
 			}
 			log.fine("Position: " + FENUtils.generate(board));
 		}
 	}
 
-	private class CommandPonderhit implements Command {
+	private static class CommandPonderhit implements Command {
 
 		public void execute(List<String> args) {
 			// TODO Auto-generated method stub
@@ -208,15 +204,15 @@ public class UCIInterface {
 	private class CommandDebug implements Command {
 		
 		public void execute(List<String> args) {
-			if(args.size() < 1) {
+			if(args.isEmpty()) {
 				UCIInterface.log.info("Bad 'debug' command");
 				return;
 			}
 				
-			if("on".equals(args.get(0))) {
+			if("on".equals(args.getFirst())) {
 				UCIInterface.this.setDebug(true);
 			}
-			if("off".equals(args.get(0))) {
+			if("off".equals(args.getFirst())) {
 				UCIInterface.this.setDebug(false);
 			}
 		}
@@ -229,7 +225,7 @@ public class UCIInterface {
 		}
 	}
 	
-	private class CommandSetOption implements Command {
+	private static class CommandSetOption implements Command {
 		
 		public void execute(List<String> args) {
 			// Not required
