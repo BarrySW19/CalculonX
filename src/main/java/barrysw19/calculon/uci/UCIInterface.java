@@ -17,29 +17,21 @@
  */
 package barrysw19.calculon.uci;
 
+import barrysw19.calculon.engine.BitBoard;
+import barrysw19.calculon.engine.ChessEngine;
+import barrysw19.calculon.notation.FENUtils;
+import barrysw19.calculon.notation.PGNUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.*;
 
-import barrysw19.calculon.engine.ChessEngine;
-import barrysw19.calculon.notation.PGNUtils;
-import barrysw19.calculon.engine.BitBoard;
-import barrysw19.calculon.notation.FENUtils;
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
-
+@Slf4j
 public class UCIInterface {
-	@Getter
-    private static Logger log = Logger.getLogger(UCIInterface.class.getName());
-	
 	private final Map<String, Command> commands = new HashMap<>();
 	private final PrintStream out;
 	private volatile boolean terminate = false;
@@ -47,13 +39,13 @@ public class UCIInterface {
 	
 	private final BitBoard board = new BitBoard();
 	
-	static void main(String[] args) {
+	static void main() {
 		UCIInterface uciInterface = new UCIInterface();
 		
 		try {
 			uciInterface.startInterface();
 		} catch (Exception x) {
-			log.log(Level.SEVERE, "UCI Error", x);
+			log.error("UCI Error", x);
 		}
 	}
 	
@@ -76,15 +68,15 @@ public class UCIInterface {
 		BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 		String command;
 		while((command = input.readLine()) != null) {
-			log.fine("UCI(in): '" + command + "'");
+			log.info("UCI(in): '{}'", command);
 			List<String> splitCommand = new ArrayList<>(Arrays.asList(StringUtils.split(command)));
 			if(splitCommand.isEmpty()) {
-				log.warning("Empty command received from interface");
+				log.warn("Empty command received from interface");
 				continue;
 			}
 			Command exec = commands.get(splitCommand.getFirst());
 			if(exec == null) {
-				log.warning("Unknown/unsupported command: " + command);
+				log.warn("Unknown/unsupported command: {}", command);
 				continue;
 			}
 			splitCommand.removeFirst();
@@ -97,7 +89,7 @@ public class UCIInterface {
 	
 	void send(String s) {
 		out.println(s);
-		log.fine("UCI(out): '" + s + "'");
+		log.info("UCI(out): '{}'", s);
 	}
 
 	public void terminate() {
@@ -190,7 +182,7 @@ public class UCIInterface {
 					args.removeFirst();
 				}
 			}
-			log.fine("Position: " + FENUtils.generate(board));
+			log.info("Position: {}", FENUtils.generate(board));
 		}
 	}
 
