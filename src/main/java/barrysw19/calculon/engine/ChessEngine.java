@@ -26,6 +26,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +47,12 @@ public class ChessEngine {
 
     private static final ExecutorService executorService = Executors.newFixedThreadPool(2);
 
+    /**
+     * -- SETTER --
+     *  Mostly for testing purposes - allows mocked/test move generation. Could also be used to set
+     *  different generators for speed or quiescence.
+     */
+    @Setter
     private MoveGeneratorFactory moveGeneratorFactory = MoveGeneratorImpl::new;
 
 	private GameScorer gameScorer;
@@ -52,9 +60,10 @@ public class ChessEngine {
     private int qDepth = 5;
     private int targetTime = 30;
     private long terminateTime;
-    private Cache<BitSet, Integer> scoreCache
+    private final Cache<BitSet, Integer> scoreCache
             = CacheBuilder.newBuilder().maximumSize(5*1024*1024).recordStats().build();
 
+    @Getter
     private volatile long callMetric = 0;
 
     public ChessEngine() {
@@ -80,15 +89,6 @@ public class ChessEngine {
         return this;
     }
 
-    /**
-     * Mostly for testing purposes - allows mocked/test move generation. Could also be used to set
-     * different generators for speed or quiescence.
-     * @param moveGeneratorFactory Any move generator.
-     */
-    public void setMoveGeneratorFactory(MoveGeneratorFactory moveGeneratorFactory) {
-        this.moveGeneratorFactory = moveGeneratorFactory;
-    }
-
     public SearchContext getPreferredMoveContext(BitBoard bitBoard) {
 		String bookMove = OpeningBook.getDefaultBook() == null
                 ? null : OpeningBook.getDefaultBook().getBookMove(bitBoard);
@@ -100,7 +100,7 @@ public class ChessEngine {
         scoreCache.invalidateAll();
 		List<SearchContext> allMoves = new ArrayList<>(getScoredMoves(bitBoard));
         if(LOG.isDebugEnabled()) {
-            Collections.sort(allMoves, (o1, o2) -> o1.getAlgebraicMove().compareTo(o2.getAlgebraicMove()));
+            allMoves.sort((o1, o2) -> o1.getAlgebraicMove().compareTo(o2.getAlgebraicMove()));
             for (SearchContext ctx: allMoves) {
                 LOG.debug("Final moves: {}", ctx);
             }
@@ -114,10 +114,6 @@ public class ChessEngine {
 	public String getPreferredMove(BitBoard bitBoard) {
         return getPreferredMoveContext(bitBoard).getAlgebraicMove();
 	}
-
-    public long getCallMetric() {
-        return callMetric;
-    }
 
     /**
      * Outer loop - responsible for getting the move scores and pruning them down to
