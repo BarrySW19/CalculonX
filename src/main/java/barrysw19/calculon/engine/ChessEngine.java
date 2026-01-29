@@ -79,9 +79,8 @@ public class ChessEngine {
 		this.gameScorer = gameScorer;
 	}
 
-    public final ChessEngine setQDepth(int qDepth) {
+    public final void setQDepth(int qDepth) {
         this.qDepth = qDepth;
-        return this;
     }
 
     public ChessEngine setGameScorer(GameScorer gameScorer) {
@@ -100,7 +99,7 @@ public class ChessEngine {
         scoreCache.invalidateAll();
 		List<SearchContext> allMoves = new ArrayList<>(getScoredMoves(bitBoard));
         if(LOG.isDebugEnabled()) {
-            allMoves.sort((o1, o2) -> o1.getAlgebraicMove().compareTo(o2.getAlgebraicMove()));
+            allMoves.sort(Comparator.comparing(SearchContext::getAlgebraicMove));
             for (SearchContext ctx: allMoves) {
                 LOG.debug("Final moves: {}", ctx);
             }
@@ -126,7 +125,7 @@ public class ChessEngine {
         terminateTime = System.nanoTime() + (targetTime * 1_000_000_000L);
         terminateTime -= 250_000_000L;  // Safety margin for bullet games 0.25s
         depthForSearch = 1;
-        LOG.debug("terminate at: " + terminateTime + ", current: " + System.nanoTime());
+        LOG.debug("terminate at: {}, current: {}", terminateTime, System.nanoTime());
         final Map<String, SearchContext> bestMoves = new HashMap<>();
         final Map<String, SearchContext> allMoves = new HashMap<>();
         while(true) {
@@ -180,7 +179,7 @@ public class ChessEngine {
         this.depthForSearch = depthForSearch;
         this.qDepth = Math.max(5, depthForSearch + 3);
         SearchContext context = new SearchContext(move, bitBoard);
-        return getScoredMoves(bitBoard, Collections.singletonList(context)).get(0);
+        return getScoredMoves(bitBoard, Collections.singletonList(context)).getFirst();
     }
 
 	private List<SearchContext> getScoredMoves(final BitBoard bitBoard, final List<SearchContext> movesFilter) {
@@ -268,7 +267,7 @@ public class ChessEngine {
         return alpha;
     }
 
-    private int quiesce(final BitBoard bitBoard, int alpha, int beta, int depth, SearchContext searchContext) throws ExecutionException {
+    private int quiesce(final BitBoard bitBoard, int alpha, int beta, int depth, SearchContext searchContext) {
         callMetric++;
 
         if(System.nanoTime() > terminateTime) {
@@ -352,22 +351,22 @@ public class ChessEngine {
 	 * @return The moves within margin.
 	 */
 	private static List<SearchContext> selectBestMoves(List<SearchContext> allMoves, int margin, int maxMoves) {
-		if(allMoves.size() == 0) {
+		if(allMoves.isEmpty()) {
 			return allMoves;
 		}
 
 		allMoves = allMoves.stream().filter(c -> c.getStatus() == SearchContext.Status.NORMAL).collect(toList());
 		Collections.sort(allMoves);
-		int bestScore = allMoves.get(0).getScore();
-		while(allMoves.size() > maxMoves || allMoves.get(allMoves.size()-1).getScore() > bestScore+margin) {
-			allMoves.remove(allMoves.size()-1);
+		int bestScore = allMoves.getFirst().getScore();
+		while(allMoves.size() > maxMoves || allMoves.getLast().getScore() > bestScore+margin) {
+			allMoves.removeLast();
 		}
 		return allMoves;
 	}
 
 	private static SearchContext selectBestMove(List<SearchContext> allMoves) {
 		List<SearchContext> bestMoves = selectBestMoves(allMoves);
-		if(bestMoves.size() == 0) {
+		if(bestMoves.isEmpty()) {
 			return null;
 		}
         SearchContext selectedMove = bestMoves.get((int) (Math.random() * bestMoves.size()));
