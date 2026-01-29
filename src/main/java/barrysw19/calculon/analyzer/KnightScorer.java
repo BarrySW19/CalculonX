@@ -1,20 +1,3 @@
-/**
- * Calculon - A Java chess-engine.
- *
- * Copyright (C) 2008-2009 Barry Smith
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
- * implied. See the License for the specific language governing
- * permissions and limitations under the License.
- */
 package barrysw19.calculon.analyzer;
 
 import barrysw19.calculon.engine.KnightMoveGenerator;
@@ -67,7 +50,7 @@ public class KnightScorer implements PositionScorer {
 			// A knight on the rim is dim - penalise it.
 			score += targetScores[targetCount];
 			
-			/**
+			/*
 			 * Strategically, the best place for a knight is supported by a pawn on the 4th - 6th rank
 			 * where it cannot be driven off by an enemy pawn. Give a decent bonus to knights in this 
 			 * position.

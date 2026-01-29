@@ -14,12 +14,10 @@ public class CastlingScorer implements PositionScorer {
 
     private int scorePosition(BitBoard bitBoard, final byte color) {
         final short options = bitBoard.getCastlingOptions();
-        switch(color) {
-            case Piece.WHITE:
-                return (options & (BitBoard.CASTLE_WKS|BitBoard.CASTLE_WQS)) == 0 ? 0 : -250;
-            case Piece.BLACK:
-                return (options & (BitBoard.CASTLE_BKS|BitBoard.CASTLE_BQS)) == 0 ? 0 : -250;
-        }
-        return 0;
+        return switch (color) {
+            case Piece.WHITE -> (options & (BitBoard.CASTLE_WKS | BitBoard.CASTLE_WQS)) == 0 ? 0 : -250;
+            case Piece.BLACK -> (options & (BitBoard.CASTLE_BKS | BitBoard.CASTLE_BQS)) == 0 ? 0 : -250;
+            default -> 0;
+        };
     }
 }

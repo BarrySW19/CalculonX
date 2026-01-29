@@ -4,7 +4,7 @@ import barrysw19.calculon.engine.BitBoard;
 import barrysw19.calculon.model.Piece;
 
 /**
- * Penalise minor pieces left on the back rank.
+ * Penalize minor pieces left on the back rank.
  */
 public class BackRankMinorPieceScorer implements PositionScorer {
 
