@@ -1,14 +1,14 @@
 /**
  * Calculon - A Java chess-engine.
- *
+ * <p>
  * Copyright (C) 2008-2013 Barry Smith
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
@@ -17,10 +17,13 @@
  */
 package barrysw19.calculon.site.icc;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+@Getter
 class ResponseBlockLv2 {
     protected String data;
     protected DgCommand command;
@@ -41,7 +44,7 @@ class ResponseBlockLv2 {
         StringBuilder builder = new StringBuilder();
         for(int i = 0; i < data.length(); i++) {
             char c = data.charAt(i);
-            if(c == ('Y'&0x1f) && data.length() >= i && data.charAt(i+1) == '{') {
+            if(c == ('Y' & 0x1f) && data.charAt(i + 1) == '{') {
                 inBrackets = true;
                 i++;
                 continue;
@@ -50,7 +53,7 @@ class ResponseBlockLv2 {
                 inBrackets = true;
                 continue;
             }
-            if(c == ('Y'&0x1f) && data.length() >= i && data.charAt(i+1) == '}') {
+            if(c == ('Y' & 0x1f) && data.charAt(i + 1) == '}') {
                 inBrackets = false;
                 i++;
                 continue;
@@ -66,18 +69,10 @@ class ResponseBlockLv2 {
             }
             builder.append(c);
         }
-        if(builder.length() > 0) {
+        if(!builder.isEmpty()) {
             output.add(builder.toString());
         }
-        return output.toArray(new String[output.size()]);
-    }
-
-    public DgCommand getCommand() {
-        return command;
-    }
-
-    public String getData() {
-        return data;
+        return output.toArray(new String[0]);
     }
 
     /**
@@ -89,8 +84,6 @@ class ResponseBlockLv2 {
      */
     public String toString()
     {
-        StringBuilder buf = new StringBuilder("");
-        buf.append("ResponseBlock(command=").append(command).append(" = ").append(data);
-        return buf.toString();
+        return "ResponseBlock(command=" + command + " = " + data;
     }
 }

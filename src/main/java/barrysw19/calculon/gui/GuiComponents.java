@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.Objects;
 
 public class GuiComponents {
     private final static String[] svgFiles = {
@@ -21,11 +22,7 @@ public class GuiComponents {
             "Chess_klt45.svg", "Chess_kdt45.svg",
     };
 
-    private BufferedImage[] images = new BufferedImage[16];
-
-    public BufferedImage getImage(int colour, int piece) {
-        return getImage(colour + piece);
-    }
+    private final BufferedImage[] images = new BufferedImage[16];
 
     public BufferedImage getImage(int colouredPiece) {
         return images[colouredPiece];
@@ -38,17 +35,18 @@ public class GuiComponents {
         int piece = Piece.PAWN;
         try {
             for (final String fileName : svgFiles) {
-                final InputStream inputStream = GuiComponents.class.getResourceAsStream("/svg/" + fileName);
-                TranscoderInput transcoderInput = new TranscoderInput(inputStream);
-                BasicImageTranscoder imageTranscoder = new BasicImageTranscoder();
-                if (hints == null) {
-                    hints = new TranscodingHints(imageTranscoder.getTranscodingHints());
-                    hints.put(ImageTranscoder.KEY_USER_STYLESHEET_URI, GuiComponents.class.getResource("/svg/svg_hints.css").toURI().toString());
-                    hints.put(ImageTranscoder.KEY_WIDTH, (float) size);
+                final BasicImageTranscoder imageTranscoder = new BasicImageTranscoder();
+                try (InputStream inputStream = GuiComponents.class.getResourceAsStream("/svg/" + fileName)) {
+                    TranscoderInput transcoderInput = new TranscoderInput(inputStream);
+                    if (hints == null) {
+                        hints = new TranscodingHints(imageTranscoder.getTranscodingHints());
+                        hints.put(ImageTranscoder.KEY_USER_STYLESHEET_URI, Objects.requireNonNull(
+                                GuiComponents.class.getResource("/svg/svg_hints.css")).toURI().toString());
+                        hints.put(ImageTranscoder.KEY_WIDTH, (float) size);
+                    }
+                    imageTranscoder.setTranscodingHints(hints);
+                    imageTranscoder.transcode(transcoderInput, null);
                 }
-                imageTranscoder.setTranscodingHints(hints);
-                imageTranscoder.transcode(transcoderInput, null);
-                inputStream.close();
                 guiComponents.images[piece + colour] = imageTranscoder.getBufferedImage();
                 colour = colour == Piece.WHITE ? Piece.BLACK : Piece.WHITE;
                 if (colour == Piece.WHITE) {
