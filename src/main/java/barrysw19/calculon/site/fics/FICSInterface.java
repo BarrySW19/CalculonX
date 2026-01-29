@@ -25,6 +25,8 @@ import barrysw19.calculon.notation.FENUtils;
 import barrysw19.calculon.notation.PGNUtils;
 import barrysw19.calculon.notation.Style12;
 import barrysw19.calculon.opening.OpeningBook;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.digester3.Digester;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -148,11 +150,11 @@ public class FICSInterface {
 		String line;
 		try {
 			while ((line = reader.readLine()) != null) {
-				if (line.trim().length() == 0) {
-                    LOG.debug("Recv: '" + line + "'");
+				if (line.trim().isEmpty()) {
+                    LOG.debug("Recv: '{}'", line);
 					continue;
 				}
-                LOG.info("Recv: '" + line + "'");
+                LOG.info("Recv: '{}'", line);
 				for (ConnectionListener listener : listeners) {
 					listener.message(line);
 				}
@@ -226,7 +228,7 @@ public class FICSInterface {
 				blockCount = 1;
 			}
 		}
-		LOG.debug(">>> " + s);
+        LOG.debug(">>> {}", s);
 		out.println(s);
 	}
 
@@ -273,10 +275,10 @@ public class FICSInterface {
 				
 				if("rated".equals(args[args.length-4]) 
 						&& gameLength >= ficsConfig.getAcceptMin() && gameLength <= ficsConfig.getAcceptMax()) {
-					LOG.debug("Accepting: '" + s + "' " + gameLength + "s");
+                    LOG.debug("Accepting: '{}' {}s", s, gameLength);
 					send("accept");
 				} else {
-					LOG.debug("Rejecting: '" + s + "' " + gameLength + "s");
+                    LOG.debug("Rejecting: '{}' {}s", s, gameLength);
 					send("decline");
 				}
 				return;
@@ -391,14 +393,12 @@ public class FICSInterface {
 				};
 
 		public void message(String s) {
-			StringBuilder buf = new StringBuilder().append("{Game ").append(
-					gameNumber).append(" (");
-			buf.append(playingWhite ? ficsConfig.getLoginName() : opponent);
-			buf.append(" vs. ");
-			buf.append(!playingWhite ? ficsConfig.getLoginName() : opponent);
-			buf.append(") ");
-
-			String prefix = buf.toString();
+            String prefix = "{Game " +
+                    gameNumber + " (" +
+                    (playingWhite ? ficsConfig.getLoginName() : opponent) +
+                    " vs. " +
+                    (!playingWhite ? ficsConfig.getLoginName() : opponent) +
+                    ") ";
 			if (!s.startsWith(prefix)) {
 				return;
 			}
@@ -409,7 +409,7 @@ public class FICSInterface {
 			}
 
 			if (gameEnded) {
-				LOG.info("Game ends: " + s);
+                LOG.info("Game ends: {}", s);
 				currentBoard = null;
 				gameNumber = -1;
 				opponent = null;
@@ -444,8 +444,8 @@ public class FICSInterface {
                     clocks.put(Piece.BLACK, new ClockStatus(style12.getTimeInitial(), style12.getTimeIncrement()));
                     LOG.info("Game starts:" + clocks);
 				}
-                clocks.get(Piece.WHITE).setMsec(style12.getWhiteTime() * 1000);
-                clocks.get(Piece.BLACK).setMsec(style12.getBlackTime() * 1000);
+                clocks.get(Piece.WHITE).setMsec(style12.getWhiteTime() * 1000L);
+                clocks.get(Piece.BLACK).setMsec(style12.getBlackTime() * 1000L);
 			}
 			
 			if ( ! (style12.getMyRelationToGame() == Style12.REL_ME_TO_MOVE)) {
@@ -468,7 +468,7 @@ public class FICSInterface {
 				try {
 					PGNUtils.applyMove(currentBoard, style12.getPreviousMovePGN());
 				} catch (Exception x) {
-					LOG.error("Apply move failed: " + currentBoard + " " + style12.getPreviousMovePGN(), x);
+                    LOG.error("Apply move failed: {} {}", currentBoard, style12.getPreviousMovePGN(), x);
 				}
 			}
 			
@@ -487,7 +487,7 @@ public class FICSInterface {
 			if(bookMove != null) {
 				PGNUtils.applyMove(currentBoard, bookMove);
 				send(bookMove);
-				LOG.debug("Using book move: " + bookMove);
+                LOG.debug("Using book move: {}", bookMove);
 				return;
 			}
 			
@@ -500,21 +500,21 @@ public class FICSInterface {
                 }
                 Optional.ofNullable(clocks.get(myBoard.getPlayer())).ifPresent((cs) -> {
                     final int targetTime = cs.getTargetMoveTime();
-                    LOG.info("Set clock " + targetTime);
+                    LOG.info("Set clock {}", targetTime);
                     engine.setTargetTime(targetTime);
                 });
 
                 String bestMove = engine.getPreferredMove(myBoard);
                 if(bestMove != null) {
                     if(gameNumber != -1) {
-                        LOG.info("Board: " + FENUtils.generate(myBoard));
-                        LOG.info("Moving: " + PGNUtils.translateMove(myBoard, bestMove));
+                        LOG.info("Board: {}", FENUtils.generate(myBoard));
+                        LOG.info("Moving: {}", PGNUtils.translateMove(myBoard, bestMove));
                         if(currentBoard != null) {
                             PGNUtils.applyMove(currentBoard, PGNUtils.translateMove(myBoard, bestMove));
                         }
                         send(bestMove.toLowerCase());
                         if(currentBoard.getRepeatedCount() >= 3) {
-                            LOG.info("Claiming draw by 3-fold repitition (my move)");
+                            LOG.info("Claiming draw by 3-fold repetition (my move)");
                             send("draw");
                         }
                     } else {
@@ -554,7 +554,9 @@ public class FICSInterface {
 		}
 	}
 	
-	@SuppressWarnings("unused")
+	@Setter
+    @Getter
+    @SuppressWarnings("unused")
 	private static class ResponseBlock {
 		private int blockId;
 		private int responseCode;
@@ -579,27 +581,8 @@ public class FICSInterface {
 
 			data = buf.toString(); 
 		}
-		
-		public int getBlockId() {
-			return blockId;
-		}
-		public void setBlockId(int blockId) {
-			this.blockId = blockId;
-		}
-		public int getResponseCode() {
-			return responseCode;
-		}
-		public void setResponseCode(int responseCode) {
-			this.responseCode = responseCode;
-		}
-		public String getData() {
-			return data;
-		}
-		public void setData(String data) {
-			this.data = data;
-		}
 
-		/**
+        /**
 		 * Constructs a <code>String</code> with all attributes
 		 * in name = value format.
 		 *
